@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { calculateShipping } from '@/lib/shipping'
 
 export async function POST(req: NextRequest) {

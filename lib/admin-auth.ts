@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+﻿import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
 const SECRET = process.env.ADMIN_JWT_SECRET || 'streetdrop-admin-secret'

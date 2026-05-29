@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminFromCookies } from '@/lib/admin-auth'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any
 
 export async function GET() {

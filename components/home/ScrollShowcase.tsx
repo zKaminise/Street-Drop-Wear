@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRef } from 'react'
 import Image from 'next/image'
@@ -8,7 +8,7 @@ const STEPS = [
   {
     id: 1,
     label: 'Camiseta Lisa',
-    desc: 'Algodão 300g premium, lavado e pré-encolhido. Corte oversized exclusivo.',
+    desc: 'AlgodÃ£o 300g premium, lavado e prÃ©-encolhido. Corte oversized exclusivo.',
   },
   {
     id: 2,
@@ -18,17 +18,17 @@ const STEPS = [
   {
     id: 3,
     label: 'Produto Final',
-    desc: 'Impressão DTF de alta resolução com durabilidade premium lavagem após lavagem.',
+    desc: 'ImpressÃ£o DTF de alta resoluÃ§Ã£o com durabilidade premium lavagem apÃ³s lavagem.',
   },
   {
     id: 4,
     label: 'Embalagem Premium',
-    desc: 'Embalagem sustentável com identidade visual StreetDrop Wear.',
+    desc: 'Embalagem sustentÃ¡vel com identidade visual StreetDrop Wear.',
   },
   {
     id: 5,
     label: 'Entrega Expressa',
-    desc: 'Rastreamento em tempo real. Do nosso ateliê até a sua porta.',
+    desc: 'Rastreamento em tempo real. Do nosso ateliÃª atÃ© a sua porta.',
   },
 ]
 
@@ -64,13 +64,13 @@ export function ScrollShowcase() {
         <div className="flex-1 flex items-center justify-center px-4 overflow-hidden">
           <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center gap-6 lg:gap-16">
 
-            {/* ── VISUAL AREA ── */}
+            {/* â”€â”€ VISUAL AREA â”€â”€ */}
             <div className="flex-shrink-0 flex items-center justify-center relative w-full max-w-[280px] sm:max-w-[360px] h-[240px] sm:h-[320px]">
 
               {/* Ambient glow */}
               <div className="absolute inset-0 bg-brand-red/4 rounded-full blur-[70px]" />
 
-              {/* ── STEP 1-3: T-SHIRT ── */}
+              {/* â”€â”€ STEP 1-3: T-SHIRT â”€â”€ */}
               <motion.div
                 style={{ y: shirtY, scale: shirtScale, rotate: shirtRotate }}
                 className="relative z-10"
@@ -147,7 +147,7 @@ export function ScrollShowcase() {
                 </div>
               </motion.div>
 
-              {/* ── STEP 4: BOX ── */}
+              {/* â”€â”€ STEP 4: BOX â”€â”€ */}
               <motion.div
                 style={{ opacity: boxOpacity }}
                 className="absolute inset-0 flex items-center justify-center z-20"
@@ -197,7 +197,7 @@ export function ScrollShowcase() {
                 </div>
               </motion.div>
 
-              {/* ── STEP 5: TRUCK ── */}
+              {/* â”€â”€ STEP 5: TRUCK â”€â”€ */}
               <motion.div
                 style={{ opacity: truckOpacity, x: truckX }}
                 className="absolute inset-0 flex items-center justify-center z-30"
@@ -260,7 +260,7 @@ export function ScrollShowcase() {
               </motion.div>
             </div>
 
-            {/* ── STEP LIST ── */}
+            {/* â”€â”€ STEP LIST â”€â”€ */}
             <div className="flex-1 w-full max-w-sm lg:max-w-none">
               <div className="space-y-0.5">
                 {STEPS.map((step, i) => (

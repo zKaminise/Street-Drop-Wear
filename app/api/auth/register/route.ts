@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signCustomerToken, CUSTOMER_COOKIE_NAME } from '@/lib/customer-auth'
@@ -9,15 +9,15 @@ export async function POST(req: NextRequest) {
     const { name, email, password, phone, cpf } = await req.json()
 
     if (!name || !email || !password) {
-      return NextResponse.json({ error: 'Nome, e-mail e senha são obrigatórios.' }, { status: 400 })
+      return NextResponse.json({ error: 'Nome, e-mail e senha sÃ£o obrigatÃ³rios.' }, { status: 400 })
     }
     if (password.length < 6) {
-      return NextResponse.json({ error: 'A senha deve ter no mínimo 6 caracteres.' }, { status: 400 })
+      return NextResponse.json({ error: 'A senha deve ter no mÃ­nimo 6 caracteres.' }, { status: 400 })
     }
 
     const existing = await prisma.customer.findUnique({ where: { email } })
     if (existing) {
-      return NextResponse.json({ error: 'Este e-mail já está cadastrado.' }, { status: 409 })
+      return NextResponse.json({ error: 'Este e-mail jÃ¡ estÃ¡ cadastrado.' }, { status: 409 })
     }
 
     const hashed = await bcrypt.hash(password, 12)

@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+﻿import { prisma } from './prisma'
 
 export interface ShippingConfig {
   fixedShippingEnabled: boolean
@@ -25,7 +25,6 @@ const DEFAULTS: ShippingConfig = {
 
 export async function getShippingConfig(): Promise<ShippingConfig> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cfg = await (prisma as any).shippingConfig.findFirst()
     if (cfg) return cfg
   } catch {}

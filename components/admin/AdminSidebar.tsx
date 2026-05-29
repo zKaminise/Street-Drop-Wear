@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ const NAV = [
   { href: '/admin/bases', label: 'Bases (Camisetas)', icon: Shirt },
   { href: '/admin/estampas', label: 'Estampas', icon: Stamp },
   { href: '/admin/estoque', label: 'Estoque', icon: BarChart3 },
-  { href: '/admin/combinacoes', label: 'Combinações (Mockups)', icon: Layers },
+  { href: '/admin/combinacoes', label: 'CombinaÃ§Ãµes (Mockups)', icon: Layers },
   { href: '/admin/produtos', label: 'Produtos (DryFit/3D/Geek)', icon: Package },
   { href: '/admin/kits', label: 'Kits B2B', icon: FolderOpen },
   { href: '/admin/frete', label: 'Frete & Prazos', icon: Truck },
@@ -42,7 +42,7 @@ export function AdminSidebar() {
           </span>
           <span className="text-[10px] text-white/30 uppercase tracking-[0.3em]">Admin Panel</span>
         </Link>
-        {/* Close button – only on mobile */}
+        {/* Close button â€“ only on mobile */}
         <button
           onClick={() => setMobileOpen(false)}
           className="lg:hidden p-1.5 text-white/40 hover:text-white transition-colors cursor-pointer"
@@ -99,7 +99,7 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* ── Mobile hamburger button ── */}
+      {/* â”€â”€ Mobile hamburger button â”€â”€ */}
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-3 left-3 z-50 w-10 h-10 bg-[#111111] border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer shadow-lg"
@@ -108,7 +108,7 @@ export function AdminSidebar() {
         <Menu size={20} />
       </button>
 
-      {/* ── Mobile backdrop ── */}
+      {/* â”€â”€ Mobile backdrop â”€â”€ */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/70 z-40 lg:hidden"
@@ -116,12 +116,12 @@ export function AdminSidebar() {
         />
       )}
 
-      {/* ── Desktop sidebar (always visible) ── */}
+      {/* â”€â”€ Desktop sidebar (always visible) â”€â”€ */}
       <div className="hidden lg:block fixed top-0 left-0 bottom-0 z-40 w-64">
         {SidebarContent}
       </div>
 
-      {/* ── Mobile sidebar (slide-in drawer) ── */}
+      {/* â”€â”€ Mobile sidebar (slide-in drawer) â”€â”€ */}
       <div
         className={cn(
           'fixed top-0 left-0 bottom-0 z-50 w-64 lg:hidden transition-transform duration-300 ease-in-out',

@@ -1,4 +1,4 @@
-export type ProductCategory =
+﻿export type ProductCategory =
   | 'oversized'
   | 'camisetas'
   | 'dryfit'

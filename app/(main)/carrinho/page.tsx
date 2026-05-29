@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -25,7 +25,7 @@ export default function CarrinhoPage() {
             <ShoppingBag size={36} className="text-brand-gray-text" strokeWidth={1} />
           </div>
           <h1 className="heading-display text-4xl text-brand-white mb-3">CARRINHO VAZIO</h1>
-          <p className="text-brand-gray-text mb-8">Você ainda não adicionou nenhum produto.</p>
+          <p className="text-brand-gray-text mb-8">VocÃª ainda nÃ£o adicionou nenhum produto.</p>
           <Link href="/oversized" className="btn-primary group">
             <ShoppingBag size={18} />
             Explorar produtos
@@ -45,7 +45,7 @@ export default function CarrinhoPage() {
           className="mb-8 flex items-center justify-between"
         >
           <div>
-            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Revisão</span>
+            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">RevisÃ£o</span>
             <h1 className="heading-display text-[clamp(2.5rem,5vw,4rem)] text-brand-white mt-1">
               MEU CARRINHO
             </h1>
@@ -93,7 +93,7 @@ export default function CarrinhoPage() {
                         {item.product.name}
                       </Link>
                       <p className="text-xs text-brand-gray-text mt-1">
-                        {item.selectedColor.name} · Tamanho {item.selectedSize.label}
+                        {item.selectedColor.name} Â· Tamanho {item.selectedSize.label}
                       </p>
                       {item.customization?.stampName && (
                         <p className="text-xs text-brand-red/80 mt-0.5">
@@ -158,7 +158,7 @@ export default function CarrinhoPage() {
                     type="text"
                     placeholder="Cupom de desconto"
                     className="input-brand pl-9 text-sm"
-                    aria-label="Código de cupom"
+                    aria-label="CÃ³digo de cupom"
                   />
                 </div>
                 <button className="btn-outline-red px-4 text-xs flex-shrink-0">Aplicar</button>
@@ -174,12 +174,12 @@ export default function CarrinhoPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-gray-text">Frete</span>
                   <span className={shipping === 0 ? 'text-green-400 font-semibold' : 'text-brand-white'}>
-                    {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
+                    {shipping === 0 ? 'GrÃ¡tis' : formatPrice(shipping)}
                   </span>
                 </div>
                 {shipping > 0 && (
                   <p className="text-xs text-brand-gray-text/70 bg-white/5 px-3 py-2 border border-white/5">
-                    Faltam <span className="text-brand-white font-semibold">{formatPrice(199.9 - subtotal)}</span> para frete grátis
+                    Faltam <span className="text-brand-white font-semibold">{formatPrice(199.9 - subtotal)}</span> para frete grÃ¡tis
                   </p>
                 )}
               </div>

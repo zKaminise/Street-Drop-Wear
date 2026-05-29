@@ -1,11 +1,11 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import Image from 'next/image'
 import { Instagram, MessageCircle, Youtube, Mail, MapPin, Phone, ArrowRight } from 'lucide-react'
 import { getWhatsAppLink } from '@/lib/utils'
 
 const FOOTER_LINKS = {
   shop: [
-    { label: '🔥 Flash Sale', href: '/flash-sale' },
+    { label: 'ðŸ”¥ Flash Sale', href: '/flash-sale' },
     { label: 'Oversized', href: '/oversized' },
     { label: 'Camisetas Normais', href: '/camisetas' },
     { label: 'DryFit Fitness', href: '/dryfit' },
@@ -23,7 +23,7 @@ const FOOTER_LINKS = {
     { label: 'Como Personalizar', href: '/#como-funciona' },
     { label: 'Tabela de Medidas', href: '/sobre#medidas' },
     { label: 'Prazo de Entrega', href: '/sobre#entregas' },
-    { label: 'Política de Troca', href: '/sobre#trocas' },
+    { label: 'PolÃ­tica de Troca', href: '/sobre#trocas' },
     { label: 'Perguntas Frequentes', href: '/#faq' },
   ],
   account: [
@@ -35,7 +35,7 @@ const FOOTER_LINKS = {
 }
 
 export function Footer() {
-  const whatsappLink = getWhatsAppLink('Olá! Gostaria de saber mais sobre os produtos da StreetDrop Wear.')
+  const whatsappLink = getWhatsAppLink('OlÃ¡! Gostaria de saber mais sobre os produtos da StreetDrop Wear.')
 
   return (
     <footer className="bg-brand-graphite border-t border-white/8">
@@ -43,7 +43,7 @@ export function Footer() {
       <div className="bg-brand-red">
         <div className="container-brand py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="heading-display text-2xl text-brand-white">PRECISA DE UM ORÇAMENTO?</p>
+            <p className="heading-display text-2xl text-brand-white">PRECISA DE UM ORÃ‡AMENTO?</p>
             <p className="text-sm text-white/80 mt-0.5">Fale direto com a gente no WhatsApp</p>
           </div>
           <a
@@ -177,7 +177,7 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2.5 text-sm text-brand-gray-text">
                 <MapPin size={14} className="text-brand-red mt-0.5 flex-shrink-0" />
-                <span>São Paulo, SP<br />Brasil</span>
+                <span>SÃ£o Paulo, SP<br />Brasil</span>
               </li>
             </ul>
 
@@ -201,7 +201,7 @@ export function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/5">
         <div className="container-brand py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-brand-gray-text/60">
-          <p>© 2024 StreetDrop Wear. Todos os direitos reservados.</p>
+          <p>Â© 2024 StreetDrop Wear. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
             <Link href="/sobre#privacidade" className="hover:text-brand-white transition-colors">
               Privacidade

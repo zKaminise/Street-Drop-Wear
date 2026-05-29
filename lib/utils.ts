@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx'
+﻿import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -16,11 +16,11 @@ export function formatDiscount(original: number, current: number): number {
   return Math.round(((original - current) / original) * 100)
 }
 
-export function slugify(text: string): string {
+export function slugify(text: string) {
   return text
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
@@ -38,7 +38,7 @@ export function truncate(text: string, maxLength: number): string {
 
 export function getStockLabel(stock: number): string {
   if (stock === 0) return 'Esgotado'
-  if (stock <= 5) return `Últimas ${stock} unidades`
+  if (stock <= 5) return `Ãšltimas ${stock} unidades`
   if (stock <= 10) return 'Poucas unidades'
   return 'Em estoque'
 }
@@ -55,9 +55,9 @@ export function getStatusColor(status: string): string {
 
 export function getOrderStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'Aguardando confirmação',
+    pending: 'Aguardando confirmaÃ§Ã£o',
     confirmed: 'Confirmado',
-    in_production: 'Em produção',
+    in_production: 'Em produÃ§Ã£o',
     shipped: 'Enviado',
     delivered: 'Entregue',
     cancelled: 'Cancelado',

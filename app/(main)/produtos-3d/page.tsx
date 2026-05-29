@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -44,7 +44,7 @@ function apiToProduct(p: ApiProduct): Product {
   }
 }
 
-const SUBCATEGORIES = ['Chaveiros', 'Fitness', 'Geek', 'Decoração', 'Brindes', 'Medalhas', 'Troféus', 'Acessórios']
+const SUBCATEGORIES = ['Chaveiros', 'Fitness', 'Geek', 'DecoraÃ§Ã£o', 'Brindes', 'Medalhas', 'TrofÃ©us', 'AcessÃ³rios']
 
 export default function Produtos3DPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
@@ -67,15 +67,15 @@ export default function Produtos3DPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-violet-900/10 to-transparent" />
         <div className="container-brand py-14 relative">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-violet-400 text-xs font-bold uppercase tracking-[0.3em]">Impressão</span>
+            <span className="text-violet-400 text-xs font-bold uppercase tracking-[0.3em]">ImpressÃ£o</span>
             <h1 className="heading-display text-[clamp(3rem,7vw,6rem)] text-brand-white mt-2 leading-none">
               PRODUTOS <span className="text-violet-400">3D</span>
             </h1>
             <p className="text-brand-gray-text mt-3 max-w-lg">
-              Chaveiros, medalhas, troféus, brindes e decoração impressos em PLA premium. Personalize com seu logo, arte ou texto.
+              Chaveiros, medalhas, trofÃ©us, brindes e decoraÃ§Ã£o impressos em PLA premium. Personalize com seu logo, arte ou texto.
             </p>
             <div className="flex items-center gap-4 mt-5">
-              {['PLA Premium', 'Multicolorido', 'Mín. 10 un.', 'Prazo 5-7 dias'].map(tag => (
+              {['PLA Premium', 'Multicolorido', 'MÃ­n. 10 un.', 'Prazo 5-7 dias'].map(tag => (
                 <span key={tag} className="text-xs text-violet-400/80 bg-violet-400/10 border border-violet-400/20 px-3 py-1">
                   {tag}
                 </span>

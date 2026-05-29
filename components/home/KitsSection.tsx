@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -9,7 +9,7 @@ const AUDIENCES = [
   {
     icon: Building2,
     title: 'Empresas e Startups',
-    desc: 'Uniformize sua equipe com camisetas personalizadas de alta qualidade. Fortaleça a identidade da sua marca.',
+    desc: 'Uniformize sua equipe com camisetas personalizadas de alta qualidade. FortaleÃ§a a identidade da sua marca.',
     minQty: '10 unidades',
     from: 'R$ 79,90/un',
     color: 'text-blue-400',
@@ -18,7 +18,7 @@ const AUDIENCES = [
   {
     icon: Dumbbell,
     title: 'Academias e Studios',
-    desc: 'Dry-fit técnico personalizado para sua equipe e alunos. Crossfit, musculação, pilates e artes marciais.',
+    desc: 'Dry-fit tÃ©cnico personalizado para sua equipe e alunos. Crossfit, musculaÃ§Ã£o, pilates e artes marciais.',
     minQty: '20 unidades',
     from: 'R$ 89,90/un',
     color: 'text-brand-red',
@@ -27,7 +27,7 @@ const AUDIENCES = [
   {
     icon: GraduationCap,
     title: 'Escolas e Eventos',
-    desc: 'Interclasse, excursões, formaturas e eventos. Cores por turma, numeração individual e prazos cumpridos.',
+    desc: 'Interclasse, excursÃµes, formaturas e eventos. Cores por turma, numeraÃ§Ã£o individual e prazos cumpridos.',
     minQty: '30 unidades',
     from: 'R$ 49,90/un',
     color: 'text-yellow-400',
@@ -36,7 +36,7 @@ const AUDIENCES = [
   {
     icon: Star,
     title: 'Corridas e Festivais',
-    desc: 'Camiseta técnica para corredores, item colecionável para festivais e lançamentos. Volume com desconto.',
+    desc: 'Camiseta tÃ©cnica para corredores, item colecionÃ¡vel para festivais e lanÃ§amentos. Volume com desconto.',
     minQty: '50 unidades',
     from: 'R$ 39,90/un',
     color: 'text-emerald-400',
@@ -45,7 +45,7 @@ const AUDIENCES = [
 ]
 
 export function KitsSection() {
-  const whatsappLink = getWhatsAppLink('Olá! Quero solicitar um orçamento para kit personalizado.')
+  const whatsappLink = getWhatsAppLink('OlÃ¡! Quero solicitar um orÃ§amento para kit personalizado.')
 
   return (
     <section className="section-padding bg-brand-black relative overflow-hidden">
@@ -66,14 +66,14 @@ export function KitsSection() {
           className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12"
         >
           <div>
-            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Soluções B2B</span>
+            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">SoluÃ§Ãµes B2B</span>
             <h2 className="heading-display text-[clamp(2.5rem,5vw,4rem)] text-brand-white mt-3">
               KITS PARA EMPRESAS,<br />
               <span className="text-gradient-red">ACADEMIAS E EVENTOS</span>
             </h2>
             <p className="text-brand-gray-text mt-4 max-w-xl">
-              Mais de 500 empresas e organizações confiam na StreetDrop para seus uniformes e brindes.
-              Do design à entrega, cuidamos de tudo.
+              Mais de 500 empresas e organizaÃ§Ãµes confiam na StreetDrop para seus uniformes e brindes.
+              Do design Ã  entrega, cuidamos de tudo.
             </p>
           </div>
           <Link href="/kits" className="btn-outline-red flex-shrink-0 group">
@@ -101,7 +101,7 @@ export function KitsSection() {
               </p>
               <div className="border-t border-white/5 pt-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-brand-gray-text">Mínimo</span>
+                  <span className="text-xs text-brand-gray-text">MÃ­nimo</span>
                   <span className={`text-xs font-bold ${audience.color}`}>{audience.minQty}</span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -122,10 +122,10 @@ export function KitsSection() {
         >
           <div>
             <h3 className="heading-display text-2xl text-brand-white">
-              PRONTO PARA SOLICITAR SEU ORÇAMENTO?
+              PRONTO PARA SOLICITAR SEU ORÃ‡AMENTO?
             </h3>
             <p className="text-brand-gray-text text-sm mt-1">
-              Resposta em até 2 horas. Sem burocracia.
+              Resposta em atÃ© 2 horas. Sem burocracia.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">

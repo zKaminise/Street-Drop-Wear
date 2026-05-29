@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signCustomerToken, CUSTOMER_COOKIE_NAME } from '@/lib/customer-auth'
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { email, password } = await req.json()
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'E-mail e senha são obrigatórios.' }, { status: 400 })
+      return NextResponse.json({ error: 'E-mail e senha sÃ£o obrigatÃ³rios.' }, { status: 400 })
     }
 
     const customer = await prisma.customer.findUnique({ where: { email } })

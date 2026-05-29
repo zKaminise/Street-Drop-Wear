@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFromCookies } from '@/lib/admin-auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     formData = await req.formData()
   } catch {
-    return NextResponse.json({ error: 'Form data inválido' }, { status: 400 })
+    return NextResponse.json({ error: 'Form data invÃ¡lido' }, { status: 400 })
   }
 
   const file = formData.get('file') as File | null
@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
   // Validate MIME type
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
-      { error: `Tipo inválido: ${file.type}. Use JPG, PNG, WebP, SVG ou GIF.` },
+      { error: `Tipo invÃ¡lido: ${file.type}. Use JPG, PNG, WebP, SVG ou GIF.` },
       { status: 400 }
     )
   }
 
   // Validate size
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    return NextResponse.json({ error: `Arquivo muito grande. Máximo ${MAX_SIZE_MB} MB.` }, { status: 400 })
+    return NextResponse.json({ error: `Arquivo muito grande. MÃ¡ximo ${MAX_SIZE_MB} MB.` }, { status: 400 })
   }
 
   const bytes = await file.arrayBuffer()

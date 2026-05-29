@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -101,8 +101,8 @@ function FlashCard({ product }: { product: FlashProduct }) {
     const firstVariant = product.variants.find(v => v.stock > 0)
     const color = firstVariant?.color
       ? { name: firstVariant.color, hex: firstVariant.colorHex ?? '#1A1A1A' }
-      : { name: 'Padrão', hex: '#1A1A1A' }
-    const size = { label: firstVariant?.size ?? 'Único', available: true }
+      : { name: 'PadrÃ£o', hex: '#1A1A1A' }
+    const size = { label: firstVariant?.size ?? 'Ãšnico', available: true }
     addItem(
       {
         id: product.id, slug: product.slug, name: product.name,
@@ -145,7 +145,7 @@ function FlashCard({ product }: { product: FlashProduct }) {
               {hoverImage && (
                 <Image
                   src={hoverImage}
-                  alt={`${product.name} – detalhe`}
+                  alt={`${product.name} â€“ detalhe`}
                   fill
                   className={`object-cover transition-all duration-500 ${hovered ? 'opacity-100' : 'opacity-0'}`}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -275,13 +275,13 @@ export default function FlashSalePage() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Zap size={20} className="text-yellow-300 fill-yellow-300" />
-              <span className="text-yellow-300 text-xs font-black uppercase tracking-[0.3em]">Oferta Relâmpago</span>
+              <span className="text-yellow-300 text-xs font-black uppercase tracking-[0.3em]">Oferta RelÃ¢mpago</span>
             </div>
             <h1 className="heading-display text-[clamp(3rem,8vw,7rem)] text-white leading-none">
               FLASH<br />SALE
             </h1>
             <p className="text-white/80 mt-3 max-w-sm">
-              Promoções por tempo limitado. Garanta antes que acabe!
+              PromoÃ§Ãµes por tempo limitado. Garanta antes que acabe!
             </p>
           </div>
 
@@ -342,9 +342,9 @@ export default function FlashSalePage() {
       <div className="border-t border-white/5 bg-brand-graphite">
         <div className="container-brand py-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { icon: Zap, title: 'Promoção real', desc: 'Descontos diretos no preço, sem artifícios.' },
-            { icon: Clock, title: 'Tempo limitado', desc: 'As ofertas expiram. Não deixe para depois.' },
-            { icon: ShoppingBag, title: 'Mesmo prazo', desc: 'Produção e entrega nos prazos habituais.' },
+            { icon: Zap, title: 'PromoÃ§Ã£o real', desc: 'Descontos diretos no preÃ§o, sem artifÃ­cios.' },
+            { icon: Clock, title: 'Tempo limitado', desc: 'As ofertas expiram. NÃ£o deixe para depois.' },
+            { icon: ShoppingBag, title: 'Mesmo prazo', desc: 'ProduÃ§Ã£o e entrega nos prazos habituais.' },
           ].map(item => (
             <div key={item.title} className="flex items-start gap-3">
               <div className="w-8 h-8 bg-brand-red/10 flex items-center justify-center flex-shrink-0">

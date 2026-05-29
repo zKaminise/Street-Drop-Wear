@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -46,7 +46,7 @@ function apiToProduct(p: ApiProduct): Product {
 
 const FEATURES = [
   { icon: Zap, label: 'Alta performance', desc: 'Tecido dry-fit 150g ultra leve' },
-  { icon: Shield, label: 'Proteção UV50+', desc: 'Bloqueio solar profissional' },
+  { icon: Shield, label: 'ProteÃ§Ã£o UV50+', desc: 'Bloqueio solar profissional' },
   { icon: Droplets, label: 'Anti-odor', desc: 'Tecnologia antimicrobial' },
 ]
 
@@ -74,7 +74,7 @@ export default function DryfitPage() {
               DRY<span className="text-blue-400">FIT</span>
             </h1>
             <p className="text-brand-gray-text mt-3 max-w-lg">
-              Desenvolvido para quem não para. Tecido técnico premium para crossfit, musculação, corrida e qualquer treino intenso.
+              Desenvolvido para quem nÃ£o para. Tecido tÃ©cnico premium para crossfit, musculaÃ§Ã£o, corrida e qualquer treino intenso.
             </p>
             <div className="flex flex-wrap gap-6 mt-6">
               {FEATURES.map(f => (
@@ -95,7 +95,7 @@ export default function DryfitPage() {
       <div className="container-brand pt-6">
         <div className="bg-blue-400/5 border border-blue-400/20 px-5 py-3 text-sm text-blue-300/80 flex items-center gap-2">
           <span className="font-bold text-blue-400">Info:</span>
-          Produtos dry-fit não possuem personalização de estampa. Escolha modelo, cor, tamanho e quantidade.
+          Produtos dry-fit nÃ£o possuem personalizaÃ§Ã£o de estampa. Escolha modelo, cor, tamanho e quantidade.
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRef } from 'react'
 import Link from 'next/link'
@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section ref={ref} className="relative min-h-[100svh] flex items-center overflow-hidden bg-brand-black">
 
-      {/* Background grid – slow parallax */}
+      {/* Background grid â€“ slow parallax */}
       <motion.div
         style={{
           y: gridY,
@@ -34,7 +34,7 @@ export function Hero() {
         className="absolute inset-0 opacity-5 pointer-events-none"
       />
 
-      {/* Red atmospheric glow – expands on scroll */}
+      {/* Red atmospheric glow â€“ expands on scroll */}
       <motion.div
         style={{ scale: glowScale, opacity: glowOpacity }}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-red rounded-full blur-[140px] pointer-events-none"
@@ -42,7 +42,7 @@ export function Hero() {
       {/* Secondary accent glow */}
       <div className="absolute top-[20%] right-[20%] w-[200px] h-[200px] bg-brand-red/3 rounded-full blur-[80px] pointer-events-none" />
 
-      {/* ─── MAIN CONTENT ─── */}
+      {/* â”€â”€â”€ MAIN CONTENT â”€â”€â”€ */}
       <div className="container-brand w-full py-24 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6">
 
         {/* Text Side */}
@@ -108,8 +108,8 @@ export function Hero() {
           >
             {[
               { value: '10k+', label: 'Clientes' },
-              { value: '4.9★', label: 'Avaliação' },
-              { value: '48h', label: 'Produção express' },
+              { value: '4.9â˜…', label: 'AvaliaÃ§Ã£o' },
+              { value: '48h', label: 'ProduÃ§Ã£o express' },
             ].map(stat => (
               <div key={stat.label} className="text-center">
                 <p className="heading-display text-2xl text-brand-white">{stat.value}</p>
@@ -119,7 +119,7 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* T-Shirt Visual – stronger parallax */}
+        {/* T-Shirt Visual â€“ stronger parallax */}
         <motion.div
           style={{ y: shirtY, scale: shirtScale, rotate: shirtRotate }}
           className="flex-1 flex items-center justify-center order-1 lg:order-2 w-full"
@@ -146,7 +146,7 @@ export function Hero() {
               transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
               className="absolute top-[8%] -left-4 sm:-left-8 glass-card px-3 py-2 text-xs whitespace-nowrap"
             >
-              <span className="text-green-400 font-bold">●</span>
+              <span className="text-green-400 font-bold">â—</span>
               <span className="text-brand-white ml-1.5">300g Premium</span>
             </motion.div>
 
@@ -156,7 +156,7 @@ export function Hero() {
               className="absolute bottom-[18%] -right-4 sm:-right-8 glass-card px-3 py-2 text-xs whitespace-nowrap"
             >
               <Star size={11} className="inline text-brand-red mr-1" />
-              <span className="text-brand-white">Personalizável</span>
+              <span className="text-brand-white">PersonalizÃ¡vel</span>
             </motion.div>
 
             <motion.div
@@ -190,7 +190,7 @@ export function Hero() {
   )
 }
 
-/** Premium oversized t-shirt – BACK VIEW silhouette with logo overlaid */
+/** Premium oversized t-shirt â€“ BACK VIEW silhouette with logo overlaid */
 function OversizedShirtBack() {
   return (
     <div className="relative w-full">
@@ -204,7 +204,7 @@ function OversizedShirtBack() {
         {/* Floor shadow */}
         <ellipse cx="210" cy="480" rx="148" ry="10" fill="rgba(0,0,0,0.65)" />
 
-        {/* ── SHIRT BODY ── */}
+        {/* â”€â”€ SHIRT BODY â”€â”€ */}
         {/* Main back panel */}
         <path
           d="M 168,50
@@ -225,7 +225,7 @@ function OversizedShirtBack() {
           strokeWidth="1"
         />
 
-        {/* Neck hole (back – small oval) */}
+        {/* Neck hole (back â€“ small oval) */}
         <path
           d="M 168,50 Q 210,72 252,50"
           fill="#0E0E0E"
@@ -277,7 +277,7 @@ function OversizedShirtBack() {
         <rect x="118" y="155" width="184" height="90" rx="3" fill="rgba(225,6,0,0.03)" />
       </svg>
 
-      {/* ── LOGO OVERLAY – positioned over the shirt's back area ── */}
+      {/* â”€â”€ LOGO OVERLAY â€“ positioned over the shirt's back area â”€â”€ */}
       <div
         className="absolute pointer-events-none"
         style={{
@@ -296,7 +296,7 @@ function OversizedShirtBack() {
         />
       </div>
 
-      {/* ── SMALL "WEAR" BELOW LOGO ── */}
+      {/* â”€â”€ SMALL "WEAR" BELOW LOGO â”€â”€ */}
       <div
         className="absolute pointer-events-none flex justify-center"
         style={{ left: '25%', top: '54%', width: '50%' }}

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,7 +18,7 @@ const COLORS_AVAILABLE = [
 
 const SIZES_AVAILABLE = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
 const PRICE_RANGES = [
-  { label: 'Até R$ 60', min: 0, max: 60 },
+  { label: 'AtÃ© R$ 60', min: 0, max: 60 },
   { label: 'R$ 60 - R$ 100', min: 60, max: 100 },
   { label: 'R$ 100 - R$ 150', min: 100, max: 150 },
   { label: 'Acima de R$ 150', min: 150, max: 9999 },
@@ -120,10 +120,10 @@ export function ProductFilters({
           className="input-brand text-sm cursor-pointer"
           aria-label="Ordenar produtos"
         >
-          <option value="relevance">Relevância</option>
+          <option value="relevance">RelevÃ¢ncia</option>
           <option value="newest">Mais novos</option>
-          <option value="price_asc">Menor preço</option>
-          <option value="price_desc">Maior preço</option>
+          <option value="price_asc">Menor preÃ§o</option>
+          <option value="price_desc">Maior preÃ§o</option>
           <option value="bestseller">Mais vendidos</option>
         </select>
       </div>
@@ -222,7 +222,7 @@ export function ProductFilters({
       {/* Price */}
       <FilterSection
         id="preco"
-        title="Faixa de Preço"
+        title="Faixa de PreÃ§o"
         open={openSection.includes('preco')}
         onToggle={() => toggleSection('preco')}
       >
@@ -249,7 +249,7 @@ export function ProductFilters({
       <div className="pt-4 space-y-3">
         {[
           { key: 'onlyInStock', label: 'Apenas em estoque' },
-          { key: 'onlyPersonalizable', label: 'Personalizáveis' },
+          { key: 'onlyPersonalizable', label: 'PersonalizÃ¡veis' },
           { key: 'onlyNew', label: 'Novidades' },
         ].map(toggle => (
           <label

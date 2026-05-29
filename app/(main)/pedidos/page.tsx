@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -35,8 +35,8 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: 'Recebido', PAYMENT_PENDING: 'Ag. Pagamento', PAYMENT_APPROVED: 'Pago',
-  IN_PREPARATION: 'Em Preparação', PRODUCED: 'Produzido', AWAITING_SHIPMENT: 'Ag. Envio',
-  SHIPPED: 'Enviado', IN_TRANSIT: 'Em Trânsito', DELIVERED: 'Entregue', CANCELLED: 'Cancelado',
+  IN_PREPARATION: 'Em PreparaÃ§Ã£o', PRODUCED: 'Produzido', AWAITING_SHIPMENT: 'Ag. Envio',
+  SHIPPED: 'Enviado', IN_TRANSIT: 'Em TrÃ¢nsito', DELIVERED: 'Entregue', CANCELLED: 'Cancelado',
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -94,7 +94,7 @@ export default function PedidosPage() {
             <ChevronRight size={14} />
             <span className="text-brand-white">Pedidos</span>
           </div>
-          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Histórico</span>
+          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">HistÃ³rico</span>
           <h1 className="heading-display text-[clamp(2.5rem,5vw,4rem)] text-brand-white mt-1">MEUS PEDIDOS</h1>
         </motion.div>
 
@@ -107,7 +107,7 @@ export default function PedidosPage() {
         ) : orders.length === 0 ? (
           <div className="text-center py-20">
             <Package size={48} className="text-brand-gray-text mx-auto mb-4" strokeWidth={1} />
-            <p className="text-brand-gray-text mb-6">Você ainda não fez nenhum pedido.</p>
+            <p className="text-brand-gray-text mb-6">VocÃª ainda nÃ£o fez nenhum pedido.</p>
             <Link href="/oversized" className="btn-primary">Explorar produtos</Link>
           </div>
         ) : (
@@ -185,7 +185,7 @@ export default function PedidosPage() {
                       <button
                         onClick={(e) => { e.stopPropagation(); setShowTimeline(s => !s) }}
                         className={`p-2 transition-colors cursor-pointer ${showTimeline ? 'text-brand-red' : 'text-brand-gray-text hover:text-brand-white'}`}
-                        title="Histórico do pedido"
+                        title="HistÃ³rico do pedido"
                       >
                         <History size={16} />
                       </button>
@@ -213,14 +213,14 @@ export default function PedidosPage() {
                   {selectedOrder.estimatedDelivery && (
                     <p className="text-xs text-brand-gray-text flex items-center gap-1.5">
                       <Truck size={12} className="text-brand-red" />
-                      Previsão de entrega: <span className="text-brand-white">{selectedOrder.estimatedDelivery}</span>
+                      PrevisÃ£o de entrega: <span className="text-brand-white">{selectedOrder.estimatedDelivery}</span>
                     </p>
                   )}
 
                   {/* Timeline */}
                   {showTimeline && selectedOrder.statusHistory && (
                     <div className="bg-black/20 border border-white/5 p-4">
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-4">Histórico</p>
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-4">HistÃ³rico</p>
                       <OrderTimeline history={selectedOrder.statusHistory} />
                     </div>
                   )}
@@ -242,8 +242,8 @@ export default function PedidosPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-brand-white font-semibold truncate">{item.productName}</p>
                             <p className="text-brand-gray-text text-xs">
-                              {[item.colorName, item.size, item.stampName ? `Estampa: ${item.stampName}` : '', `×${item.quantity}`]
-                                .filter(Boolean).join(' · ')}
+                              {[item.colorName, item.size, item.stampName ? `Estampa: ${item.stampName}` : '', `Ã—${item.quantity}`]
+                                .filter(Boolean).join(' Â· ')}
                             </p>
                           </div>
                           <span className="text-brand-white font-bold flex-shrink-0">{formatPrice(item.totalPrice)}</span>
@@ -256,7 +256,7 @@ export default function PedidosPage() {
                   <div className="border-t border-white/10 pt-4 space-y-2">
                     {[
                       { label: 'Subtotal', value: formatPrice(selectedOrder.subtotal) },
-                      { label: 'Frete', value: selectedOrder.shippingCost === 0 ? 'Grátis' : formatPrice(selectedOrder.shippingCost) },
+                      { label: 'Frete', value: selectedOrder.shippingCost === 0 ? 'GrÃ¡tis' : formatPrice(selectedOrder.shippingCost) },
                       ...(selectedOrder.discount > 0 ? [{ label: 'Desconto', value: `-${formatPrice(selectedOrder.discount)}`, red: true }] : []),
                       { label: 'Total', value: formatPrice(selectedOrder.total), bold: true },
                     ].map(row => (

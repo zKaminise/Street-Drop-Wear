@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { getCustomerFromCookies } from '@/lib/customer-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const payload = await getCustomerFromCookies()
-  if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (!payload) return NextResponse.json({ error: 'NÃ£o autenticado' }, { status: 401 })
 
   const addresses = await prisma.address.findMany({
     where: { customerId: payload.id },
@@ -15,12 +15,12 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const payload = await getCustomerFromCookies()
-  if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (!payload) return NextResponse.json({ error: 'NÃ£o autenticado' }, { status: 401 })
 
   const { label, zipCode, street, number, complement, district, city, state, isDefault } = await req.json()
 
   if (!zipCode || !street || !number || !district || !city || !state) {
-    return NextResponse.json({ error: 'Campos obrigatórios faltando.' }, { status: 400 })
+    return NextResponse.json({ error: 'Campos obrigatÃ³rios faltando.' }, { status: 400 })
   }
 
   // If setting as default, unset others first

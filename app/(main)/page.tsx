@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Hero } from '@/components/home/Hero'
 import { ProductWorlds } from '@/components/home/ProductWorlds'
 import { ScrollShowcase } from '@/components/home/ScrollShowcase'
@@ -9,7 +9,7 @@ import { FAQ } from '@/components/home/FAQ'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
 
 export const metadata: Metadata = {
-  title: 'StreetDrop Wear — Camisetas Personalizadas & Streetwear Premium',
+  title: 'StreetDrop Wear â€” Camisetas Personalizadas & Streetwear Premium',
 }
 
 export default function HomePage() {

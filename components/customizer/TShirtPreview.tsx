@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -70,7 +70,7 @@ function StampDesign({ slug, colorHex, onBack = false }: { slug: string; colorHe
   if (slug === 'tokyo-night') return (
     <g>
       <rect x={onBack ? 98 : 105} y="125" width={onBack ? 104 : 90} height={onBack ? 104 : 90} fill="transparent" stroke={accent} strokeWidth="1" strokeDasharray="3 3" />
-      <text x="150" y="165" textAnchor="middle" fill={accent} fontSize={onBack ? 16 : 14} fontFamily="Arial Black" letterSpacing="2">東京</text>
+      <text x="150" y="165" textAnchor="middle" fill={accent} fontSize={onBack ? 16 : 14} fontFamily="Arial Black" letterSpacing="2">æ±äº¬</text>
       <text x="150" y="183" textAnchor="middle" fill={textColor} fontSize="9" fontFamily="Arial" letterSpacing="4">TOKYO</text>
       <text x="150" y="198" textAnchor="middle" fill={accent} fontSize="9" fontFamily="Arial" letterSpacing="4">NIGHT</text>
     </g>
@@ -173,7 +173,7 @@ export function TShirtPreview({
             <path d={sleevePath.right} fill="rgba(0,0,0,0.18)" />
           </g>
 
-          {/* Collar — front only */}
+          {/* Collar â€” front only */}
           {!isBack && (
             <path d="M116 65 Q150 94 184 65" fill="none" stroke={strokeColor} strokeWidth="1.5" />
           )}

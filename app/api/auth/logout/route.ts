@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { CUSTOMER_COOKIE_NAME } from '@/lib/customer-auth'
 
