@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-black: #0B0B0D;
+  --color-graphite: #161616;
+  --color-red: #E10600;
+  --color-red-dark: #B80000;
+  --color-white: #F5F5F2;
+  --color-gray-light: #E5E5E5;
+  --color-gray-text: #6B6B6B;
+  --header-height: 72px;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  font-family: var(--font-space), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background-color: var(--color-red);
+  color: var(--color-white);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-graphite);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-text);
+}
+
+@layer components {
+  .container-brand {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+
+  .heading-display {
+    font-family: var(--font-bebas), Impact, sans-serif;
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-red text-brand-white font-semibold rounded-none uppercase tracking-wider text-sm transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-primary:hover {
+    @apply bg-brand-red-dark;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border border-brand-white/30 text-brand-white font-semibold rounded-none uppercase tracking-wider text-sm transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-secondary:hover {
+    @apply border-brand-white bg-brand-white/5;
+  }
+
+  .btn-outline-red {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border border-brand-red text-brand-red font-semibold rounded-none uppercase tracking-wider text-sm transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-outline-red:hover {
+    @apply bg-brand-red text-brand-white;
+  }
+
+  .card-product {
+    @apply bg-brand-graphite border border-white/5 overflow-hidden cursor-pointer transition-all duration-300;
+  }
+
+  .card-product:hover {
+    @apply border-brand-red/30 transform -translate-y-1;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider;
+  }
+
+  .input-brand {
+    @apply w-full bg-white/5 border border-white/10 text-brand-white placeholder:text-brand-gray-text px-4 py-3 text-sm outline-none transition-all duration-200 focus:border-brand-red;
+  }
+
+  .label-brand {
+    @apply block text-xs font-semibold uppercase tracking-wider text-brand-gray-text mb-2;
+  }
+
+  .divider {
+    @apply w-full h-px bg-white/10;
+  }
+
+  .text-gradient-red {
+    background: linear-gradient(135deg, #E10600, #FF3300);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-card {
+    background: rgba(22, 22, 22, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
