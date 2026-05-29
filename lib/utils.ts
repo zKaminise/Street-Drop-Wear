@@ -77,8 +77,12 @@ export function getOrderStatusColor(status: string): string {
   return colors[status] || 'text-gray-400 bg-gray-400/10'
 }
 
-export const WHATSAPP_NUMBER = '5511999999999'
+export const WHATSAPP_NUMBER = '5534998275292'
 export const WHATSAPP_BASE = `https://wa.me/${WHATSAPP_NUMBER}`
+export const INSTAGRAM_URL = 'https://www.instagram.com/streetdrop_wear/'
+export const TIKTOK_URL = 'https://www.tiktok.com/@streetdropwear'
+export const EMAIL = 'streetdropwear@gmail.com'
+export const PHONE_DISPLAY = '(34) 99827-5292'
 
 export function getWhatsAppLink(message: string): string {
   return `${WHATSAPP_BASE}?text=${encodeURIComponent(message)}`

@@ -1,7 +1,7 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, MessageCircle, Youtube, Mail, MapPin, Phone, ArrowRight } from 'lucide-react'
-import { getWhatsAppLink } from '@/lib/utils'
+import { Instagram, MessageCircle, Mail, MapPin, Phone, ArrowRight } from 'lucide-react'
+import { getWhatsAppLink, INSTAGRAM_URL, TIKTOK_URL, EMAIL, PHONE_DISPLAY } from '@/lib/utils'
 
 const FOOTER_LINKS = {
   shop: [
@@ -32,6 +32,15 @@ const FOOTER_LINKS = {
     { label: 'Login / Cadastro', href: '/login' },
     { label: 'Sobre a StreetDrop', href: '/sobre' },
   ],
+}
+
+// TikTok icon (Lucide doesn't include it)
+function TikTokIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.21a8.16 8.16 0 0 0 4.77 1.52V7.27a4.85 4.85 0 0 1-1-.58z" />
+    </svg>
+  )
 }
 
 export function Footer() {
@@ -79,13 +88,22 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://instagram.com/streetdropwear"
+                href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 bg-white/5 hover:bg-brand-red transition-colors flex items-center justify-center cursor-pointer"
-                aria-label="Instagram"
+                aria-label="Instagram @streetdrop_wear"
               >
                 <Instagram size={16} className="text-brand-white" />
+              </a>
+              <a
+                href={TIKTOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 bg-white/5 hover:bg-[#010101] hover:border hover:border-white/20 transition-colors flex items-center justify-center cursor-pointer"
+                aria-label="TikTok @streetdropwear"
+              >
+                <TikTokIcon size={16} />
               </a>
               <a
                 href={whatsappLink}
@@ -96,15 +114,6 @@ export function Footer() {
               >
                 <MessageCircle size={16} className="text-brand-white" />
               </a>
-              <a
-                href="https://youtube.com/@streetdropwear"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 bg-white/5 hover:bg-red-600 transition-colors flex items-center justify-center cursor-pointer"
-                aria-label="YouTube"
-              >
-                <Youtube size={16} className="text-brand-white" />
-              </a>
             </div>
           </div>
 
@@ -114,10 +123,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {FOOTER_LINKS.shop.map(link => (
                 <li key={link.href + link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-brand-gray-text hover:text-brand-white transition-colors"
-                  >
+                  <Link href={link.href} className="text-sm text-brand-gray-text hover:text-brand-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -131,10 +137,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {FOOTER_LINKS.kits.map((link, i) => (
                 <li key={i}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-brand-gray-text hover:text-brand-white transition-colors"
-                  >
+                  <Link href={link.href} className="text-sm text-brand-gray-text hover:text-brand-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -148,10 +151,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {FOOTER_LINKS.help.map(link => (
                 <li key={link.href + link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-brand-gray-text hover:text-brand-white transition-colors"
-                  >
+                  <Link href={link.href} className="text-sm text-brand-gray-text hover:text-brand-white transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -165,19 +165,19 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5 text-sm text-brand-gray-text">
                 <Mail size={14} className="text-brand-red mt-0.5 flex-shrink-0" />
-                <a href="mailto:contato@streetdropwear.com" className="hover:text-brand-white transition-colors">
-                  contato@streetdropwear.com
+                <a href={`mailto:${EMAIL}`} className="hover:text-brand-white transition-colors break-all">
+                  {EMAIL}
                 </a>
               </li>
               <li className="flex items-start gap-2.5 text-sm text-brand-gray-text">
                 <Phone size={14} className="text-brand-red mt-0.5 flex-shrink-0" />
                 <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:text-brand-white transition-colors">
-                  (11) 99999-9999
+                  {PHONE_DISPLAY}
                 </a>
               </li>
               <li className="flex items-start gap-2.5 text-sm text-brand-gray-text">
                 <MapPin size={14} className="text-brand-red mt-0.5 flex-shrink-0" />
-                <span>São Paulo, SP<br />Brasil</span>
+                <span>Uberlândia, MG<br />Brasil</span>
               </li>
             </ul>
 
@@ -185,10 +185,7 @@ export function Footer() {
               <p className="text-xs text-brand-gray-text/60 uppercase tracking-wider mb-2">Pagamento</p>
               <div className="flex flex-wrap gap-1.5">
                 {['PIX', 'Visa', 'Master', 'Elo', 'Boleto'].map(method => (
-                  <span
-                    key={method}
-                    className="px-2 py-1 bg-white/5 text-[10px] text-brand-gray-text uppercase tracking-wider"
-                  >
+                  <span key={method} className="px-2 py-1 bg-white/5 text-[10px] text-brand-gray-text uppercase tracking-wider">
                     {method}
                   </span>
                 ))}
@@ -201,17 +198,11 @@ export function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/5">
         <div className="container-brand py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-brand-gray-text/60">
-          <p>© 2024 StreetDrop Wear. Todos os direitos reservados.</p>
+          <p>© 2025 StreetDrop Wear. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
-            <Link href="/sobre#privacidade" className="hover:text-brand-white transition-colors">
-              Privacidade
-            </Link>
-            <Link href="/sobre#termos" className="hover:text-brand-white transition-colors">
-              Termos de Uso
-            </Link>
-            <Link href="/sobre#cnpj" className="hover:text-brand-white transition-colors">
-              CNPJ
-            </Link>
+            <Link href="/sobre#privacidade" className="hover:text-brand-white transition-colors">Privacidade</Link>
+            <Link href="/sobre#termos" className="hover:text-brand-white transition-colors">Termos de Uso</Link>
+            <Link href="/sobre#cnpj" className="hover:text-brand-white transition-colors">CNPJ</Link>
           </div>
         </div>
       </div>

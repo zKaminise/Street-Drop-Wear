@@ -130,13 +130,32 @@ export function ScrollShowcase() {
       <div className="sticky top-0 h-screen overflow-hidden bg-brand-black flex flex-col">
 
         {/* Section header */}
-        <div className="container-brand pt-10 sm:pt-14 pb-4 sm:pb-6 text-center">
+        <div className="container-brand pt-10 sm:pt-14 pb-2 sm:pb-4 text-center">
           <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">
             Do tecido ao drop
           </span>
           <h2 className="heading-display text-[clamp(1.8rem,4vw,3.5rem)] text-brand-white mt-1">
             COMO NASCE SEU DROP
           </h2>
+          {/* Scroll hint — visible at top, fades out as user scrolls */}
+          <motion.p
+            style={{ opacity: useTransform(scrollYProgress, [0, 0.08], [1, 0]) }}
+            className="text-[11px] text-brand-gray-text/70 mt-2 flex items-center justify-center gap-1.5"
+          >
+            <motion.span
+              animate={{ y: [0, 4, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              ↓
+            </motion.span>
+            Role para ver cada etapa
+            <motion.span
+              animate={{ y: [0, 4, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              ↓
+            </motion.span>
+          </motion.p>
         </div>
 
         <div className="flex-1 flex items-center justify-center px-4 overflow-hidden">

@@ -1,7 +1,5 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFromCookies } from '@/lib/admin-auth'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -23,7 +21,6 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })
 
-  // Validate MIME type
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
       { error: `Tipo inválido: ${file.type}. Use JPG, PNG, WebP, SVG ou GIF.` },
@@ -31,28 +28,44 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Validate size
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
     return NextResponse.json({ error: `Arquivo muito grande. Máximo ${MAX_SIZE_MB} MB.` }, { status: 400 })
   }
 
-  const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
+  const folder = (formData.get('folder') as string | null) ?? 'stamps'
 
   // Build safe unique filename
-  const rawExt = path.extname(file.name).toLowerCase().replace(/[^.a-z0-9]/g, '')
-  const ext = rawExt || '.png'
+  const rawExt = file.name.match(/\.[a-z0-9]+$/i)?.[0]?.toLowerCase() ?? '.png'
   const safeBase = file.name
     .replace(/\.[^.]+$/, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .substring(0, 30)
-  const filename = `${safeBase}-${Date.now()}${ext}`
+  const filename = `${folder}/${safeBase}-${Date.now()}${rawExt}`
 
-  const folder = (formData.get('folder') as string | null) ?? 'stamps'
-  const uploadDir = path.join(process.cwd(), 'public', folder)
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(path.join(uploadDir, filename), buffer)
+  // ── PRODUCTION: use Vercel Blob ──────────────────────────────────────────────
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { put } = await import('@vercel/blob')
+      const blob = await put(filename, file, { access: 'public' })
+      return NextResponse.json({ url: blob.url })
+    } catch (err) {
+      console.error('Vercel Blob upload error:', err)
+      return NextResponse.json({ error: 'Erro ao enviar para o storage. Verifique o BLOB_READ_WRITE_TOKEN.' }, { status: 500 })
+    }
+  }
 
-  return NextResponse.json({ url: `/${folder}/${filename}` })
+  // ── DEVELOPMENT: local filesystem fallback ───────────────────────────────────
+  try {
+    const { writeFile, mkdir } = await import('fs/promises')
+    const path = await import('path')
+    const uploadDir = path.join(process.cwd(), 'public', folder)
+    await mkdir(uploadDir, { recursive: true })
+    const bytes = await file.arrayBuffer()
+    await writeFile(path.join(uploadDir, `${safeBase}-${Date.now()}${rawExt}`), Buffer.from(bytes))
+    return NextResponse.json({ url: `/${folder}/${safeBase}-${Date.now()}${rawExt}` })
+  } catch (err) {
+    console.error('Local upload error:', err)
+    return NextResponse.json({ error: 'Erro ao salvar arquivo localmente.' }, { status: 500 })
+  }
 }

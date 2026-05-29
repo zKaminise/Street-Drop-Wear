@@ -278,5 +278,17 @@ model ShippingConfig {
   freeShippingAbove    Float    @default(199.90)
   productionDaysStd    Int      @default(7)   // standard items
   productionDaysCustom Int      @default(12)  // custom printed items
+  // Cart promotion (free shipping by qty)
+  promoQtyEnabled      Boolean  @default(false)
+  promoQtyThreshold    Int      @default(3)
   updatedAt            DateTime @updatedAt
+}
+
+// Announcement bar (scrolling messages above navbar)
+model AnnouncementBar {
+  id        String   @id @default(cuid())
+  messages  String   @default("[]") // JSON array of strings
+  active    Boolean  @default(false)
+  speed     Int      @default(5000) // ms per message
+  updatedAt DateTime @updatedAt
 }

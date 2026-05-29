@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Package, Shirt, Stamp, BarChart3,
   ShoppingBag, FolderOpen, LogOut, ChevronRight, Box, Layers, Truck,
-  Menu, X
+  Menu, X, Megaphone
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +20,7 @@ const NAV = [
   { href: '/admin/produtos', label: 'Produtos (DryFit/3D/Geek)', icon: Package },
   { href: '/admin/kits', label: 'Kits B2B', icon: FolderOpen },
   { href: '/admin/frete', label: 'Frete & Prazos', icon: Truck },
+  { href: '/admin/avisos', label: 'Barra de Avisos', icon: Megaphone },
 ]
 
 export function AdminSidebar() {

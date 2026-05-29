@@ -11,11 +11,18 @@ export async function GET(req: NextRequest) {
   const slug = searchParams.get('slug')
   const flashSale = searchParams.get('flashSale') === 'true'
 
+  const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+
   const products = await prisma.product.findMany({
     where: {
       active: true,
       ...(type ? { type } : {}),
-      ...(search ? { name: { contains: search } } : {}),
+      ...(search ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      } : {}),
       ...(slug ? { slug } : {}),
       ...(flashSale ? { isFlashSale: true } : {}),
     },
@@ -24,6 +31,7 @@ export async function GET(req: NextRequest) {
       variants: { where: { active: true } },
     },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    ...(limit ? { take: limit } : {}),
   })
 
   return NextResponse.json(products)

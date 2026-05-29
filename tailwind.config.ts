@@ -10,8 +10,8 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          black: '#0B0B0D',
-          graphite: '#161616',
+          black: '#111116',
+          graphite: '#1B1B22',
           red: '#E10600',
           'red-dark': '#B80000',
           white: '#F5F5F2',

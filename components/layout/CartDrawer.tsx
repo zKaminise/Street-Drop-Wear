@@ -2,9 +2,46 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Palette } from 'lucide-react'
+import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Palette, Truck, Gift } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
+
+const FREE_SHIPPING_THRESHOLD = 199.9 // R$ 199,90 — must match ShippingConfig default
+
+function ShippingProgressBar({ subtotal }: { subtotal: number }) {
+  const pct     = Math.min(subtotal / FREE_SHIPPING_THRESHOLD, 1)
+  const missing = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0)
+  const free    = pct >= 1
+
+  return (
+    <div className="bg-white/3 border border-white/8 p-3 space-y-2">
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5">
+          <Truck size={12} className={free ? 'text-green-400' : 'text-brand-gray-text'} />
+          {free ? (
+            <span className="text-green-400 font-semibold flex items-center gap-1">
+              <Gift size={11} /> Frete grátis desbloqueado!
+            </span>
+          ) : (
+            <span className="text-brand-gray-text">
+              Falta <span className="text-brand-white font-semibold">{formatPrice(missing)}</span> para frete grátis
+            </span>
+          )}
+        </div>
+        <span className="text-brand-gray-text/60">{Math.round(pct * 100)}%</span>
+      </div>
+      <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: free ? '#4ade80' : 'linear-gradient(90deg, #E10600, #FF3300)' }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct * 100}%` }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        />
+      </div>
+    </div>
+  )
+}
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getShipping, getTotal } = useCartStore()
@@ -159,6 +196,9 @@ export function CartDrawer() {
             {/* Summary */}
             {items.length > 0 && (
               <div className="border-t border-white/10 p-5 space-y-4">
+                {/* Shipping progress bar */}
+                <ShippingProgressBar subtotal={subtotal} />
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-brand-gray-text">
                     <span>Subtotal</span>
@@ -170,11 +210,6 @@ export function CartDrawer() {
                       {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
                     </span>
                   </div>
-                  {shipping > 0 && (
-                    <p className="text-xs text-brand-gray-text/70">
-                      Frete grátis acima de R$ 199,90 · valor exato no checkout
-                    </p>
-                  )}
                   <div className="flex justify-between text-base font-bold text-brand-white pt-2 border-t border-white/10">
                     <span>Total estimado</span>
                     <span>{formatPrice(total)}</span>
