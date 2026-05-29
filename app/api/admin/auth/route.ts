@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signAdminToken, ADMIN_COOKIE_NAME } from '@/lib/admin-auth'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
 
