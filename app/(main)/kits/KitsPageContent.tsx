@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -19,7 +19,7 @@ export function KitsPageContent() {
 
   function buildWhatsAppMsg() {
     const lines = [
-      'ðŸ‘• *SolicitaÃ§Ã£o de OrÃ§amento â€” StreetDrop Wear*',
+      '📦• *Solicitação de Orçamento – StreetDrop Wear*',
       '',
       selectedKit ? `*Kit:* ${selectedKit}` : '',
       `*Nome:* ${name}`,
@@ -33,7 +33,7 @@ export function KitsPageContent() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name || !phone) { setError('Nome e telefone sÃ£o obrigatÃ³rios.'); return }
+    if (!name || !phone) { setError('Nome e telefone são obrigatórios.'); return }
     setError('')
     window.open(getWhatsAppLink(buildWhatsAppMsg()), '_blank', 'noopener,noreferrer')
   }
@@ -57,12 +57,12 @@ export function KitsPageContent() {
               <span className="text-gradient-red">PERSONALIZADOS</span>
             </h1>
             <p className="text-brand-gray-text mt-4 max-w-xl text-base">
-              Uniforme completo para sua empresa, academia, escola ou evento. Do design Ã  entrega, cuidamos de tudo com qualidade StreetDrop.
+              Uniforme completo para sua empresa, academia, escola ou evento. Do design à entrega, cuidamos de tudo com qualidade StreetDrop.
             </p>
             <div className="flex flex-wrap gap-4 mt-6">
               <a href="#orcamento" className="btn-primary group">
                 <MessageCircle size={18} />
-                Solicitar orÃ§amento
+                Solicitar orçamento
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
@@ -74,8 +74,8 @@ export function KitsPageContent() {
         {/* Diferenciais */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-14">
           {[
-            { icon: Timer, label: 'Prazo garantido', desc: '7 a 15 dias Ãºteis' },
-            { icon: Award, label: 'Qualidade premium', desc: 'AlgodÃ£o e dry-fit' },
+            { icon: Timer, label: 'Prazo garantido', desc: '7 a 15 dias úteis' },
+            { icon: Award, label: 'Qualidade premium', desc: 'Algodão e dry-fit' },
             { icon: Truck, label: 'Entrega nacional', desc: 'Para todo o Brasil' },
             { icon: MessageCircle, label: 'Suporte dedicado', desc: 'Via WhatsApp' },
           ].map(item => (
@@ -138,7 +138,7 @@ export function KitsPageContent() {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
                   <span className="text-xs text-brand-gray-text">
-                    MÃ­n. <span className="text-brand-white font-semibold">{kit.minQuantity} unidades</span>
+                    Mín. <span className="text-brand-white font-semibold">{kit.minQuantity} unidades</span>
                   </span>
                   <a
                     href="#orcamento"
@@ -146,7 +146,7 @@ export function KitsPageContent() {
                     className="btn-primary text-xs px-4 py-2.5 group"
                   >
                     <MessageCircle size={14} />
-                    Solicitar orÃ§amento
+                    Solicitar orçamento
                   </a>
                 </div>
               </motion.div>
@@ -154,7 +154,7 @@ export function KitsPageContent() {
           </div>
         </div>
 
-        {/* â”€â”€â”€ Quote Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ─── Quote Form ─────────────────────────────────────────── */}
         <motion.div
           id="orcamento"
           initial={{ opacity: 0, y: 20 }}
@@ -164,12 +164,12 @@ export function KitsPageContent() {
         >
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-8">
-              <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">OrÃ§amento RÃ¡pido</span>
+              <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Orçamento Rápido</span>
               <h2 className="heading-display text-[clamp(1.8rem,4vw,3rem)] text-brand-white mt-2">
-                SOLICITE SEU ORÃ‡AMENTO
+                SOLICITE SEU ORÇAMENTO
               </h2>
               <p className="text-brand-gray-text text-sm mt-2">
-                Preencha o formulÃ¡rio e vamos te responder no WhatsApp em atÃ© 1 hora Ãºtil.
+                Preencha o formulário e vamos te responder no WhatsApp em até 1 hora útil.
               </p>
             </div>
 
@@ -228,7 +228,7 @@ export function KitsPageContent() {
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <p className="text-xs text-brand-gray-text text-center">
-                Ao clicar, vocÃª serÃ¡ redirecionado para o WhatsApp com a mensagem preenchida.
+                Ao clicar, você será redirecionado para o WhatsApp com a mensagem preenchida.
               </p>
             </form>
           </div>
@@ -246,10 +246,10 @@ export function KitsPageContent() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
             {[
-              { num: '01', title: 'Solicite o orÃ§amento', desc: 'Fale com a gente pelo WhatsApp com quantidade e modelo desejado.' },
-              { num: '02', title: 'Escolha e aprove a arte', desc: 'Envie seu logo ou nossa equipe cria. VocÃª aprova antes de produzir.' },
-              { num: '03', title: 'ConfirmaÃ§Ã£o e pagamento', desc: 'Pix, boleto ou cartÃ£o. ProduÃ§Ã£o comeÃ§a apÃ³s confirmaÃ§Ã£o.' },
-              { num: '04', title: 'Entrega garantida', desc: 'Rastreamento em tempo real. SatisfaÃ§Ã£o garantida ou refazemos.' },
+              { num: '01', title: 'Solicite o orçamento', desc: 'Fale com a gente pelo WhatsApp com quantidade e modelo desejado.' },
+              { num: '02', title: 'Escolha e aprove a arte', desc: 'Envie seu logo ou nossa equipe cria. Você aprova antes de produzir.' },
+              { num: '03', title: 'Confirmação e pagamento', desc: 'Pix, boleto ou cartão. Produção começa após confirmação.' },
+              { num: '04', title: 'Entrega garantida', desc: 'Rastreamento em tempo real. Satisfação garantida ou refazemos.' },
             ].map(step => (
               <div key={step.num} className="text-center">
                 <span className="heading-display text-4xl text-brand-red/30">{step.num}</span>

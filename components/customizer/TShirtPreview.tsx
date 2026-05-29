@@ -173,7 +173,7 @@ export function TShirtPreview({
             <path d={sleevePath.right} fill="rgba(0,0,0,0.18)" />
           </g>
 
-          {/* Collar â€” front only */}
+          {/* Collar – front only */}
           {!isBack && (
             <path d="M116 65 Q150 94 184 65" fill="none" stroke={strokeColor} strokeWidth="1.5" />
           )}

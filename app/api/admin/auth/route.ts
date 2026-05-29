@@ -11,12 +11,12 @@ export async function POST(req: NextRequest) {
 
   const admin = await prisma.adminUser.findUnique({ where: { email } })
   if (!admin || !admin.active) {
-    return NextResponse.json({ error: 'Credenciais invÃ¡lidas' }, { status: 401 })
+    return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
   }
 
   const valid = await bcrypt.compare(password, admin.password)
   if (!valid) {
-    return NextResponse.json({ error: 'Credenciais invÃ¡lidas' }, { status: 401 })
+    return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
   }
 
   const token = signAdminToken({ id: admin.id, email: admin.email, name: admin.name, role: admin.role })

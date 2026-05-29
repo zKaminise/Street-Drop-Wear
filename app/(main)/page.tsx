@@ -9,7 +9,7 @@ import { FAQ } from '@/components/home/FAQ'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
 
 export const metadata: Metadata = {
-  title: 'StreetDrop Wear â€” Camisetas Personalizadas & Streetwear Premium',
+  title: 'StreetDrop Wear – Camisetas Personalizadas & Streetwear Premium',
 }
 
 export default function HomePage() {

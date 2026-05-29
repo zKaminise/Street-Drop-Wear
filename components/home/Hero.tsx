@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section ref={ref} className="relative min-h-[100svh] flex items-center overflow-hidden bg-brand-black">
 
-      {/* Background grid â€“ slow parallax */}
+      {/* Background grid – slow parallax */}
       <motion.div
         style={{
           y: gridY,
@@ -34,7 +34,7 @@ export function Hero() {
         className="absolute inset-0 opacity-5 pointer-events-none"
       />
 
-      {/* Red atmospheric glow â€“ expands on scroll */}
+      {/* Red atmospheric glow – expands on scroll */}
       <motion.div
         style={{ scale: glowScale, opacity: glowOpacity }}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-red rounded-full blur-[140px] pointer-events-none"
@@ -42,7 +42,7 @@ export function Hero() {
       {/* Secondary accent glow */}
       <div className="absolute top-[20%] right-[20%] w-[200px] h-[200px] bg-brand-red/3 rounded-full blur-[80px] pointer-events-none" />
 
-      {/* â”€â”€â”€ MAIN CONTENT â”€â”€â”€ */}
+      {/* ─── MAIN CONTENT ─── */}
       <div className="container-brand w-full py-24 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6">
 
         {/* Text Side */}
@@ -108,8 +108,8 @@ export function Hero() {
           >
             {[
               { value: '10k+', label: 'Clientes' },
-              { value: '4.9â˜…', label: 'AvaliaÃ§Ã£o' },
-              { value: '48h', label: 'ProduÃ§Ã£o express' },
+              { value: '4.9★', label: 'Avaliação' },
+              { value: '48h', label: 'Produção express' },
             ].map(stat => (
               <div key={stat.label} className="text-center">
                 <p className="heading-display text-2xl text-brand-white">{stat.value}</p>
@@ -119,7 +119,7 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* T-Shirt Visual â€“ stronger parallax */}
+        {/* T-Shirt Visual – stronger parallax */}
         <motion.div
           style={{ y: shirtY, scale: shirtScale, rotate: shirtRotate }}
           className="flex-1 flex items-center justify-center order-1 lg:order-2 w-full"
@@ -130,12 +130,12 @@ export function Hero() {
             transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-[340px] sm:max-w-[440px]"
           >
-            {/* Decorative rings */}
+            {/* Decorative rings
             <div className="absolute inset-[-8%] border border-brand-red/8 rounded-full" />
-            <div className="absolute inset-[-16%] border border-brand-red/4 rounded-full animate-pulse-slow" />
+            <div className="absolute inset-[-16%] border border-brand-red/4 rounded-full animate-pulse-slow" />*/}
 
-            {/* Centered glow behind shirt */}
-            <div className="absolute inset-[10%] bg-brand-red/6 rounded-full blur-3xl" />
+            {/* Centered glow behind shirt
+            <div className="absolute inset-[10%] bg-brand-red/6 rounded-full blur-3xl" />*/}
 
             {/* Oversized shirt back view */}
             <OversizedShirtBack />
@@ -146,8 +146,8 @@ export function Hero() {
               transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
               className="absolute top-[8%] -left-4 sm:-left-8 glass-card px-3 py-2 text-xs whitespace-nowrap"
             >
-              <span className="text-green-400 font-bold">â—</span>
-              <span className="text-brand-white ml-1.5">300g Premium</span>
+              <span className="text-green-400 font-bold">●</span>
+              <span className="text-brand-white ml-1.5">30.1g Premium</span>
             </motion.div>
 
             <motion.div
@@ -156,7 +156,7 @@ export function Hero() {
               className="absolute bottom-[18%] -right-4 sm:-right-8 glass-card px-3 py-2 text-xs whitespace-nowrap"
             >
               <Star size={11} className="inline text-brand-red mr-1" />
-              <span className="text-brand-white">PersonalizÃ¡vel</span>
+              <span className="text-brand-white">Personalizável</span>
             </motion.div>
 
             <motion.div
@@ -190,124 +190,26 @@ export function Hero() {
   )
 }
 
-/** Premium oversized t-shirt â€“ BACK VIEW silhouette with logo overlaid */
+/** Real product photo – back view of oversized tee with exclusive design */
 function OversizedShirtBack() {
   return (
     <div className="relative w-full">
-      {/* SVG: oversized tee back silhouette */}
-      <svg
-        viewBox="0 0 420 490"
-        className="w-full drop-shadow-2xl"
-        fill="none"
-        aria-hidden="true"
-      >
-        {/* Floor shadow */}
-        <ellipse cx="210" cy="480" rx="148" ry="10" fill="rgba(0,0,0,0.65)" />
-
-        {/* â”€â”€ SHIRT BODY â”€â”€ */}
-        {/* Main back panel */}
-        <path
-          d="M 168,50
-             C 148,52 120,64 98,78
-             L 24,84
-             L 14,186
-             L 84,182
-             L 86,448
-             L 334,448
-             L 336,182
-             L 406,186
-             L 396,84
-             L 322,78
-             C 300,64 272,52 252,50
-             Q 210,34 168,50 Z"
-          fill="#1A1A1A"
-          stroke="rgba(255,255,255,0.07)"
-          strokeWidth="1"
-        />
-
-        {/* Neck hole (back â€“ small oval) */}
-        <path
-          d="M 168,50 Q 210,72 252,50"
-          fill="#0E0E0E"
-          stroke="rgba(255,255,255,0.12)"
-          strokeWidth="2"
-        />
-
-        {/* Left sleeve panel */}
-        <path
-          d="M 98,78 L 24,84 L 14,186 L 84,182"
-          fill="#151515"
-          stroke="rgba(255,255,255,0.04)"
-          strokeWidth="0.5"
-        />
-        {/* Right sleeve panel */}
-        <path
-          d="M 322,78 L 396,84 L 406,186 L 336,182"
-          fill="#151515"
-          stroke="rgba(255,255,255,0.04)"
-          strokeWidth="0.5"
-        />
-
-        {/* Shoulder highlight line */}
-        <path
-          d="M 98,78 Q 154,72 210,72 Q 266,72 322,78"
-          fill="none"
-          stroke="rgba(255,255,255,0.09)"
-          strokeWidth="1"
-        />
-
-        {/* Subtle fabric texture lines */}
-        <line x1="86" y1="230" x2="334" y2="230" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
-        <line x1="86" y1="285" x2="334" y2="285" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
-        <line x1="86" y1="340" x2="334" y2="340" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
-        <line x1="86" y1="395" x2="334" y2="395" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
-
-        {/* Center back seam */}
-        <line x1="210" y1="72" x2="210" y2="448" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-
-        {/* Subtle left/right body highlight */}
-        <path d="M 86,182 L 86,448" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-        <path d="M 334,182 L 334,448" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-
-        {/* Red label tag at hem */}
-        <rect x="202" y="440" width="16" height="8" fill="#E10600" opacity="0.7" />
-        <rect x="204" y="441" width="12" height="6" fill="#B80000" opacity="0.5" />
-
-        {/* DTF print area glow */}
-        <rect x="118" y="155" width="184" height="90" rx="3" fill="rgba(225,6,0,0.03)" />
-      </svg>
-
-      {/* â”€â”€ LOGO OVERLAY â€“ positioned over the shirt's back area â”€â”€ */}
+      <Image
+        src="/images/mockups/mockup-19.png"
+        alt="StreetDrop Wear camiseta oversized costas"
+        width={600}
+        height={680}
+        className="w-full h-auto object-contain"
+        priority
+      />
+      {/* Radial vignette — blends edges into the dark page background 
       <div
-        className="absolute pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          left: '22%',
-          top: '32%',
-          width: '56%',
+          background:
+            'radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(11,11,13,0.85) 78%, #0B0B0D 100%)',
         }}
-      >
-        <Image
-          src="/logo-sdw.svg"
-          alt="StreetDrop Wear logo on shirt"
-          width={240}
-          height={96}
-          className="w-full h-auto"
-          style={{ filter: 'brightness(0) invert(1)', opacity: 0.88 }}
-        />
-      </div>
-
-      {/* â”€â”€ SMALL "WEAR" BELOW LOGO â”€â”€ */}
-      <div
-        className="absolute pointer-events-none flex justify-center"
-        style={{ left: '25%', top: '54%', width: '50%' }}
-      >
-        <span
-          className="text-[6px] sm:text-[7px] tracking-[0.55em] text-white/20 font-bold uppercase"
-          style={{ fontFamily: 'var(--font-bebas, sans-serif)' }}
-        >
-          WEAR
-        </span>
-      </div>
+      />*/}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-﻿import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -26,7 +26,7 @@ async function main() {
       name: 'Oversized Premium',
       type: 'OVERSIZED',
       basePrice: 89.90,
-      description: 'Camiseta oversized de algodÃ£o 100% premium, corte amplo streetwear',
+      description: 'Camiseta oversized de algodão 100% premium, corte amplo streetwear',
       active: true,
     },
   })
@@ -39,7 +39,7 @@ async function main() {
       name: 'Camiseta Classic',
       type: 'CAMISETA',
       basePrice: 59.90,
-      description: 'Camiseta regular fit, algodÃ£o penteado 30.1',
+      description: 'Camiseta regular fit, algodão penteado 30.1',
       active: true,
     },
   })
@@ -102,7 +102,7 @@ async function main() {
 
   // Stamps
   const stampsData = [
-    { slug: 'sem-estampa', name: 'Sem Estampa', imageUrl: '/stamps/sem-estampa.svg', extraPrice: 0, allowedFor: 'BOTH', category: 'BÃ¡sico' },
+    { slug: 'sem-estampa', name: 'Sem Estampa', imageUrl: '/stamps/sem-estampa.svg', extraPrice: 0, allowedFor: 'BOTH', category: 'Básico' },
     { slug: 'streetdrop-logo', name: 'Logo StreetDrop', imageUrl: '/stamps/logo-streetdrop.svg', extraPrice: 20, allowedFor: 'BOTH', category: 'Marca' },
     { slug: 'urban-skull', name: 'Urban Skull', imageUrl: '/stamps/urban-skull.svg', extraPrice: 30, allowedFor: 'OVERSIZED', category: 'Urban' },
     { slug: 'dragon-fire', name: 'Dragon Fire', imageUrl: '/stamps/dragon-fire.svg', extraPrice: 35, allowedFor: 'BOTH', category: 'Urban' },
@@ -126,9 +126,9 @@ async function main() {
       name: 'DryFit Performance Pro',
       slug: 'dryfit-performance-pro',
       type: 'DRYFIT',
-      description: 'Camiseta DryFit de alta performance para treinos intensos. Tecnologia de absorÃ§Ã£o rÃ¡pida de umidade.',
+      description: 'Camiseta DryFit de alta performance para treinos intensos. Tecnologia de absorção rápida de umidade.',
       price: 79.90,
-      material: 'PoliÃ©ster 100% com tecnologia DryFit',
+      material: 'Poliéster 100% com tecnologia DryFit',
       isNew: true,
       active: true,
     },
@@ -136,10 +136,10 @@ async function main() {
       name: 'DryFit Slim Fit',
       slug: 'dryfit-slim-fit',
       type: 'DRYFIT',
-      description: 'Corte slim para uma silhueta mais definida. Ideal para musculaÃ§Ã£o e atividades fÃ­sicas em geral.',
+      description: 'Corte slim para uma silhueta mais definida. Ideal para musculação e atividades físicas em geral.',
       price: 69.90,
       originalPrice: 89.90,
-      material: 'Elastano 10% + PoliÃ©ster 90%',
+      material: 'Elastano 10% + Poliéster 90%',
       active: true,
     },
   ]
@@ -178,12 +178,12 @@ async function main() {
   // 3D Products
   const products3d = [
     {
-      name: 'Camiseta 3D DragÃ£o LendÃ¡rio',
+      name: 'Camiseta 3D Dragão Lendário',
       slug: 'camiseta-3d-dragao-lendario',
       type: 'PRODUTO_3D',
-      description: 'Estampa 3D exclusiva com efeito visual impressionante. DragÃ£o com detalhes em relevo digital.',
+      description: 'Estampa 3D exclusiva com efeito visual impressionante. Dragão com detalhes em relevo digital.',
       price: 119.90,
-      material: 'PoliÃ©ster + lycra, impressÃ£o sublimaÃ§Ã£o total',
+      material: 'Poliéster + lycra, impressão sublimação total',
       isNew: true,
       active: true,
     },
@@ -191,7 +191,7 @@ async function main() {
       name: 'Camiseta 3D Galaxy Wolf',
       slug: 'camiseta-3d-galaxy-wolf',
       type: 'PRODUTO_3D',
-      description: 'Lobo uivando para a lua em galÃ¡xia estrelada. Efeito 3D realista em sublimaÃ§Ã£o.',
+      description: 'Lobo uivando para a lua em galáxia estrelada. Efeito 3D realista em sublimação.',
       price: 109.90,
       active: true,
     },
@@ -208,19 +208,19 @@ async function main() {
   // Geek products
   const geekProducts = [
     {
-      name: 'Booster PokÃ©mon TCG EV07',
+      name: 'Booster Pokémon TCG EV07',
       slug: 'booster-pokemon-tcg-ev07',
       type: 'GEEK',
-      description: 'Booster oficial PokÃ©mon TCG - ExpansÃ£o Coroa Estelar. 10 cartas por pacote.',
+      description: 'Booster oficial Pokémon TCG - Expansão Coroa Estelar. 10 cartas por pacote.',
       price: 39.90,
       isNew: true,
       active: true,
     },
     {
-      name: 'Display PokÃ©mon EV07 (36 boosters)',
+      name: 'Display Pokémon EV07 (36 boosters)',
       slug: 'display-pokemon-ev07',
       type: 'GEEK',
-      description: 'Display completo com 36 boosters da expansÃ£o EV07. Produto lacrado e original.',
+      description: 'Display completo com 36 boosters da expansão EV07. Produto lacrado e original.',
       price: 1199.90,
       originalPrice: 1440.00,
       active: true,
@@ -241,7 +241,7 @@ async function main() {
         create: {
           id: `${product.id}-unico`,
           productId: product.id,
-          size: 'Ãšnico',
+          size: 'Único',
           stock: 50,
           active: true,
         },
@@ -252,13 +252,13 @@ async function main() {
   // Kits
   const kitsData = [
     {
-      name: 'Kit Empresa BÃ¡sico',
+      name: 'Kit Empresa Básico',
       slug: 'kit-empresa-basico',
       description: 'Camisetas personalizadas para sua equipe com logo e identidade visual da empresa',
       minQty: 10,
       priceFrom: 49.90,
       audience: 'Empresas',
-      items: ['Camiseta personalizada com logo', 'OpÃ§Ãµes de cores da marca', 'Tamanhos PP ao GG', 'Entrega em todo Brasil'],
+      items: ['Camiseta personalizada com logo', 'Opções de cores da marca', 'Tamanhos PP ao GG', 'Entrega em todo Brasil'],
     },
     {
       name: 'Kit Academia Premium',
@@ -267,7 +267,7 @@ async function main() {
       minQty: 20,
       priceFrom: 39.90,
       audience: 'Academias',
-      items: ['DryFit com logo bordado', 'NumeraÃ§Ã£o personalizada', 'Cores Ã  escolha', 'Entrega expressa'],
+      items: ['DryFit com logo bordado', 'Numeração personalizada', 'Cores à escolha', 'Entrega expressa'],
     },
     {
       name: 'Kit Evento/Corrida',
@@ -276,7 +276,7 @@ async function main() {
       minQty: 50,
       priceFrom: 29.90,
       audience: 'Eventos',
-      items: ['Camiseta tÃ©cnica DryFit', 'NÃºmero de peito incluso', 'Data e nome do evento', 'PreÃ§o especial por volume'],
+      items: ['Camiseta técnica DryFit', 'Número de peito incluso', 'Data e nome do evento', 'Preço especial por volume'],
     },
   ]
 
@@ -302,7 +302,7 @@ async function main() {
     }
   }
 
-  console.log('âœ… Seed completed!')
+  console.log('✅ Seed completed!')
 }
 
 main()

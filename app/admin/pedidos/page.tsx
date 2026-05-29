@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { X, Package, ChevronDown, History, Save, Search } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
@@ -76,16 +76,16 @@ export default function AdminPedidosPage() {
   const [saving, setSaving] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
     const params = new URLSearchParams()
     if (filterStatus) params.set('status', filterStatus)
     if (search) params.set('search', search)
     const data = await fetch(`/api/admin/orders?${params}`).then(r => r.json())
     setOrders(Array.isArray(data) ? data : [])
     setLoading(false)
-  }
+  }, [filterStatus, search])
 
-  useEffect(() => { load() }, [filterStatus, search])
+  useEffect(() => { load() }, [load])
 
   async function openOrder(o: Order) {
     // Load full order with history

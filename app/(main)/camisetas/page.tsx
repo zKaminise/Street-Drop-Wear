@@ -91,7 +91,7 @@ export default function CamisetasPage() {
     addItem(
       {
         id: `camiseta-${selectedBase.id}-${selectedColor.id}-${selectedStamp?.slug ?? 'sem-estampa'}`,
-        name: `${selectedBase.name}${hasStamp ? ` â€“ ${selectedStamp!.name}` : ''}`,
+        name: `${selectedBase.name}${hasStamp ? ` – ${selectedStamp!.name}` : ''}`,
         slug: 'camisetas',
         category: 'camisetas',
         price: totalPrice,
@@ -146,7 +146,7 @@ export default function CamisetasPage() {
       <div className="sticky top-[72px] z-30 bg-brand-black/95 backdrop-blur-md border-b border-white/5">
         <div className="container-brand flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors">
-            <ChevronLeft size={16} /> InÃ­cio
+            <ChevronLeft size={16} /> Início
           </Link>
           <h1 className="text-sm font-black uppercase tracking-widest text-white">Monte sua Camiseta</h1>
           <div className="text-right">
@@ -158,7 +158,7 @@ export default function CamisetasPage() {
       <div className="container-brand py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
-          {/* LEFT â€” Preview */}
+          {/* LEFT – Preview */}
           <div className="lg:sticky lg:top-36 self-start space-y-4">
             {/* Front/Back toggle */}
             <div className="flex gap-2">
@@ -172,7 +172,7 @@ export default function CamisetasPage() {
                       : 'border-white/10 text-white/40 hover:border-white/25 hover:text-white/70'
                   }`}
                 >
-                  {v === 'front' ? 'â†ª Frente' : 'â†© Costas'}
+                  {v === 'front' ? '↪ Frente' : '↩ Costas'}
                 </button>
               ))}
             </div>
@@ -193,7 +193,7 @@ export default function CamisetasPage() {
             {/* Price breakdown */}
             <div className="bg-brand-graphite border border-white/5 p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/50">Base ({selectedBase?.name ?? 'â€“'})</span>
+                <span className="text-white/50">Base ({selectedBase?.name ?? '–'})</span>
                 <span className="text-white">{formatPrice(selectedBase?.basePrice ?? 0)}</span>
               </div>
               {selectedStamp && selectedStamp.extraPrice > 0 && (
@@ -209,11 +209,11 @@ export default function CamisetasPage() {
             </div>
           </div>
 
-          {/* RIGHT â€” Options */}
+          {/* RIGHT – Options */}
           <div className="space-y-7">
             <div>
               <h2 className="heading-display text-3xl text-white">Monte sua Camiseta</h2>
-              <p className="text-sm text-white/40 mt-1">AlgodÃ£o 180g Â· Regular &amp; Slim fit Â· ImpressÃ£o DTF Â· Prazo 7-12 dias</p>
+              <p className="text-sm text-white/40 mt-1">Algodão 180g · Regular &amp; Slim fit · Impressão DTF · Prazo 7-12 dias</p>
             </div>
 
             {/* Step 1: Base */}
@@ -289,7 +289,7 @@ export default function CamisetasPage() {
                           <span className="text-[10px] text-white/60 leading-tight">{stamp.name}</span>
                           {stamp.extraPrice > 0
                             ? <span className="text-[10px] text-brand-red">+{formatPrice(stamp.extraPrice)}</span>
-                            : <span className="text-[10px] text-white/30">GrÃ¡tis</span>
+                            : <span className="text-[10px] text-white/30">Grátis</span>
                           }
                         </button>
                       ))}
@@ -310,7 +310,7 @@ export default function CamisetasPage() {
                       key={size}
                       onClick={() => stock > 0 && setSelectedSize(size)}
                       disabled={stock === 0}
-                      title={stock === 0 ? 'Esgotado' : `${stock} disponÃ­veis`}
+                      title={stock === 0 ? 'Esgotado' : `${stock} disponíveis`}
                       className={`w-12 h-12 border text-sm font-bold uppercase transition-all ${
                         stock === 0
                           ? 'border-white/5 text-white/20 cursor-not-allowed line-through'
@@ -325,7 +325,7 @@ export default function CamisetasPage() {
                 })}
               </div>
               {selectedSize ? (
-                <p className="text-xs text-white/40 mt-2">{getStock(selectedSize)} unidade(s) disponÃ­vel(is)</p>
+                <p className="text-xs text-white/40 mt-2">{getStock(selectedSize)} unidade(s) disponível(is)</p>
               ) : (
                 <p className="text-xs text-brand-red mt-2">Selecione um tamanho para continuar</p>
               )}
@@ -356,7 +356,7 @@ export default function CamisetasPage() {
 
               {canAdd && (
                 <p className="text-xs text-green-400 flex items-center gap-1">
-                  <Check size={12} /> {formatPrice(totalPrice * quantity)} no total Â· Prazo 7-12 dias Ãºteis
+                  <Check size={12} /> {formatPrice(totalPrice * quantity)} no total · Prazo 7-12 dias úteis
                 </p>
               )}
             </div>

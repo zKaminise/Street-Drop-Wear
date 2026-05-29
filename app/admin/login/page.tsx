@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••"
                 className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 pl-9 pr-10 py-3 text-sm focus:outline-none focus:border-[#E10600]/60"
               />
               <button

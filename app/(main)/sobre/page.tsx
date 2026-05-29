@@ -3,7 +3,7 @@ import { SobreContent } from './SobreContent'
 
 export const metadata: Metadata = {
   title: 'Sobre a StreetDrop Wear',
-  description: 'Nossa histÃ³ria, valores e compromisso com qualidade e personalizaÃ§Ã£o.',
+  description: 'Nossa história, valores e compromisso com qualidade e personalização.',
 }
 
 export default function SobrePage() {

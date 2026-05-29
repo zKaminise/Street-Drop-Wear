@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
@@ -18,7 +18,7 @@ export function Testimonials() {
         >
           <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Prova social</span>
           <h2 className="heading-display text-[clamp(2.5rem,5vw,4rem)] text-brand-white mt-3">
-            QUEM JÃ DROPOU
+            QUEM JÁ DROPOU
           </h2>
           <div className="flex items-center justify-center gap-2 mt-4">
             <div className="flex">
@@ -27,7 +27,7 @@ export function Testimonials() {
               ))}
             </div>
             <span className="text-brand-white font-bold">4.9</span>
-            <span className="text-brand-gray-text text-sm">Â· +1.200 avaliaÃ§Ãµes</span>
+            <span className="text-brand-gray-text text-sm">· +1.200 avaliações</span>
           </div>
         </motion.div>
 

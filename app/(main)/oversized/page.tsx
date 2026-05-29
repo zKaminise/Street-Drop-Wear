@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Check, Zap, Plus, Minus, ShoppingBag, RotateCcw } from 'lucide-react'
+import { ChevronLeft, Check, Zap, Plus, Minus } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { TShirtPreview, type TShirtView } from '@/components/customizer/TShirtPreview'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
@@ -17,6 +18,7 @@ type ApiBase = {
 type ApiStamp = {
   id: string; name: string; slug: string; extraPrice: number
   allowedFor: string; category?: string; active: boolean
+  imageUrl?: string
 }
 type ApiCombination = {
   id: string; baseId: string; colorId: string; stampId?: string
@@ -92,7 +94,7 @@ export default function OversizedPage() {
     addItem(
       {
         id: `${selectedBase.id}-${selectedColor.id}-${selectedStamp?.slug ?? 'sem-estampa'}`,
-        name: `${selectedBase.name}${hasStamp ? ` â€“ ${selectedStamp!.name}` : ''}`,
+        name: `${selectedBase.name}${hasStamp ? ` – ${selectedStamp!.name}` : ''}`,
         slug: 'oversized',
         category: 'oversized',
         price: totalPrice,
@@ -148,7 +150,7 @@ export default function OversizedPage() {
       <div className="sticky top-[72px] z-30 bg-brand-black/95 backdrop-blur-md border-b border-white/5">
         <div className="container-brand flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors">
-            <ChevronLeft size={16} /> InÃ­cio
+            <ChevronLeft size={16} /> Início
           </Link>
           <h1 className="text-sm font-black uppercase tracking-widest text-white">Monte sua Oversized</h1>
           <div className="text-right">
@@ -160,7 +162,7 @@ export default function OversizedPage() {
       <div className="container-brand py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
-          {/* LEFT â€” Preview */}
+          {/* LEFT – Preview */}
           <div className="lg:sticky lg:top-36 self-start space-y-4">
             {/* Front/Back toggle */}
             <div className="flex gap-2">
@@ -174,7 +176,7 @@ export default function OversizedPage() {
                       : 'border-white/10 text-white/40 hover:border-white/25 hover:text-white/70'
                   }`}
                 >
-                  {v === 'back' ? 'â†© Costas' : 'â†ª Frente'}
+                  {v === 'back' ? '↩ Costas' : '↪ Frente'}
                 </button>
               ))}
             </div>
@@ -195,7 +197,7 @@ export default function OversizedPage() {
             {/* Price breakdown */}
             <div className="bg-brand-graphite border border-white/5 p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/50">Base ({selectedBase?.name ?? 'â€“'})</span>
+                <span className="text-white/50">Base ({selectedBase?.name ?? '–'})</span>
                 <span className="text-white">{formatPrice(selectedBase?.basePrice ?? 0)}</span>
               </div>
               {selectedStamp && selectedStamp.extraPrice > 0 && (
@@ -211,11 +213,11 @@ export default function OversizedPage() {
             </div>
           </div>
 
-          {/* RIGHT â€” Options */}
+          {/* RIGHT – Options */}
           <div className="space-y-7">
             <div>
               <h2 className="heading-display text-3xl text-white">Monte sua Oversized</h2>
-              <p className="text-sm text-white/40 mt-1">AlgodÃ£o 300g premium Â· ImpressÃ£o DTF Â· Prazo 7-12 dias</p>
+              <p className="text-sm text-white/40 mt-1">Algodão 300g premium · Impressão DTF · Prazo 7-12 dias</p>
             </div>
 
             {/* Step 1: Base */}
@@ -287,11 +289,11 @@ export default function OversizedPage() {
                               : 'border-white/10 hover:border-white/25'
                           }`}
                         >
-                          <StampThumb slug={stamp.slug} />
+                          <StampThumb stamp={stamp} />
                           <span className="text-[10px] text-white/60 leading-tight">{stamp.name}</span>
                           {stamp.extraPrice > 0
                             ? <span className="text-[10px] text-brand-red">+{formatPrice(stamp.extraPrice)}</span>
-                            : <span className="text-[10px] text-white/30">GrÃ¡tis</span>
+                            : <span className="text-[10px] text-white/30">Grátis</span>
                           }
                         </button>
                       ))}
@@ -312,7 +314,7 @@ export default function OversizedPage() {
                       key={size}
                       onClick={() => stock > 0 && setSelectedSize(size)}
                       disabled={stock === 0}
-                      title={stock === 0 ? 'Esgotado' : `${stock} disponÃ­veis`}
+                      title={stock === 0 ? 'Esgotado' : `${stock} disponíveis`}
                       className={`w-12 h-12 border text-sm font-bold uppercase transition-all ${
                         stock === 0
                           ? 'border-white/5 text-white/20 cursor-not-allowed line-through'
@@ -327,7 +329,7 @@ export default function OversizedPage() {
                 })}
               </div>
               {selectedSize ? (
-                <p className="text-xs text-white/40 mt-2">{getStock(selectedSize)} unidade(s) disponÃ­vel(is)</p>
+                <p className="text-xs text-white/40 mt-2">{getStock(selectedSize)} unidade(s) disponível(is)</p>
               ) : (
                 <p className="text-xs text-brand-red mt-2">Selecione um tamanho para continuar</p>
               )}
@@ -358,7 +360,7 @@ export default function OversizedPage() {
 
               {canAdd && (
                 <p className="text-xs text-green-400 flex items-center gap-1">
-                  <Check size={12} /> {formatPrice(totalPrice * quantity)} no total Â· Prazo 7-12 dias Ãºteis
+                  <Check size={12} /> {formatPrice(totalPrice * quantity)} no total · Prazo 7-12 dias úteis
                 </p>
               )}
             </div>
@@ -381,19 +383,41 @@ function StepSection({ step, title, children }: { step: string; title: string; c
   )
 }
 
-function StampThumb({ slug }: { slug: string }) {
-  const colors: Record<string, string> = {
+function StampThumb({ stamp }: { stamp: ApiStamp }) {
+  const hasImage =
+    stamp.imageUrl &&
+    stamp.imageUrl !== '/stamps/placeholder.svg' &&
+    !stamp.imageUrl.startsWith('data:')
+
+  if (hasImage) {
+    return (
+      <div className="w-10 h-10 relative overflow-hidden bg-black/30 rounded-sm">
+        <Image
+          src={stamp.imageUrl!}
+          alt={stamp.name}
+          fill
+          className="object-contain p-0.5"
+          unoptimized
+        />
+      </div>
+    )
+  }
+
+  // SVG fallback for stamps without uploaded images
+  const COLORS: Record<string, string> = {
     'sem-estampa': '#2A2A2A', 'streetdrop-logo': '#E10600', 'urban-skull': '#FF4444',
     'dragon-fire': '#FF6B35', 'tokyo-night': '#7C3AED', 'neon-wave': '#06B6D4',
     'mountain-peak': '#10B981', 'cyber-grid': '#3B82F6',
   }
-  const color = colors[slug] ?? '#E10600'
+  const color = COLORS[stamp.slug] ?? '#E10600'
   return (
     <svg viewBox="0 0 48 48" className="w-10 h-10" fill="none">
       <rect width="48" height="48" rx="2" fill={`${color}20`} />
       <circle cx="24" cy="22" r="11" fill={`${color}40`} />
       <circle cx="24" cy="22" r="6" fill={color} opacity="0.7" />
-      {slug === 'sem-estampa' && <line x1="8" y1="8" x2="40" y2="40" stroke="#555" strokeWidth="1.5" />}
+      {stamp.slug === 'sem-estampa' && (
+        <line x1="8" y1="8" x2="40" y2="40" stroke="#555" strokeWidth="1.5" />
+      )}
     </svg>
   )
 }

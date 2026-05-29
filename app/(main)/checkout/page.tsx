@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -39,10 +39,10 @@ type ShippingData = {
 }
 
 const STEPS: { id: Step; label: string; icon: React.ElementType }[] = [
-  { id: 'identity', label: 'IdentificaÃ§Ã£o', icon: User },
-  { id: 'address', label: 'EndereÃ§o', icon: MapPin },
+  { id: 'identity', label: 'Identificação', icon: User },
+  { id: 'address', label: 'Endereço', icon: MapPin },
   { id: 'shipping', label: 'Entrega', icon: Truck },
-  { id: 'review', label: 'RevisÃ£o', icon: ClipboardList },
+  { id: 'review', label: 'Revisão', icon: ClipboardList },
 ]
 
 const STATES = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO']
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
   }
 
   function handleIdentityNext() {
-    if (!identity.name || !identity.email) { setError('Nome e e-mail sÃ£o obrigatÃ³rios.'); return }
+    if (!identity.name || !identity.email) { setError('Nome e e-mail são obrigatórios.'); return }
     goToStep('address')
   }
 
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
     // Validate
     if (useNewAddress || !selectedAddressId) {
       if (!address.zipCode || !address.street || !address.number || !address.district || !address.city || !address.state) {
-        setError('Preencha todos os campos obrigatÃ³rios do endereÃ§o.')
+        setError('Preencha todos os campos obrigatórios do endereço.')
         return
       }
     }
@@ -229,12 +229,12 @@ export default function CheckoutPage() {
       setOrderNumber(data.orderNumber)
       clearCart()
     } catch {
-      setError('Erro de conexÃ£o. Tente novamente.')
+      setError('Erro de conexão. Tente novamente.')
       setSubmitting(false)
     }
   }
 
-  // â”€â”€â”€ Success screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Success screen ────────────────────────────────────────────────────
   if (orderNumber) {
     return (
       <div className="min-h-screen bg-brand-black flex items-center justify-center px-4">
@@ -253,10 +253,10 @@ export default function CheckoutPage() {
           </motion.div>
           <h1 className="heading-display text-4xl text-brand-white mb-3">PEDIDO CONFIRMADO!</h1>
           <p className="text-brand-gray-text mb-2">
-            NÃºmero do pedido: <span className="text-brand-white font-bold font-mono">{orderNumber}</span>
+            Número do pedido: <span className="text-brand-white font-bold font-mono">{orderNumber}</span>
           </p>
           <p className="text-brand-gray-text mb-8 text-sm">
-            Entraremos em contato pelo e-mail <span className="text-brand-white">{identity.email}</span> com as atualizaÃ§Ãµes do seu pedido.
+            Entraremos em contato pelo e-mail <span className="text-brand-white">{identity.email}</span> com as atualizações do seu pedido.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             {isAuthenticated && (
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
                 {step === 'identity' && (
                   <motion.div key="identity" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                     <h2 className="text-sm font-bold uppercase tracking-wider text-brand-white border-b border-white/5 pb-3">
-                      Suas informaÃ§Ãµes
+                      Suas informações
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="sm:col-span-2">
@@ -361,11 +361,11 @@ export default function CheckoutPage() {
                         <Link href="/login" className="text-brand-red hover:text-brand-white transition-colors font-semibold">
                           Entre agora
                         </Link>{' '}
-                        para ter acesso ao histÃ³rico de pedidos e endereÃ§os salvos.
+                        para ter acesso ao histórico de pedidos e endereços salvos.
                       </p>
                     )}
                     <button onClick={handleIdentityNext} className="btn-primary w-full justify-center group">
-                      Continuar para EndereÃ§o
+                      Continuar para Endereço
                       <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </motion.div>
@@ -375,7 +375,7 @@ export default function CheckoutPage() {
                 {step === 'address' && (
                   <motion.div key="address" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                     <h2 className="text-sm font-bold uppercase tracking-wider text-brand-white border-b border-white/5 pb-3">
-                      EndereÃ§o de Entrega
+                      Endereço de Entrega
                     </h2>
 
                     {/* Saved addresses */}
@@ -395,7 +395,7 @@ export default function CheckoutPage() {
                               <div>
                                 <p className="text-sm font-semibold text-brand-white">{addr.label}</p>
                                 <p className="text-xs text-brand-gray-text mt-0.5">
-                                  {addr.street}, {addr.number} â€” {addr.district}, {addr.city}/{addr.state}
+                                  {addr.street}, {addr.number} – {addr.district}, {addr.city}/{addr.state}
                                 </p>
                                 <p className="text-xs text-brand-gray-text">CEP: {addr.zipCode}</p>
                               </div>
@@ -413,7 +413,7 @@ export default function CheckoutPage() {
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-brand-white">+ Novo endereÃ§o</p>
+                            <p className="text-sm font-semibold text-brand-white">+ Novo endereço</p>
                             <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-colors ${
                               useNewAddress ? 'border-brand-red bg-brand-red' : 'border-white/20'
                             }`} />
@@ -440,8 +440,8 @@ export default function CheckoutPage() {
                             <input value={address.street} onChange={e => setAddress(p => ({ ...p, street: e.target.value }))} placeholder="Nome da rua" className={INPUT} />
                           </Field>
                         </div>
-                        <Field label="NÃºmero" required>
-                          <input value={address.number} onChange={e => setAddress(p => ({ ...p, number: e.target.value }))} placeholder="NÂº" className={INPUT} />
+                        <Field label="Número" required>
+                          <input value={address.number} onChange={e => setAddress(p => ({ ...p, number: e.target.value }))} placeholder="Nº" className={INPUT} />
                         </Field>
                         <Field label="Complemento">
                           <input value={address.complement} onChange={e => setAddress(p => ({ ...p, complement: e.target.value }))} placeholder="Apto, sala..." className={INPUT} />
@@ -465,7 +465,7 @@ export default function CheckoutPage() {
                           <div className="col-span-2 flex items-center gap-2">
                             <input type="checkbox" id="save-addr" className="cursor-pointer" />
                             <label htmlFor="save-addr" className="text-sm text-brand-gray-text cursor-pointer">
-                              Salvar este endereÃ§o na minha conta
+                              Salvar este endereço na minha conta
                             </label>
                           </div>
                         )}
@@ -494,17 +494,17 @@ export default function CheckoutPage() {
                         <Truck size={20} className={shipping.isFree ? 'text-green-400 mt-0.5' : 'text-brand-red mt-0.5'} />
                         <div className="flex-1">
                           <p className="font-bold text-brand-white">
-                            {shipping.isFree ? 'Frete GrÃ¡tis' : `Frete Fixo â€” ${formatPrice(shipping.cost)}`}
+                            {shipping.isFree ? 'Frete Grátis' : `Frete Fixo – ${formatPrice(shipping.cost)}`}
                           </p>
                           <p className="text-xs text-brand-gray-text mt-1">
-                            ProduÃ§Ã£o: ~{shipping.productionDays} dias Ãºteis Â· Envio: +5 dias Ãºteis
+                            Produção: ~{shipping.productionDays} dias úteis · Envio: +5 dias úteis
                           </p>
                           <p className="text-xs text-brand-gray-text">
-                            Estimativa total: ~{shipping.estimatedDeliveryDays} dias Ãºteis apÃ³s confirmaÃ§Ã£o do pagamento
+                            Estimativa total: ~{shipping.estimatedDeliveryDays} dias úteis após confirmação do pagamento
                           </p>
                         </div>
                         <p className={`text-lg font-bold flex-shrink-0 ${shipping.isFree ? 'text-green-400' : 'text-brand-white'}`}>
-                          {shipping.isFree ? 'GrÃ¡tis' : formatPrice(shipping.cost)}
+                          {shipping.isFree ? 'Grátis' : formatPrice(shipping.cost)}
                         </p>
                       </div>
                     )}
@@ -513,8 +513,8 @@ export default function CheckoutPage() {
                       <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Forma de Pagamento</p>
                       <div className="space-y-2">
                         {[
-                          { id: 'pix', icon: QrCode, label: 'PIX', desc: 'AprovaÃ§Ã£o instantÃ¢nea' },
-                          { id: 'boleto', icon: FileText, label: 'Boleto BancÃ¡rio', desc: 'Vencimento em 3 dias Ãºteis' },
+                          { id: 'pix', icon: QrCode, label: 'PIX', desc: 'Aprovação instantânea' },
+                          { id: 'boleto', icon: FileText, label: 'Boleto Bancário', desc: 'Vencimento em 3 dias úteis' },
                         ].map(pm => (
                           <div key={pm.id} className="flex items-center gap-3 p-3 border border-white/5 text-brand-gray-text">
                             <pm.icon size={16} className="text-brand-gray-text" />
@@ -526,13 +526,13 @@ export default function CheckoutPage() {
                         ))}
                       </div>
                       <p className="text-xs text-brand-gray-text/60 mt-3">
-                        A escolha do mÃ©todo de pagamento serÃ¡ feita apÃ³s a confirmaÃ§Ã£o do pedido via WhatsApp/e-mail.
+                        A escolha do método de pagamento será feita após a confirmação do pedido via WhatsApp/e-mail.
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-brand-gray-text bg-white/5 border border-white/5 p-3">
                       <Lock size={14} className="text-green-400 flex-shrink-0" />
-                      Seus dados sÃ£o protegidos com criptografia SSL
+                      Seus dados são protegidos com criptografia SSL
                     </div>
 
                     <div className="flex gap-3 pt-2">
@@ -549,7 +549,7 @@ export default function CheckoutPage() {
                 {step === 'review' && (
                   <motion.div key="review" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                     <h2 className="text-sm font-bold uppercase tracking-wider text-brand-white border-b border-white/5 pb-3">
-                      RevisÃ£o Final
+                      Revisão Final
                     </h2>
 
                     {/* Identity summary */}
@@ -562,7 +562,7 @@ export default function CheckoutPage() {
 
                     {/* Address summary */}
                     <div className="bg-brand-graphite/50 border border-white/5 p-4">
-                      <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">EndereÃ§o de Entrega</p>
+                      <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Endereço de Entrega</p>
                       {(() => {
                         const addr = selectedAddressId && !useNewAddress
                           ? savedAddresses.find(a => a.id === selectedAddressId)
@@ -572,7 +572,7 @@ export default function CheckoutPage() {
                         return (
                           <>
                             <p className="text-sm text-brand-white">{a.street}, {a.number}</p>
-                            <p className="text-xs text-brand-gray-text">{a.district} â€” {a.city}/{a.state}</p>
+                            <p className="text-xs text-brand-gray-text">{a.district} – {a.city}/{a.state}</p>
                             <p className="text-xs text-brand-gray-text">CEP {a.zipCode}</p>
                           </>
                         )
@@ -587,7 +587,7 @@ export default function CheckoutPage() {
                           <div className="flex-1 min-w-0 mr-3">
                             <span className="text-brand-white font-semibold block truncate">{item.product.name}</span>
                             <span className="text-brand-gray-text text-xs">
-                              {item.selectedColor.name} Â· {item.selectedSize.label} Â· Ã—{item.quantity}
+                              {item.selectedColor.name} · {item.selectedSize.label} · ×{item.quantity}
                             </span>
                           </div>
                           <span className="text-brand-white font-bold flex-shrink-0">
@@ -629,8 +629,8 @@ export default function CheckoutPage() {
                     <span className="text-brand-gray-text">Frete</span>
                     <span className={shipping?.isFree ? 'text-green-400' : 'text-brand-white'}>
                       {shipping
-                        ? shipping.isFree ? 'GrÃ¡tis' : formatPrice(shipping.cost)
-                        : 'â€”'
+                        ? shipping.isFree ? 'Grátis' : formatPrice(shipping.cost)
+                        : '–'
                       }
                     </span>
                   </div>
@@ -647,7 +647,7 @@ export default function CheckoutPage() {
                       <div className="w-8 h-8 flex-shrink-0" style={{ backgroundColor: `${item.selectedColor.hex}33` }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-brand-white truncate">{item.product.name}</p>
-                        <p className="text-brand-gray-text">{item.selectedSize.label} Ã— {item.quantity}</p>
+                        <p className="text-brand-gray-text">{item.selectedSize.label} × {item.quantity}</p>
                       </div>
                     </div>
                   ))}

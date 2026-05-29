@@ -9,7 +9,7 @@ import { useAuthStore, useCartStore } from '@/lib/store'
 
 const MENU = [
   { icon: Package, label: 'Meus Pedidos', href: '/pedidos', desc: 'Acompanhe seus pedidos' },
-  { icon: MapPin, label: 'EndereÃ§os', href: '/conta/enderecos', desc: 'Gerenciar endereÃ§os salvos' },
+  { icon: MapPin, label: 'Endereços', href: '/conta/enderecos', desc: 'Gerenciar endereços salvos' },
   { icon: Settings, label: 'Perfil', href: '/conta/perfil', desc: 'Dados e senha' },
 ]
 
@@ -128,7 +128,7 @@ export default function ContaPage() {
             >
               <Link href="/pedidos" className="bg-brand-graphite border border-white/5 hover:border-brand-red/20 transition-colors p-4 text-center group">
                 <p className="heading-display text-2xl text-brand-white group-hover:text-brand-red transition-colors">
-                  {orderCount === null ? 'â€“' : orderCount}
+                  {orderCount === null ? '–' : orderCount}
                 </p>
                 <p className="text-xs text-brand-gray-text mt-1 flex items-center justify-center gap-1">
                   <Package size={12} /> Pedidos

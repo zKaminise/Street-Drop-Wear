@@ -14,11 +14,11 @@ const STATUS_META: Record<string, { label: string; icon: React.ElementType; colo
   CREATED:            { label: 'Pedido recebido',        icon: Clock,        color: 'text-blue-400' },
   PAYMENT_PENDING:    { label: 'Aguardando pagamento',   icon: CreditCard,   color: 'text-yellow-400' },
   PAYMENT_APPROVED:   { label: 'Pagamento aprovado',     icon: Check,        color: 'text-green-400' },
-  IN_PREPARATION:     { label: 'Em preparaÃ§Ã£o',          icon: Package,      color: 'text-orange-400' },
+  IN_PREPARATION:     { label: 'Em preparação',          icon: Package,      color: 'text-orange-400' },
   PRODUCED:           { label: 'Produzido',              icon: Box,          color: 'text-purple-400' },
   AWAITING_SHIPMENT:  { label: 'Aguardando envio',       icon: Send,         color: 'text-cyan-400' },
   SHIPPED:            { label: 'Enviado',                icon: Truck,        color: 'text-blue-300' },
-  IN_TRANSIT:         { label: 'Em trÃ¢nsito',            icon: MapPin,       color: 'text-indigo-400' },
+  IN_TRANSIT:         { label: 'Em trânsito',            icon: MapPin,       color: 'text-indigo-400' },
   DELIVERED:          { label: 'Entregue',               icon: Check,        color: 'text-emerald-400' },
   CANCELLED:          { label: 'Cancelado',              icon: AlertCircle,  color: 'text-red-400' },
 }
@@ -63,7 +63,7 @@ export function OrderTimeline({ history }: OrderTimelineProps) {
                   hour: '2-digit', minute: '2-digit',
                 })}
                 {entry.createdBy !== 'system' && (
-                  <span className="ml-1 opacity-50">Â· {entry.createdBy}</span>
+                  <span className="ml-1 opacity-50">· {entry.createdBy}</span>
                 )}
               </p>
             </div>

@@ -44,8 +44,8 @@ function FeaturedCard({ product, priority = false }: { product: FeaturedProduct;
   function handleQuickAdd(e: React.MouseEvent) {
     e.preventDefault()
     const v = product.variants.find(x => x.stock > 0)
-    const color = v?.color ? { name: v.color, hex: v.colorHex ?? '#1A1A1A' } : { name: 'PadrÃ£o', hex: '#1A1A1A' }
-    const size = { label: v?.size ?? 'Ãšnico', available: true }
+    const color = v?.color ? { name: v.color, hex: v.colorHex ?? '#1A1A1A' } : { name: 'Padrão', hex: '#1A1A1A' }
+    const size = { label: v?.size ?? 'Único', available: true }
     addItem(
       {
         id: product.id, slug: product.slug, name: product.name,

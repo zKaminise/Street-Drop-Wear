@@ -1,8 +1,9 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Plus, Edit2, Trash2, X, Check, Image as ImageIcon } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Check, Image as ImageIcon, Upload, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 
 type Color = { id: string; name: string; hex: string }
 type Base = { id: string; name: string; type: string; colors: Color[] }
@@ -58,8 +59,25 @@ export default function CombinacoesPage() {
     baseId: '', colorId: '', stampId: '', imageFront: '', imageBack: '', active: true,
   })
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const fileFrontRef = useRef<HTMLInputElement>(null)
+  const fileBackRef  = useRef<HTMLInputElement>(null)
 
-  async function load() {
+  async function handleFileUpload(file: File, field: 'imageFront' | 'imageBack') {
+    setUploading(field)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'mockups')
+      const res  = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.url) setForm(f => ({ ...f, [field]: data.url }))
+      else alert(data.error ?? 'Erro ao fazer upload')
+    } catch { alert('Erro ao fazer upload') }
+    finally { setUploading(null) }
+  }
+
+  const load = useCallback(async () => {
     const [combosData, basesData, stampsData] = await Promise.all([
       fetch(`/api/admin/combinations${filterType ? `?type=${filterType}` : ''}`).then(r => r.json()),
       fetch('/api/admin/bases').then(r => r.json()),
@@ -69,9 +87,9 @@ export default function CombinacoesPage() {
     setBases(Array.isArray(basesData) ? basesData : [])
     setStamps(Array.isArray(stampsData) ? stampsData : [])
     setLoading(false)
-  }
+  }, [filterType])
 
-  useEffect(() => { load() }, [filterType])
+  useEffect(() => { load() }, [load])
 
   function openNew() {
     const firstBase = bases[0]
@@ -236,40 +254,58 @@ export default function CombinacoesPage() {
                   </select>
                 </Field>
 
-                {/* Image URLs */}
-                <div className="border border-white/5 p-4 space-y-3 bg-black/20">
+                {/* Image upload */}
+                <div className="border border-white/5 p-4 space-y-4 bg-black/20">
                   <p className="text-xs text-white/40 uppercase tracking-wider flex items-center gap-2">
-                    <ImageIcon size={12} /> Fotos do Produto
-                  </p>
-                  <p className="text-[11px] text-white/30">
-                    Coloque as fotos em <code className="text-white/50">/public/images/mockups/</code> e use o caminho <code className="text-white/50">/images/mockups/nome-arquivo.jpg</code>
+                    <ImageIcon size={12} /> Fotos do Produto (Mockups)
                   </p>
 
-                  <Field label="URL da foto — Frente">
-                    <input
-                      value={form.imageFront}
-                      onChange={e => setForm(f => ({ ...f, imageFront: e.target.value }))}
-                      className={INPUT}
-                      placeholder="/images/mockups/oversized-preto-frente.jpg"
-                    />
+                  {/* Front image */}
+                  <Field label="Foto — Frente">
+                    <div className="flex items-start gap-3">
+                      <div className="w-20 h-20 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {form.imageFront ? (
+                          <Image src={form.imageFront} alt="Frente" width={80} height={80} className="w-full h-full object-contain" unoptimized />
+                        ) : (
+                          <ImageIcon size={22} className="text-white/20" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <input ref={fileFrontRef} type="file" accept="image/*" className="hidden"
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'imageFront'); if (fileFrontRef.current) fileFrontRef.current.value = '' }} />
+                        <button type="button" disabled={uploading === 'imageFront'}
+                          onClick={() => fileFrontRef.current?.click()}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
+                          {uploading === 'imageFront' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto</>}
+                        </button>
+                        {form.imageFront && <p className="text-[10px] text-white/25 mt-1 truncate">{form.imageFront}</p>}
+                      </div>
+                    </div>
                   </Field>
-                  {form.imageFront && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={form.imageFront} alt="Preview frente" className="w-32 h-32 object-contain border border-white/10 bg-black/30" />
-                  )}
 
-                  <Field label="URL da foto — Costas">
-                    <input
-                      value={form.imageBack}
-                      onChange={e => setForm(f => ({ ...f, imageBack: e.target.value }))}
-                      className={INPUT}
-                      placeholder="/images/mockups/oversized-preto-costas.jpg"
-                    />
+                  {/* Back image */}
+                  <Field label="Foto — Costas">
+                    <div className="flex items-start gap-3">
+                      <div className="w-20 h-20 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {form.imageBack ? (
+                          <Image src={form.imageBack} alt="Costas" width={80} height={80} className="w-full h-full object-contain" unoptimized />
+                        ) : (
+                          <ImageIcon size={22} className="text-white/20" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <input ref={fileBackRef} type="file" accept="image/*" className="hidden"
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'imageBack'); if (fileBackRef.current) fileBackRef.current.value = '' }} />
+                        <button type="button" disabled={uploading === 'imageBack'}
+                          onClick={() => fileBackRef.current?.click()}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
+                          {uploading === 'imageBack' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto</>}
+                        </button>
+                        {form.imageBack && <p className="text-[10px] text-white/25 mt-1 truncate">{form.imageBack}</p>}
+                      </div>
+                    </div>
                   </Field>
-                  {form.imageBack && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={form.imageBack} alt="Preview costas" className="w-32 h-32 object-contain border border-white/10 bg-black/30" />
-                  )}
+                  <p className="text-[10px] text-white/20">JPG, PNG, WebP ou SVG · máx. 5 MB · Será salvo em /public/images/mockups/</p>
                 </div>
 
                 <label className="flex items-center gap-2 cursor-pointer">

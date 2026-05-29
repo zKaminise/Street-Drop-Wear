@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminFromCookies } from '@/lib/admin-auth'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const db = prisma as any
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -9,7 +9,7 @@ const WORLDS = [
     id: 'oversized',
     title: 'Oversized',
     subtitle: 'Camisetas',
-    desc: 'Corte amplo streetwear com algodÃ£o premium 300g. Personalize com sua arte.',
+    desc: 'Corte amplo streetwear com algodão premium 300g. Personalize com sua arte.',
     href: '/oversized',
     color: '#E10600',
     bg: 'from-[#1A0A0A] to-[#0B0B0D]',
@@ -20,18 +20,18 @@ const WORLDS = [
     id: 'camisetas',
     title: 'Classic',
     subtitle: 'Camisetas',
-    desc: 'Corte regular e slim. AlgodÃ£o 180g para o dia a dia com personalizaÃ§Ã£o total.',
+    desc: 'Corte regular e slim. Algodão 180g para o dia a dia com personalização total.',
     href: '/camisetas',
     color: '#F5F5F2',
     bg: 'from-[#1A1A1A] to-[#0B0B0D]',
     accent: 'bg-[#F5F5F2]',
-    tag: 'VersÃ¡til',
+    tag: 'Versátil',
   },
   {
     id: 'dryfit',
     title: 'DryFit',
     subtitle: 'Fitness',
-    desc: 'Tecido tÃ©cnico anti-odor, UV50+. Para crossfit, musculaÃ§Ã£o e corrida.',
+    desc: 'Tecido técnico anti-odor, UV50+. Para crossfit, musculação e corrida.',
     href: '/dryfit',
     color: '#60A5FA',
     bg: 'from-[#091426] to-[#0B0B0D]',
@@ -40,9 +40,9 @@ const WORLDS = [
   },
   {
     id: 'produtos-3d',
-    title: 'ImpressÃ£o',
+    title: 'Impressão',
     subtitle: '3D',
-    desc: 'Chaveiros, medalhas, trofÃ©us e brindes personalizados em PLA premium.',
+    desc: 'Chaveiros, medalhas, troféus e brindes personalizados em PLA premium.',
     href: '/produtos-3d',
     color: '#A78BFA',
     bg: 'from-[#0E0A1A] to-[#0B0B0D]',
@@ -53,18 +53,18 @@ const WORLDS = [
     id: 'geek',
     title: 'Geek',
     subtitle: 'Store',
-    desc: 'PokÃ©mon TCG lacrados, cartas avulsas e produtos geek selecionados.',
+    desc: 'Pokémon TCG lacrados, cartas avulsas e produtos geek selecionados.',
     href: '/geek',
     color: '#FACC15',
     bg: 'from-[#1A1500] to-[#0B0B0D]',
     accent: 'bg-yellow-400',
-    tag: 'ColecionÃ¡vel',
+    tag: 'Colecionável',
   },
   {
     id: 'kits',
     title: 'Kits',
     subtitle: 'B2B',
-    desc: 'Uniformes para empresas, academias, escolas e eventos. Do design Ã  entrega.',
+    desc: 'Uniformes para empresas, academias, escolas e eventos. Do design à entrega.',
     href: '/kits',
     color: '#34D399',
     bg: 'from-[#081A11] to-[#0B0B0D]',
@@ -101,7 +101,7 @@ export function ProductWorlds() {
             EXPLORE NOSSOS MUNDOS
           </h2>
           <p className="text-brand-gray-text mt-4 max-w-xl mx-auto">
-            De camisetas Ãºnicas a kits corporativos. Cada produto feito com propÃ³sito e qualidade.
+            De camisetas únicas a kits corporativos. Cada produto feito com propósito e qualidade.
           </p>
         </motion.div>
 

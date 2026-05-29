@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
@@ -78,7 +78,7 @@ export function ProductCard({ product }: ProductCardProps) {
               {hoverImage && (
                 <Image
                   src={hoverImage}
-                  alt={`${product.name} â€“ detalhe`}
+                  alt={`${product.name} – detalhe`}
                   fill
                   className={`object-cover transition-all duration-500 ${hovered ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -105,7 +105,7 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
             {product.status === 'low_stock' && (
               <span className="badge bg-yellow-500/20 text-yellow-400 text-[10px] border border-yellow-500/30">
-                Ãšltimas unidades
+                Últimas unidades
               </span>
             )}
             {product.tags.includes('bestseller') && (
@@ -119,7 +119,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={e => e.preventDefault()}
             className="absolute top-3 right-3 w-8 h-8 bg-brand-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 hover:bg-brand-red/20"
-            aria-label="Adicionar Ã  lista de desejos"
+            aria-label="Adicionar à lista de desejos"
           >
             <Heart size={14} className="text-brand-white" strokeWidth={1.5} />
           </button>

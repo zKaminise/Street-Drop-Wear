@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion } from 'framer-motion'
 import { Search, Palette, ShoppingCart, Package } from 'lucide-react'
@@ -8,25 +8,25 @@ const STEPS = [
     number: '01',
     icon: Search,
     title: 'Escolha o produto',
-    desc: 'Navegue pelo nosso catÃ¡logo e encontre a camiseta, produto 3D ou kit ideal para vocÃª ou sua empresa.',
+    desc: 'Navegue pelo nosso catálogo e encontre a camiseta, produto 3D ou kit ideal para você ou sua empresa.',
   },
   {
     number: '02',
     icon: Palette,
     title: 'Personalize ou selecione',
-    desc: 'FaÃ§a upload da sua arte, escolha uma estampa exclusiva ou monte do zero com nossas ferramentas.',
+    desc: 'Faça upload da sua arte, escolha uma estampa exclusiva ou monte do zero com nossas ferramentas.',
   },
   {
     number: '03',
     icon: ShoppingCart,
     title: 'Adicione ao carrinho',
-    desc: 'Escolha tamanho, cor e quantidade. Pagamento seguro via PIX, cartÃ£o ou boleto com frete calculado.',
+    desc: 'Escolha tamanho, cor e quantidade. Pagamento seguro via PIX, cartão ou boleto com frete calculado.',
   },
   {
     number: '04',
     icon: Package,
     title: 'Acompanhe seu pedido',
-    desc: 'ProduÃ§Ã£o em atÃ© 7 dias Ãºteis. Rastreamento em tempo real direto pelo painel ou WhatsApp.',
+    desc: 'Produção em até 7 dias úteis. Rastreamento em tempo real direto pelo painel ou WhatsApp.',
   },
 ]
 
@@ -49,7 +49,7 @@ export function HowItWorks() {
             COMO FUNCIONA
           </h2>
           <p className="text-brand-gray-text mt-4 max-w-md mx-auto">
-            Do primeiro clique Ã  entrega na sua porta. RÃ¡pido, fÃ¡cil e com a qualidade StreetDrop.
+            Do primeiro clique à entrega na sua porta. Rápido, fácil e com a qualidade StreetDrop.
           </p>
         </motion.div>
 

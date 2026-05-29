@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -44,7 +44,7 @@ function apiToProduct(p: ApiProduct): Product {
   }
 }
 
-const SUBCATEGORIES = ['PokÃ©mon TCG', 'Camisetas Geek', 'AcessÃ³rios', 'ColecionÃ¡veis']
+const SUBCATEGORIES = ['Pokémon TCG', 'Camisetas Geek', 'Acessórios', 'Colecionáveis']
 
 export default function GeekPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
@@ -68,12 +68,12 @@ export default function GeekPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/10 to-transparent" />
         <div className="container-brand py-14 relative">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-yellow-400 text-xs font-bold uppercase tracking-[0.3em]">ColecionÃ¡veis & TCG</span>
+            <span className="text-yellow-400 text-xs font-bold uppercase tracking-[0.3em]">Colecionáveis & TCG</span>
             <h1 className="heading-display text-[clamp(3rem,7vw,6rem)] text-brand-white mt-2 leading-none">
               GEEK <span className="text-yellow-400">STORE</span>
             </h1>
             <p className="text-brand-gray-text mt-3 max-w-lg">
-              PokÃ©mon TCG oficial lacrado, cartas avulsas originais e produtos geek selecionados. Estoque verificado e nota fiscal garantida.
+              Pokémon TCG oficial lacrado, cartas avulsas originais e produtos geek selecionados. Estoque verificado e nota fiscal garantida.
             </p>
             <div className="flex flex-wrap gap-2 mt-5">
               {['Produtos 100% Originais', 'Nota Fiscal Garantida', 'Estoque Verificado', 'Embalagem Premium'].map(tag => (
@@ -90,7 +90,7 @@ export default function GeekPage() {
       <div className="container-brand pt-6">
         <div className="bg-yellow-400/5 border border-yellow-400/20 px-5 py-3 text-sm text-yellow-300/80">
           <span className="font-bold text-yellow-400">Aviso legal: </span>
-          Todos os produtos PokÃ©mon TCG sÃ£o originais, adquiridos de distribuidores autorizados. A StreetDrop Wear Ã© revendedora e nÃ£o afiliada Ã  The PokÃ©mon Company.
+          Todos os produtos Pokémon TCG são originais, adquiridos de distribuidores autorizados. A StreetDrop Wear é revendedora e não afiliada à The Pokémon Company.
         </div>
       </div>
 

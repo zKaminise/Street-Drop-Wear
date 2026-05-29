@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCustomerFromCookies } from '@/lib/customer-auth'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 async function guardAddress(id: string, customerId: string) {
   const addr = await prisma.address.findFirst({ where: { id, customerId } })
   return addr

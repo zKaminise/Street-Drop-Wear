@@ -38,7 +38,7 @@ export function truncate(text: string, maxLength: number): string {
 
 export function getStockLabel(stock: number): string {
   if (stock === 0) return 'Esgotado'
-  if (stock <= 5) return `Ãšltimas ${stock} unidades`
+  if (stock <= 5) return `Últimas ${stock} unidades`
   if (stock <= 10) return 'Poucas unidades'
   return 'Em estoque'
 }
@@ -55,9 +55,9 @@ export function getStatusColor(status: string): string {
 
 export function getOrderStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'Aguardando confirmaÃ§Ã£o',
+    pending: 'Aguardando confirmação',
     confirmed: 'Confirmado',
-    in_production: 'Em produÃ§Ã£o',
+    in_production: 'Em produção',
     shipped: 'Enviado',
     delivered: 'Entregue',
     cancelled: 'Cancelado',

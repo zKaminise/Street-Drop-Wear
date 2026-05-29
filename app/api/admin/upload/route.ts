@@ -3,6 +3,9 @@ import { getAdminFromCookies } from '@/lib/admin-auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif']
 const MAX_SIZE_MB = 5
 
@@ -14,7 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     formData = await req.formData()
   } catch {
-    return NextResponse.json({ error: 'Form data invÃ¡lido' }, { status: 400 })
+    return NextResponse.json({ error: 'Form data inválido' }, { status: 400 })
   }
 
   const file = formData.get('file') as File | null
@@ -23,14 +26,14 @@ export async function POST(req: NextRequest) {
   // Validate MIME type
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
-      { error: `Tipo invÃ¡lido: ${file.type}. Use JPG, PNG, WebP, SVG ou GIF.` },
+      { error: `Tipo inválido: ${file.type}. Use JPG, PNG, WebP, SVG ou GIF.` },
       { status: 400 }
     )
   }
 
   // Validate size
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    return NextResponse.json({ error: `Arquivo muito grande. MÃ¡ximo ${MAX_SIZE_MB} MB.` }, { status: 400 })
+    return NextResponse.json({ error: `Arquivo muito grande. Máximo ${MAX_SIZE_MB} MB.` }, { status: 400 })
   }
 
   const bytes = await file.arrayBuffer()

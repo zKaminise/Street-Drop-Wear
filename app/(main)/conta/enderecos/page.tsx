@@ -139,7 +139,7 @@ export default function EnderecosPage() {
 
   async function handleSave() {
     if (!form.zipCode || !form.street || !form.number || !form.district || !form.city) {
-      setError('Preencha os campos obrigatÃ³rios.')
+      setError('Preencha os campos obrigatórios.')
       return
     }
 
@@ -170,14 +170,14 @@ export default function EnderecosPage() {
       await load()
       setShowModal(false)
     } catch {
-      setError('Erro de conexÃ£o.')
+      setError('Erro de conexão.')
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Remover este endereÃ§o?')) return
+    if (!confirm('Remover este endereço?')) return
 
     await fetch(`/api/customer/addresses/${id}`, {
       method: 'DELETE',
@@ -211,7 +211,7 @@ export default function EnderecosPage() {
               Minha Conta
             </Link>
             <ChevronRight size={14} />
-            <span className="text-brand-white">EndereÃ§os</span>
+            <span className="text-brand-white">Endereços</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -220,13 +220,13 @@ export default function EnderecosPage() {
                 Entrega
               </span>
               <h1 className="heading-display text-[clamp(2rem,4vw,3rem)] text-brand-white mt-1">
-                ENDEREÃ‡OS
+                ENDEREÇOS
               </h1>
             </div>
 
             <button onClick={openNew} className="btn-primary text-sm">
               <Plus size={16} />
-              Novo EndereÃ§o
+              Novo Endereço
             </button>
           </div>
         </motion.div>
@@ -240,9 +240,9 @@ export default function EnderecosPage() {
               className="text-brand-gray-text mx-auto mb-4"
               strokeWidth={1}
             />
-            <p className="text-brand-gray-text mb-6">Nenhum endereÃ§o cadastrado.</p>
+            <p className="text-brand-gray-text mb-6">Nenhum endereço cadastrado.</p>
             <button onClick={openNew} className="btn-primary">
-              Adicionar endereÃ§o
+              Adicionar endereço
             </button>
           </div>
         ) : (
@@ -279,7 +279,7 @@ export default function EnderecosPage() {
                     </p>
 
                     <p className="text-xs text-brand-gray-text">
-                      {address.district} â€” {address.city}/{address.state} Â· CEP{' '}
+                      {address.district} – {address.city}/{address.state} · CEP{' '}
                       {address.zipCode}
                     </p>
                   </div>
@@ -324,7 +324,7 @@ export default function EnderecosPage() {
             >
               <div className="flex items-center justify-between p-5 border-b border-white/10">
                 <h2 className="text-white font-bold">
-                  {editing ? 'Editar EndereÃ§o' : 'Novo EndereÃ§o'}
+                  {editing ? 'Editar Endereço' : 'Novo Endereço'}
                 </h2>
 
                 <button
@@ -397,7 +397,7 @@ export default function EnderecosPage() {
 
                   <div>
                     <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      NÃºmero *
+                      Número *
                     </label>
                     <input
                       value={form.number}
@@ -502,7 +502,7 @@ export default function EnderecosPage() {
                       htmlFor="is-default"
                       className="text-sm text-white/60 cursor-pointer"
                     >
-                      Definir como endereÃ§o principal
+                      Definir como endereço principal
                     </label>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion } from 'framer-motion'
 import { Heart, Zap, Shield, Users, MessageCircle, ArrowRight } from 'lucide-react'
@@ -8,22 +8,22 @@ const VALUES = [
   {
     icon: Zap,
     title: 'Qualidade sem compromisso',
-    desc: 'AlgodÃ£o premium 300g, dry-fit tÃ©cnico e impressÃ£o DTF de alta resoluÃ§Ã£o. Nada de atalhos.',
+    desc: 'Algodão premium 300g, dry-fit técnico e impressão DTF de alta resolução. Nada de atalhos.',
   },
   {
     icon: Heart,
-    title: 'Feito com propÃ³sito',
-    desc: 'Cada peÃ§a conta uma histÃ³ria. Seja a sua marca, sua academia ou seu personagem favorito.',
+    title: 'Feito com propósito',
+    desc: 'Cada peça conta uma história. Seja a sua marca, sua academia ou seu personagem favorito.',
   },
   {
     icon: Shield,
-    title: 'TransparÃªncia total',
-    desc: 'Prazo cumprido, nota fiscal em tudo, produtos originais e comunicaÃ§Ã£o direta.',
+    title: 'Transparência total',
+    desc: 'Prazo cumprido, nota fiscal em tudo, produtos originais e comunicação direta.',
   },
   {
     icon: Users,
     title: 'Comunidade primeiro',
-    desc: 'Atendemos desde o cliente individual atÃ© corporaÃ§Ãµes com centenas de uniformes.',
+    desc: 'Atendemos desde o cliente individual até corporações com centenas de uniformes.',
   },
 ]
 
@@ -31,7 +31,7 @@ const NUMBERS = [
   { value: '10k+', label: 'Clientes atendidos' },
   { value: '50k+', label: 'Produtos entregues' },
   { value: '500+', label: 'Empresas parceiras' },
-  { value: '4.9â˜…', label: 'AvaliaÃ§Ã£o mÃ©dia' },
+  { value: '4.9★', label: 'Avaliação média' },
 ]
 
 export function SobreContent() {
@@ -46,14 +46,14 @@ export function SobreContent() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl"
           >
-            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Nossa histÃ³ria</span>
+            <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Nossa história</span>
             <h1 className="heading-display text-[clamp(3rem,7vw,5.5rem)] text-brand-white mt-3 leading-none">
               SOMOS A<br />
               <span className="text-gradient-red">STREETDROP</span>
             </h1>
             <p className="text-brand-white/80 mt-5 text-lg leading-relaxed">
-              Nascemos da necessidade de unir qualidade, personalizaÃ§Ã£o e identidade em um sÃ³ lugar.
-              Acreditamos que cada peÃ§a deve representar algo real â€” sua marca, sua paixÃ£o, seu time.
+              Nascemos da necessidade de unir qualidade, personalização e identidade em um só lugar.
+              Acreditamos que cada peça deve representar algo real – sua marca, sua paixão, seu time.
             </p>
           </motion.div>
         </div>
@@ -86,17 +86,17 @@ export function SobreContent() {
           >
             <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Origem</span>
             <h2 className="heading-display text-[clamp(2rem,4vw,3rem)] text-brand-white mt-3 mb-5">
-              DE SÃƒO PAULO<br />PARA O MUNDO
+              DE SÃO PAULO<br />PARA O MUNDO
             </h2>
             <div className="space-y-4 text-brand-gray-text">
               <p>
-                A StreetDrop Wear surgiu em SÃ£o Paulo, movida pela vontade de criar algo diferente no mercado de personalizaÃ§Ã£o. NÃ£o apenas imprimir uma arte em tecido, mas entregar uma experiÃªncia completa â€” do conceito ao produto final.
+                A StreetDrop Wear surgiu em São Paulo, movida pela vontade de criar algo diferente no mercado de personalização. Não apenas imprimir uma arte em tecido, mas entregar uma experiência completa – do conceito ao produto final.
               </p>
               <p>
-                ComeÃ§amos com camisetas oversized personalizadas e crescemos para produtos 3D, dry-fit fitness, Geek Store e kits para empresas. Cada expansÃ£o veio da necessidade real dos nossos clientes.
+                Começamos com camisetas oversized personalizadas e crescemos para produtos 3D, dry-fit fitness, Geek Store e kits para empresas. Cada expansão veio da necessidade real dos nossos clientes.
               </p>
               <p>
-                Hoje atendemos desde o cliente individual que quer sua arte Ãºnica atÃ© corporaÃ§Ãµes que precisam de centenas de uniformes padronizados. Em todos os casos, o compromisso Ã© o mesmo: qualidade e prazo.
+                Hoje atendemos desde o cliente individual que quer sua arte única até corporações que precisam de centenas de uniformes padronizados. Em todos os casos, o compromisso é o mesmo: qualidade e prazo.
               </p>
             </div>
           </motion.div>
@@ -109,9 +109,9 @@ export function SobreContent() {
           >
             <div className="space-y-6">
               {[
-                { year: '2021', event: 'FundaÃ§Ã£o com foco em oversized personalizadas' },
-                { year: '2022', event: 'ExpansÃ£o para dry-fit fitness e kits B2B' },
-                { year: '2023', event: 'LanÃ§amento da linha de produtos 3D e Geek Store' },
+                { year: '2021', event: 'Fundação com foco em oversized personalizadas' },
+                { year: '2022', event: 'Expansão para dry-fit fitness e kits B2B' },
+                { year: '2023', event: 'Lançamento da linha de produtos 3D e Geek Store' },
                 { year: '2024', event: 'Mais de 10.000 clientes e 500 empresas parceiras' },
               ].map(item => (
                 <div key={item.year} className="flex items-start gap-4">
@@ -169,7 +169,7 @@ export function SobreContent() {
           </h2>
           <p className="text-brand-gray-text mb-6">Fale com nossa equipe pelo WhatsApp</p>
           <a
-            href={getWhatsAppLink('OlÃ¡! Quero saber mais sobre a StreetDrop Wear.')}
+            href={getWhatsAppLink('Olá! Quero saber mais sobre a StreetDrop Wear.')}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary group"

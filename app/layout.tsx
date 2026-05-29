@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: 'StreetDrop Wear â€” Camisetas Personalizadas & Streetwear Premium',
+    default: 'StreetDrop Wear – Camisetas Personalizadas & Streetwear Premium',
     template: '%s | StreetDrop Wear',
   },
   description:
@@ -29,15 +29,15 @@ export const metadata: Metadata = {
     'streetwear',
     'dry-fit',
     'kits para empresas',
-    'pokÃ©mon tcg',
-    'impressÃ£o 3d',
+    'pokémon tcg',
+    'impressão 3d',
     'brindes',
   ],
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
     siteName: 'StreetDrop Wear',
-    title: 'StreetDrop Wear â€” Camisetas Personalizadas & Streetwear Premium',
+    title: 'StreetDrop Wear – Camisetas Personalizadas & Streetwear Premium',
     description: 'Vista sua identidade. Crie seu drop. Represente seu estilo.',
   },
   icons: {

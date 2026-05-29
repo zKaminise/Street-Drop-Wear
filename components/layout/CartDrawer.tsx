@@ -102,7 +102,7 @@ export function CartDrawer() {
                             <div>
                               <p className="text-sm font-semibold text-brand-white leading-tight">{item.product.name}</p>
                               <p className="text-xs text-brand-gray-text mt-0.5">
-                                {item.selectedColor.name} Â· {item.selectedSize.label}
+                                {item.selectedColor.name} · {item.selectedSize.label}
                               </p>
                               {item.customization?.stampName && (
                                 <p className="text-xs text-brand-red/80 mt-0.5">
@@ -111,7 +111,7 @@ export function CartDrawer() {
                               )}
                               {isCustom && item.customization?.productionDays && (
                                 <p className="text-[10px] text-brand-gray-text/60 mt-0.5">
-                                  Prazo: ~{item.customization.productionDays} dias Ãºteis
+                                  Prazo: ~{item.customization.productionDays} dias úteis
                                 </p>
                               )}
                             </div>
@@ -167,12 +167,12 @@ export function CartDrawer() {
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-gray-text">Frete estimado</span>
                     <span className={shipping === 0 ? 'text-green-400 font-semibold' : 'text-brand-white'}>
-                      {shipping === 0 ? 'GrÃ¡tis' : formatPrice(shipping)}
+                      {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
                     </span>
                   </div>
                   {shipping > 0 && (
                     <p className="text-xs text-brand-gray-text/70">
-                      Frete grÃ¡tis acima de R$ 199,90 Â· valor exato no checkout
+                      Frete grátis acima de R$ 199,90 · valor exato no checkout
                     </p>
                   )}
                   <div className="flex justify-between text-base font-bold text-brand-white pt-2 border-t border-white/10">

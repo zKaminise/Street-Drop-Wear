@@ -49,7 +49,7 @@ export default function LoginPage() {
       })
       router.push('/conta')
     } catch {
-      setError('Erro de conexÃ£o. Tente novamente.')
+      setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -58,8 +58,8 @@ export default function LoginPage() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (regPassword !== regConfirm) { setError('As senhas nÃ£o conferem.'); return }
-    if (regPassword.length < 6) { setError('A senha deve ter no mÃ­nimo 6 caracteres.'); return }
+    if (regPassword !== regConfirm) { setError('As senhas não conferem.'); return }
+    if (regPassword.length < 6) { setError('A senha deve ter no mínimo 6 caracteres.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {
@@ -78,7 +78,7 @@ export default function LoginPage() {
       })
       router.push('/conta')
     } catch {
-      setError('Erro de conexÃ£o. Tente novamente.')
+      setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -178,7 +178,7 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={loginPassword}
                       onChange={e => setLoginPassword(e.target.value)}
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       className="input-brand pl-9 pr-10"
                       required
                       autoComplete="current-password"
@@ -269,7 +269,7 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={regPassword}
                       onChange={e => setRegPassword(e.target.value)}
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       className="input-brand pl-9 pr-10"
                       required
                       minLength={6}
@@ -294,7 +294,7 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={regConfirm}
                       onChange={e => setRegConfirm(e.target.value)}
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       className="input-brand pl-9"
                       required
                       autoComplete="new-password"
@@ -307,12 +307,12 @@ export default function LoginPage() {
                   disabled={loading}
                   className="btn-primary w-full justify-center mt-2 group disabled:opacity-60"
                 >
-                  {loading ? 'Criando conta...' : 'Criar Conta GrÃ¡tis'}
+                  {loading ? 'Criando conta...' : 'Criar Conta Grátis'}
                   {!loading && <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />}
                 </button>
 
                 <p className="text-xs text-brand-gray-text text-center pt-1">
-                  Ao criar conta vocÃª concorda com nossos{' '}
+                  Ao criar conta você concorda com nossos{' '}
                   <Link href="/sobre" className="text-brand-red hover:text-brand-white transition-colors">
                     Termos de Uso
                   </Link>
@@ -323,12 +323,12 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-sm text-brand-gray-text mt-6">
-          {mode === 'login' ? 'NÃ£o tem conta?' : 'JÃ¡ tem conta?'}{' '}
+          {mode === 'login' ? 'Não tem conta?' : 'Já tem conta?'}{' '}
           <button
             onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}
             className="text-brand-red hover:text-brand-white transition-colors font-semibold cursor-pointer"
           >
-            {mode === 'login' ? 'Criar conta grÃ¡tis' : 'Entrar'}
+            {mode === 'login' ? 'Criar conta grátis' : 'Entrar'}
           </button>
         </p>
       </motion.div>

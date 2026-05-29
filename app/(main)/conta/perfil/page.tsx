@@ -36,8 +36,8 @@ export default function PerfilPage() {
     setSuccess('')
 
     if (newPassword) {
-      if (newPassword !== confirmPassword) { setError('As senhas nÃ£o conferem.'); return }
-      if (newPassword.length < 6) { setError('Nova senha deve ter no mÃ­nimo 6 caracteres.'); return }
+      if (newPassword !== confirmPassword) { setError('As senhas não conferem.'); return }
+      if (newPassword.length < 6) { setError('Nova senha deve ter no mínimo 6 caracteres.'); return }
       if (!currentPassword) { setError('Informe a senha atual.'); return }
     }
 
@@ -63,7 +63,7 @@ export default function PerfilPage() {
       setConfirmPassword('')
       setSuccess('Perfil atualizado com sucesso!')
     } catch {
-      setError('Erro de conexÃ£o.')
+      setError('Erro de conexão.')
     }
     setSaving(false)
   }
@@ -77,7 +77,7 @@ export default function PerfilPage() {
             <ChevronRight size={14} />
             <span className="text-brand-white">Perfil</span>
           </div>
-          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">ConfiguraÃ§Ãµes</span>
+          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Configurações</span>
           <h1 className="heading-display text-[clamp(2rem,4vw,3rem)] text-brand-white mt-1">MEU PERFIL</h1>
         </motion.div>
 
@@ -104,7 +104,7 @@ export default function PerfilPage() {
             <div>
               <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">E-mail</label>
               <input value={user.email} className={`${INPUT} opacity-50 cursor-not-allowed`} disabled />
-              <p className="text-[11px] text-brand-gray-text/60 mt-1">O e-mail nÃ£o pode ser alterado.</p>
+              <p className="text-[11px] text-brand-gray-text/60 mt-1">O e-mail não pode ser alterado.</p>
             </div>
             <div>
               <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">WhatsApp / Telefone</label>
@@ -119,7 +119,7 @@ export default function PerfilPage() {
           {/* Password change */}
           <div className="bg-brand-graphite border border-white/5 p-6 space-y-4">
             <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Alterar Senha</p>
-            <p className="text-xs text-brand-gray-text">Deixe em branco se nÃ£o quiser alterar a senha.</p>
+            <p className="text-xs text-brand-gray-text">Deixe em branco se não quiser alterar a senha.</p>
             <div className="relative">
               <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">Senha atual</label>
               <input
@@ -127,7 +127,7 @@ export default function PerfilPage() {
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
                 className={`${INPUT} pr-10`}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••"
                 autoComplete="current-password"
               />
               <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 bottom-2.5 text-brand-gray-text hover:text-brand-white cursor-pointer">
@@ -141,7 +141,7 @@ export default function PerfilPage() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 className={INPUT}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••"
                 autoComplete="new-password"
               />
             </div>
@@ -152,7 +152,7 @@ export default function PerfilPage() {
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 className={INPUT}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••"
                 autoComplete="new-password"
               />
             </div>
@@ -163,7 +163,7 @@ export default function PerfilPage() {
             disabled={saving}
             className="btn-primary w-full justify-center disabled:opacity-60"
           >
-            <Check size={16} /> {saving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+            <Check size={16} /> {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </form>
       </div>

@@ -2,9 +2,12 @@
 import { prisma } from '@/lib/prisma'
 import { getCustomerFromCookies } from '@/lib/customer-auth'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const db = prisma as any
 
-// â”€â”€â”€ GET: list orders for a customer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ GET: list orders for a customer â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -27,7 +30,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(orders)
 }
 
-// â”€â”€â”€ POST: create a new order â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ POST: create a new order â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Carrinho vazio.' }, { status: 400 })
     }
     if (typeof subtotal !== 'number' || typeof total !== 'number') {
-      return NextResponse.json({ error: 'Valores invÃ¡lidos.' }, { status: 400 })
+      return NextResponse.json({ error: 'Valores inválidos.' }, { status: 400 })
     }
 
     // Identify customer (logged in or guest)
@@ -60,10 +63,10 @@ export async function POST(req: NextRequest) {
     // Require address info
     const hasGuestAddress = guestZipCode && guestStreet && guestNumber && guestCity && guestState
     if (!addressId && !hasGuestAddress) {
-      return NextResponse.json({ error: 'EndereÃ§o de entrega obrigatÃ³rio.' }, { status: 400 })
+      return NextResponse.json({ error: 'Endereço de entrega obrigatório.' }, { status: 400 })
     }
     if (!customerId && !guestName && !guestEmail) {
-      return NextResponse.json({ error: 'Dados do comprador obrigatÃ³rios.' }, { status: 400 })
+      return NextResponse.json({ error: 'Dados do comprador obrigatórios.' }, { status: 400 })
     }
 
     const orderNumber = `SDW${new Date().getFullYear()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`

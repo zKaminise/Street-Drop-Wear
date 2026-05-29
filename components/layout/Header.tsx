@@ -90,7 +90,7 @@ export function Header() {
       >
         <div className="container-brand flex items-center justify-between h-[72px]">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0" aria-label="StreetDrop Wear - PÃ¡gina Inicial">
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0" aria-label="StreetDrop Wear - Página Inicial">
             <LogoSVG />
           </Link>
 

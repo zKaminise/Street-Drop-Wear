@@ -17,7 +17,7 @@ export function FAQ() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">DÃºvidas</span>
+          <span className="text-brand-red text-xs font-bold uppercase tracking-[0.3em]">Dúvidas</span>
           <h2 className="heading-display text-[clamp(2.5rem,5vw,4rem)] text-brand-white mt-3">
             PERGUNTAS FREQUENTES
           </h2>
@@ -79,7 +79,7 @@ export function FAQ() {
           viewport={{ once: true }}
           className="text-center text-sm text-brand-gray-text mt-8"
         >
-          Ainda tem dÃºvidas?{' '}
+          Ainda tem dúvidas?{' '}
           <a
             href="https://wa.me/5511999999999"
             target="_blank"

@@ -1,8 +1,9 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Plus, Edit2, Trash2, X, Check, Zap } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Check, Zap, Upload, ImageIcon, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
 
 type Product = {
@@ -58,14 +59,31 @@ export default function ProdutosPage() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [form, setForm] = useState<Partial<Product>>({ ...INITIAL })
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const fileMainRef  = useRef<HTMLInputElement>(null)
+  const fileHoverRef = useRef<HTMLInputElement>(null)
 
-  async function load() {
+  async function handleFileUpload(file: File, field: 'imageUrl' | 'hoverImageUrl') {
+    setUploading(field)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'products')
+      const res  = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.url) setForm(f => ({ ...f, [field]: data.url }))
+      else alert(data.error ?? 'Erro ao fazer upload')
+    } catch { alert('Erro ao fazer upload') }
+    finally { setUploading(null) }
+  }
+
+  const load = useCallback(async () => {
     const data = await fetch(`/api/admin/products${filterType ? `?type=${filterType}` : ''}`).then(r => r.json())
     setProducts((data as Product[]).filter(p => ['DRYFIT', 'PRODUTO_3D', 'GEEK'].includes(p.type)))
     setLoading(false)
-  }
+  }, [filterType])
 
-  useEffect(() => { load() }, [filterType])
+  useEffect(() => { load() }, [load])
 
   function openNew() {
     setEditing(null)
@@ -279,14 +297,55 @@ export default function ProdutosPage() {
                 </div>
 
                 {/* Images */}
-                <div className="border border-white/5 p-4 space-y-3">
+                <div className="border border-white/5 p-4 space-y-4">
                   <p className="text-xs text-white/40 uppercase tracking-wider">Imagens do Card</p>
-                  <Field label="URL da imagem principal">
-                    <input value={form.imageUrl ?? ''} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} className={INPUT} placeholder="https://... ou /images/..." />
+
+                  {/* Main image upload */}
+                  <Field label="Imagem principal">
+                    <div className="flex items-start gap-3">
+                      <div className="w-16 h-16 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {form.imageUrl ? (
+                          <Image src={form.imageUrl} alt="Preview" width={64} height={64} className="w-full h-full object-contain" unoptimized />
+                        ) : (
+                          <ImageIcon size={20} className="text-white/20" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <input ref={fileMainRef} type="file" accept="image/*" className="hidden"
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'imageUrl'); if (fileMainRef.current) fileMainRef.current.value = '' }} />
+                        <button type="button" disabled={uploading === 'imageUrl'}
+                          onClick={() => fileMainRef.current?.click()}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
+                          {uploading === 'imageUrl' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher imagem</>}
+                        </button>
+                        {form.imageUrl && <p className="text-[10px] text-white/25 mt-1 truncate">{form.imageUrl}</p>}
+                      </div>
+                    </div>
                   </Field>
-                  <Field label="URL da imagem ao passar o mouse (hover)">
-                    <input value={form.hoverImageUrl ?? ''} onChange={e => setForm(f => ({ ...f, hoverImageUrl: e.target.value }))} className={INPUT} placeholder="https://... ou /images/..." />
+
+                  {/* Hover image upload */}
+                  <Field label="Imagem hover (ao passar o mouse)">
+                    <div className="flex items-start gap-3">
+                      <div className="w-16 h-16 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {form.hoverImageUrl ? (
+                          <Image src={form.hoverImageUrl} alt="Hover Preview" width={64} height={64} className="w-full h-full object-contain" unoptimized />
+                        ) : (
+                          <ImageIcon size={20} className="text-white/20" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <input ref={fileHoverRef} type="file" accept="image/*" className="hidden"
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'hoverImageUrl'); if (fileHoverRef.current) fileHoverRef.current.value = '' }} />
+                        <button type="button" disabled={uploading === 'hoverImageUrl'}
+                          onClick={() => fileHoverRef.current?.click()}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
+                          {uploading === 'hoverImageUrl' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher imagem</>}
+                        </button>
+                        {form.hoverImageUrl && <p className="text-[10px] text-white/25 mt-1 truncate">{form.hoverImageUrl}</p>}
+                      </div>
+                    </div>
                   </Field>
+                  <p className="text-[10px] text-white/20">JPG, PNG, WebP ou SVG · máx. 5 MB</p>
                 </div>
 
                 <Field label="Descrição">
