@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { X, Package, ChevronDown, History, Save, Search } from 'lucide-react'
+import { X, ChevronDown, History, Save, Search, CreditCard } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 
 type OrderItem = {
@@ -14,9 +14,21 @@ type HistoryEntry = {
   id: string; status: string; note?: string | null; createdBy: string; createdAt: string
 }
 
+type MpPayment = {
+  mpPaymentId?: string | null
+  mpPreferenceId?: string | null
+  status: string
+  paymentMethodId?: string | null
+  paymentTypeId?: string | null
+  amount: number
+  approvedAt?: string | null
+}
+
 type Order = {
   id: string; orderNumber: string; status: string; paymentStatus: string
-  paymentMethod?: string; total: number; subtotal: number; shippingCost: number; discount: number
+  paymentMethod?: string; paymentId?: string; mpPreferenceId?: string
+  paymentApprovedAt?: string | null
+  total: number; subtotal: number; shippingCost: number; discount: number
   createdAt: string; trackingCode?: string; carrier?: string; estimatedDelivery?: string
   notes?: string; internalNotes?: string
   customer?: { name: string; email: string }
@@ -25,7 +37,11 @@ type Order = {
   guestDistrict?: string; guestCity?: string; guestState?: string
   items: OrderItem[]
   statusHistory?: HistoryEntry[]
+  payment?: MpPayment | null
 }
+
+// Tab de visualização — filtra por paymentStatus
+type PaymentTab = 'confirmed' | 'pending' | 'all'
 
 const STATUS_FLOW = [
   'CREATED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED', 'IN_PREPARATION',
@@ -47,10 +63,17 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pendente', APPROVED: 'Aprovado', REJECTED: 'Rejeitado', REFUNDED: 'Reembolsado',
+  PENDING: 'Pendente', IN_PROCESS: 'Em Análise', APPROVED: 'Aprovado',
+  REJECTED: 'Rejeitado', CANCELLED: 'Cancelado', REFUNDED: 'Reembolsado', CHARGED_BACK: 'Estornado',
 }
 const PAYMENT_STATUS_COLOR: Record<string, string> = {
-  PENDING: 'text-yellow-400', APPROVED: 'text-green-400', REJECTED: 'text-red-400', REFUNDED: 'text-blue-400',
+  PENDING: 'text-yellow-400', IN_PROCESS: 'text-blue-400', APPROVED: 'text-green-400',
+  REJECTED: 'text-red-400', CANCELLED: 'text-red-400', REFUNDED: 'text-purple-400', CHARGED_BACK: 'text-orange-400',
+}
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  pix: 'PIX', bolbradesco: 'Boleto', bank_transfer: 'Transferência',
+  credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito', ticket: 'Boleto',
 }
 
 const INPUT = 'w-full bg-black/40 border border-white/10 text-white placeholder-white/20 px-3 py-2 text-sm focus:outline-none focus:border-[#E10600]/60'
@@ -62,6 +85,7 @@ export default function AdminPedidosPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Order | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
+  const [paymentTab, setPaymentTab] = useState<PaymentTab>('confirmed')
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
 
@@ -80,10 +104,13 @@ export default function AdminPedidosPage() {
     const params = new URLSearchParams()
     if (filterStatus) params.set('status', filterStatus)
     if (search) params.set('search', search)
+    // Filtro por tab de pagamento
+    if (paymentTab === 'confirmed') params.set('paymentStatus', 'APPROVED')
+    else if (paymentTab === 'pending') params.set('paymentStatus', 'PENDING,IN_PROCESS')
     const data = await fetch(`/api/admin/orders?${params}`).then(r => r.json())
     setOrders(Array.isArray(data) ? data : [])
     setLoading(false)
-  }, [filterStatus, search])
+  }, [filterStatus, search, paymentTab])
 
   useEffect(() => { load() }, [load])
 
@@ -148,6 +175,27 @@ export default function AdminPedidosPage() {
             </h1>
             <p className="text-white/40 text-sm mt-1">{orders.length} pedido(s)</p>
           </div>
+        </div>
+
+        {/* Payment tabs */}
+        <div className="flex gap-0 mb-5 border-b border-white/10 overflow-x-auto">
+          {([
+            { id: 'confirmed' as PaymentTab, label: 'Pagos', color: 'text-green-400' },
+            { id: 'pending' as PaymentTab, label: 'Aguardando Pgto.', color: 'text-yellow-400' },
+            { id: 'all' as PaymentTab, label: 'Todos', color: 'text-white/50' },
+          ] as const).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => { setPaymentTab(tab.id); setLoading(true) }}
+              className={`px-5 py-2.5 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px ${
+                paymentTab === tab.id
+                  ? `border-[#E10600] ${tab.color}`
+                  : 'border-transparent text-white/30 hover:text-white/60'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Filters */}
@@ -295,6 +343,47 @@ export default function AdminPedidosPage() {
                     <div className="flex justify-between text-sm font-bold text-white mt-1"><span>Total</span><span>{formatPrice(selected.total)}</span></div>
                   </div>
                 </div>
+
+                {/* MP Payment details */}
+                {(selected.payment || selected.paymentId) && (
+                  <div>
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <CreditCard size={11} /> Mercado Pago
+                    </p>
+                    <div className="bg-black/20 border border-white/5 px-3 py-2.5 space-y-1.5">
+                      {(selected.payment?.mpPaymentId ?? selected.paymentId) && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">ID do Pagamento</span>
+                          <span className="text-white font-mono">{selected.payment?.mpPaymentId ?? selected.paymentId}</span>
+                        </div>
+                      )}
+                      {selected.payment?.paymentMethodId && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">Método</span>
+                          <span className="text-white capitalize">
+                            {PAYMENT_METHOD_LABEL[selected.payment.paymentMethodId] ?? selected.payment.paymentMethodId}
+                          </span>
+                        </div>
+                      )}
+                      {selected.payment?.approvedAt && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">Aprovado em</span>
+                          <span className="text-green-400">
+                            {new Date(selected.payment.approvedAt).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      )}
+                      {(selected.mpPreferenceId ?? selected.payment?.mpPreferenceId) && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/40">Preference ID</span>
+                          <span className="text-white/50 font-mono truncate max-w-[160px]">
+                            {selected.mpPreferenceId ?? selected.payment?.mpPreferenceId}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Customer notes */}
                 {selected.notes && (

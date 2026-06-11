@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ChevronRight, Lock, QrCode, FileText, Check,
-  User, MapPin, Truck, ClipboardList, AlertCircle, Loader2,
+  ChevronRight, Lock, Check, ShoppingBag,
+  User, MapPin, Truck, ClipboardList, AlertCircle, Loader2, CreditCard,
 } from 'lucide-react'
 import { useCartStore, useAuthStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
@@ -67,7 +67,6 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<Step>('identity')
   const [submitting, setSubmitting] = useState(false)
-  const [orderNumber, setOrderNumber] = useState('')
   const [error, setError] = useState('')
   const [savedAddresses, setSavedAddresses] = useState<Array<{
     id: string; label: string; street: string; number: string; district: string; city: string; state: string; zipCode: string; isDefault: boolean
@@ -94,8 +93,8 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (items.length === 0 && !orderNumber) router.push('/')
-  }, [items.length, orderNumber, router])
+    if (items.length === 0) router.push('/')
+  }, [items.length, router])
 
   // Pre-fill identity from auth
   useEffect(() => {
@@ -195,16 +194,10 @@ export default function CheckoutPage() {
           colorHex: item.selectedColor.hex,
           size: item.selectedSize.label,
           quantity: item.quantity,
-          unitPrice: item.product.price,
-          totalPrice: item.product.price * item.quantity,
           productName: item.product.name,
+          productImage: item.product.imageUrl ?? item.product.images?.[0]?.url ?? null,
         })),
-        subtotal,
-        shippingCost: shipping?.cost ?? 0,
-        discount,
         couponCode: coupon?.code ?? null,
-        couponDiscount: discount,
-        total: subtotal + (shipping?.cost ?? 0) - discount,
         // Address
         addressId: selectedAddr?.id ?? null,
         guestName: identity.name,
@@ -220,56 +213,26 @@ export default function CheckoutPage() {
         guestState: selectedAddr ? selectedAddr.state : address.state,
       }
 
-      const res = await fetch('/api/orders', {
+      const res = await fetch('/api/checkout/mercadopago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const data = await res.json()
 
-      if (!res.ok) { setError(data.error ?? 'Erro ao criar pedido.'); setSubmitting(false); return }
+      if (!res.ok) {
+        setError(data.error ?? 'Erro ao criar pedido.')
+        setSubmitting(false)
+        return
+      }
 
-      setOrderNumber(data.orderNumber)
+      // Limpar carrinho e redirecionar para o Mercado Pago
       clearCart()
+      window.location.href = data.checkoutUrl
     } catch {
       setError('Erro de conexão. Tente novamente.')
       setSubmitting(false)
     }
-  }
-
-  // ─── Success screen ────────────────────────────────────────────────────
-  if (orderNumber) {
-    return (
-      <div className="min-h-screen bg-brand-black flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-md"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="w-20 h-20 bg-green-400/10 border border-green-400/30 flex items-center justify-center mx-auto mb-6"
-          >
-            <Check size={32} className="text-green-400" />
-          </motion.div>
-          <h1 className="heading-display text-4xl text-brand-white mb-3">PEDIDO CONFIRMADO!</h1>
-          <p className="text-brand-gray-text mb-2">
-            Número do pedido: <span className="text-brand-white font-bold font-mono">{orderNumber}</span>
-          </p>
-          <p className="text-brand-gray-text mb-8 text-sm">
-            Entraremos em contato pelo e-mail <span className="text-brand-white">{identity.email}</span> com as atualizações do seu pedido.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {isAuthenticated && (
-              <Link href="/pedidos" className="btn-primary">Ver meus pedidos</Link>
-            )}
-            <Link href="/" className="btn-secondary">Continuar comprando</Link>
-          </div>
-        </motion.div>
-      </div>
-    )
   }
 
   const stepIndex = STEPS.findIndex(s => s.id === step)
@@ -514,22 +477,15 @@ export default function CheckoutPage() {
 
                     <div className="bg-brand-graphite/50 border border-white/5 p-4">
                       <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Forma de Pagamento</p>
-                      <div className="space-y-2">
-                        {[
-                          { id: 'pix', icon: QrCode, label: 'PIX', desc: 'Aprovação instantânea' },
-                          { id: 'boleto', icon: FileText, label: 'Boleto Bancário', desc: 'Vencimento em 3 dias úteis' },
-                        ].map(pm => (
-                          <div key={pm.id} className="flex items-center gap-3 p-3 border border-white/5 text-brand-gray-text">
-                            <pm.icon size={16} className="text-brand-gray-text" />
-                            <div>
-                              <p className="text-sm text-brand-white">{pm.label}</p>
-                              <p className="text-xs">{pm.desc}</p>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="flex items-center gap-3 p-4 border border-[#009ee3]/20 bg-[#009ee3]/5">
+                        <CreditCard size={20} className="text-[#009ee3] flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-bold text-brand-white">Mercado Pago</p>
+                          <p className="text-xs text-brand-gray-text">PIX · Cartão de crédito · Boleto · e muito mais</p>
+                        </div>
                       </div>
                       <p className="text-xs text-brand-gray-text/60 mt-3">
-                        A escolha do método de pagamento será feita após a confirmação do pedido via WhatsApp/e-mail.
+                        Você será redirecionado para o ambiente seguro do Mercado Pago para concluir o pagamento.
                       </p>
                     </div>
 
@@ -630,9 +586,9 @@ export default function CheckoutPage() {
                         className="btn-primary flex-1 justify-center group disabled:opacity-60"
                       >
                         {submitting ? (
-                          <><Loader2 size={16} className="animate-spin" /> Processando...</>
+                          <><Loader2 size={16} className="animate-spin" /> Redirecionando...</>
                         ) : (
-                          <><Lock size={16} /> Confirmar Pedido</>
+                          <><ShoppingBag size={16} /> Pagar com Mercado Pago</>
                         )}
                       </button>
                     </div>

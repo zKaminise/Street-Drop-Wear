@@ -18,6 +18,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       customer: true,
       address: true,
       statusHistory: { orderBy: { createdAt: 'asc' } },
+      payment: true,
     },
   })
   if (!order) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -75,6 +76,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       customer: true,
       address: true,
       statusHistory: { orderBy: { createdAt: 'asc' } },
+      payment: true,
     },
   })
 

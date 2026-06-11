@@ -214,10 +214,12 @@ model Order {
   status          String               @default("CREATED")
   // Status flow: CREATED → PAYMENT_PENDING → PAYMENT_APPROVED → IN_PREPARATION → PRODUCED → AWAITING_SHIPMENT → SHIPPED → IN_TRANSIT → DELIVERED | CANCELLED
   paymentStatus   String               @default("PENDING")
-  // PENDING | APPROVED | REJECTED | REFUNDED
+  // PENDING | IN_PROCESS | APPROVED | REJECTED | CANCELLED | REFUNDED | CHARGED_BACK
   paymentMethod   String?
-  paymentId       String?              // Mercado Pago payment_id (future)
-  paymentData     String?              // JSON with MP payment details (future)
+  paymentId       String?              // Mercado Pago payment_id
+  paymentData     String?              // JSON with MP payment details
+  mpPreferenceId  String?              // Mercado Pago preference ID
+  paymentApprovedAt DateTime?          // when MP confirmed the payment
   subtotal        Float
   shippingCost    Float                @default(0)
   discount        Float                @default(0)
@@ -233,6 +235,7 @@ model Order {
   updatedAt       DateTime             @updatedAt
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
+  payment         Payment?
   // Guest checkout data
   guestName       String?
   guestEmail      String?
@@ -282,6 +285,37 @@ model OrderItem {
   totalPrice     Float
   productName    String
   productImage   String?
+}
+
+// Mercado Pago payment record — created when preference is generated
+model Payment {
+  id              String   @id @default(cuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  mpPaymentId     String?  @unique   // MP numeric payment ID
+  mpPreferenceId  String?            // MP preference ID
+  status          String   @default("PENDING")
+  // PENDING | IN_PROCESS | APPROVED | REJECTED | CANCELLED | REFUNDED | CHARGED_BACK
+  paymentMethodId String?            // pix, bolbradesco, visa, master, etc.
+  paymentTypeId   String?            // credit_card, debit_card, ticket, bank_transfer
+  amount          Float
+  currencyId      String   @default("BRL")
+  approvedAt      DateTime?
+  rawData         String?            // full MP payment response as JSON
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Webhook idempotency — prevents double-processing the same event
+model WebhookEvent {
+  id             String   @id @default(cuid())
+  idempotencyKey String   @unique  // "MERCADO_PAGO:{action}:{resourceId}"
+  topic          String            // payment
+  resourceId     String            // MP resource ID (payment ID)
+  action         String            // payment.created | payment.updated
+  status         String   @default("PROCESSED")
+  rawPayload     String            // full webhook body as JSON
+  createdAt      DateTime @default(now())
 }
 
 // Shipping configuration (admin-managed)

@@ -16,6 +16,12 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       items: true,
       address: true,
       statusHistory: { orderBy: { createdAt: 'asc' } },
+      payment: {
+        select: {
+          mpPaymentId: true, status: true,
+          paymentMethodId: true, paymentTypeId: true, approvedAt: true,
+        },
+      },
     },
   })
 

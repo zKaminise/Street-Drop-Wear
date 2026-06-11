@@ -19,12 +19,22 @@ type HistoryEntry = {
   id: string; status: string; note?: string | null; createdBy: string; createdAt: string
 }
 
+type DbPayment = {
+  mpPaymentId?: string | null
+  status: string
+  paymentMethodId?: string | null
+  paymentTypeId?: string | null
+  approvedAt?: string | null
+}
+
 type DbOrder = {
   id: string; orderNumber: string; status: string; paymentStatus: string
+  paymentMethod?: string | null
   subtotal: number; shippingCost: number; discount: number; total: number
   trackingCode?: string; carrier?: string; estimatedDelivery?: string
   createdAt: string; items: DbOrderItem[]
   statusHistory?: HistoryEntry[]
+  payment?: DbPayment | null
 }
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
@@ -251,6 +261,37 @@ export default function PedidosPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* MP Payment info */}
+                  {selectedOrder.payment && (
+                    <div className="bg-black/20 border border-white/5 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider text-brand-gray-text mb-3">Pagamento</p>
+                      <div className="space-y-1.5 text-xs">
+                        {selectedOrder.payment.paymentMethodId && (
+                          <div className="flex justify-between">
+                            <span className="text-brand-gray-text">Método</span>
+                            <span className="text-brand-white capitalize">
+                              {selectedOrder.payment.paymentMethodId === 'pix' ? 'PIX'
+                                : selectedOrder.payment.paymentMethodId === 'bolbradesco' ? 'Boleto'
+                                : selectedOrder.payment.paymentMethodId}
+                            </span>
+                          </div>
+                        )}
+                        {selectedOrder.payment.mpPaymentId && (
+                          <div className="flex justify-between">
+                            <span className="text-brand-gray-text">ID do pagamento</span>
+                            <span className="text-brand-white/70 font-mono">{selectedOrder.payment.mpPaymentId}</span>
+                          </div>
+                        )}
+                        {selectedOrder.payment.approvedAt && (
+                          <div className="flex justify-between">
+                            <span className="text-brand-gray-text">Aprovado em</span>
+                            <span className="text-green-400">{new Date(selectedOrder.payment.approvedAt).toLocaleString('pt-BR')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Total */}
                   <div className="border-t border-white/10 pt-4 space-y-2">

@@ -23,7 +23,16 @@ export async function GET(req: NextRequest) {
       ...(customerId ? { customerId } : {}),
       ...(orderNumber ? { orderNumber } : {}),
     },
-    include: { items: true, address: true },
+    include: {
+      items: true,
+      address: true,
+      payment: {
+        select: {
+          mpPaymentId: true, status: true,
+          paymentMethodId: true, paymentTypeId: true, approvedAt: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   })
 
