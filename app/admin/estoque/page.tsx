@@ -415,7 +415,7 @@ export default function EstoquePage() {
                               </button>
                             )}
                             <p className="text-xs text-white/30">
-                              Após salvar, o estoque aparecerá aqui como variante "Padrão".
+                              Após salvar, o estoque aparecerá aqui como variante &quot;Padrão&quot;.
                             </p>
                           </div>
                         </div>

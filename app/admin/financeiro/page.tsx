@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ShoppingBag, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
@@ -66,18 +66,17 @@ export default function FinanceiroPage() {
   const monthStr = `${year}-${String(month).padStart(2, '0')}`
 
   /* ── loaders ── */
-  async function loadExpenses() {
+  const loadExpenses = useCallback(async () => {
     setLoadingExp(true)
     const data = await fetch(`/api/admin/expenses?month=${monthStr}`).then(r => r.json()).catch(() => [])
     setExpenses(Array.isArray(data) ? data : [])
     setLoadingExp(false)
-  }
+  }, [monthStr])
 
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     setLoadingOrd(true)
     const data = await fetch('/api/admin/orders').then(r => r.json()).catch(() => [])
     if (Array.isArray(data)) {
-      // Filter by month + payment approved
       const [y, m] = monthStr.split('-').map(Number)
       const start = new Date(y, m - 1, 1).getTime()
       const end   = new Date(y, m, 1).getTime()
@@ -87,9 +86,9 @@ export default function FinanceiroPage() {
       }))
     }
     setLoadingOrd(false)
-  }
+  }, [monthStr])
 
-  useEffect(() => { loadExpenses(); loadOrders() }, [monthStr])
+  useEffect(() => { loadExpenses(); loadOrders() }, [loadExpenses, loadOrders])
 
   /* ── navigation ── */
   function prevMonth() {

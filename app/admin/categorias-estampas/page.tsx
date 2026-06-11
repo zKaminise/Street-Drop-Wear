@@ -131,7 +131,7 @@ export default function CategoriasEstampasPage() {
           <div className="text-center py-16">
             <Tag size={40} className="text-white/10 mx-auto mb-4" />
             <p className="text-white/30 text-sm">Nenhuma categoria criada ainda</p>
-            <p className="text-white/20 text-xs mt-1">Clique em "Nova Categoria" para comecar</p>
+            <p className="text-white/20 text-xs mt-1">Clique em &quot;Nova Categoria&quot; para comecar</p>
           </div>
         ) : (
           <div className="space-y-2 max-w-2xl">
