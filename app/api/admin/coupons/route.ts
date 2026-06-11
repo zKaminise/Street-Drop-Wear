@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const admin = await getAdminFromCookies()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { code, description, discount, maxUses, active } = await req.json()
+    const { code, description, discount, freeShipping, maxUses, active } = await req.json()
 
     if (!code || typeof discount !== 'number') {
       return NextResponse.json({ error: 'code e discount são obrigatórios.' }, { status: 400 })
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         code: normalized,
         description: description || null,
         discount,
+        freeShipping: freeShipping ?? false,
         maxUses: maxUses ?? null,
         active: active ?? true,
       },

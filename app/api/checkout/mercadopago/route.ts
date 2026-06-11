@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCustomerFromCookies } from '@/lib/customer-auth'
-import { getPreferenceClient, getSiteUrl, getNotificationUrl } from '@/lib/mercadopago'
+import { getPreferenceClient, getSiteUrl, getNotificationUrl, isSandbox } from '@/lib/mercadopago'
 import { calculateShipping } from '@/lib/shipping'
 
 export const dynamic = 'force-dynamic'
@@ -111,19 +111,25 @@ export async function POST(req: NextRequest) {
 
     // ── Calcular frete no servidor ────────────────────────────────────────────
     const shippingResult = await calculateShipping(subtotal, hasCustom)
-    const shippingCost = shippingResult.cost
 
     // ── Validar e aplicar cupom ───────────────────────────────────────────────
     let appliedCouponCode: string | null = null
     let couponDiscount = 0
+    let couponFreeShipping = false
 
     if (couponCode) {
-      const coupon = await db.discountCoupon.findUnique({ where: { code: String(couponCode) } })
+      const coupon = await (db as any).discountCoupon.findUnique({ where: { code: String(couponCode) } })
       if (coupon && coupon.active && (coupon.maxUses === null || coupon.usedCount < coupon.maxUses)) {
-        couponDiscount = Math.round((subtotal * (coupon.discount / 100)) * 100) / 100
+        if (coupon.discount > 0) {
+          couponDiscount = Math.round((subtotal * (coupon.discount / 100)) * 100) / 100
+        }
+        couponFreeShipping = coupon.freeShipping ?? false
         appliedCouponCode = coupon.code
       }
     }
+
+    // Frete grátis se: cupom tem freeShipping, ou shippingResult já calculou grátis
+    const shippingCost = (couponFreeShipping || shippingResult.isFree) ? 0 : shippingResult.cost
 
     const total = Math.max(0, subtotal + shippingCost - couponDiscount)
 
@@ -256,7 +262,6 @@ export async function POST(req: NextRequest) {
         payment_methods: {
           excluded_payment_methods: [],
           excluded_payment_types: [],
-          installments: 1,
         },
         back_urls: {
           success: `${siteUrl}/checkout/success?order=${order.id}`,
@@ -272,7 +277,10 @@ export async function POST(req: NextRequest) {
 
     // ── Salvar preferenceId no pedido e Payment ───────────────────────────────
     const preferenceId = preference.id ?? null
-    const checkoutUrl = preference.init_point ?? ''
+    // Em sandbox usa sandbox_init_point para não exigir credenciais reais
+    const checkoutUrl = isSandbox()
+      ? (preference.sandbox_init_point ?? preference.init_point ?? '')
+      : (preference.init_point ?? '')
 
     await db.$transaction([
       db.order.update({

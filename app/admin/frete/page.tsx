@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Save, Truck, Package } from 'lucide-react'
+import { Save, Truck, Package, Gift } from 'lucide-react'
 
 type Config = {
   id: string
@@ -10,6 +10,7 @@ type Config = {
   fixedShippingEnabled: boolean
   fixedShippingValue: number
   freeShippingAbove: number
+  globalFreeShipping: boolean
   productionDaysStd: number
   productionDaysCustom: number
   updatedAt: string
@@ -71,11 +72,49 @@ export default function FreteConfigPage() {
         </div>
 
         <div className="max-w-xl space-y-6">
+          {/* Global Free Shipping Banner */}
+          <section className={`border p-5 transition-colors ${cfg.globalFreeShipping ? 'bg-green-400/10 border-green-400/30' : 'bg-[#161616] border-white/5'}`}>
+            <div className="flex items-start gap-4">
+              <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full ${cfg.globalFreeShipping ? 'bg-green-400/20' : 'bg-white/5'}`}>
+                <Gift size={18} className={cfg.globalFreeShipping ? 'text-green-400' : 'text-white/40'} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className={`text-sm font-bold uppercase tracking-wider ${cfg.globalFreeShipping ? 'text-green-400' : 'text-white/70'}`}>
+                      Frete Grátis Global
+                    </p>
+                    <p className="text-xs text-white/40 mt-0.5">
+                      Quando ativado, <strong className="text-white/60">todos os clientes</strong> recebem frete grátis independente do valor do pedido.
+                    </p>
+                    {cfg.globalFreeShipping && (
+                      <p className="text-xs text-green-400/80 mt-1 font-semibold">
+                        ✓ Ativado — todos os pedidos estão com frete grátis agora
+                      </p>
+                    )}
+                  </div>
+                  {/* Toggle switch */}
+                  <button
+                    type="button"
+                    onClick={() => setCfg(c => c ? { ...c, globalFreeShipping: !c.globalFreeShipping } : c)}
+                    className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors cursor-pointer focus:outline-none ${cfg.globalFreeShipping ? 'bg-green-400' : 'bg-white/10'}`}
+                    aria-label="Toggle frete grátis global"
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${cfg.globalFreeShipping ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Shipping */}
-          <section className="bg-[#161616] border border-white/5 p-6">
+          <section className={`bg-[#161616] border border-white/5 p-6 transition-opacity ${cfg.globalFreeShipping ? 'opacity-40 pointer-events-none select-none' : ''}`}>
             <div className="flex items-center gap-2 mb-5">
               <Truck size={16} className="text-[#E10600]" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Frete</h2>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                Frete
+                {cfg.globalFreeShipping && <span className="ml-2 text-[10px] text-green-400/70 font-normal normal-case tracking-normal">(sobrescrito pelo Frete Grátis Global)</span>}
+              </h2>
             </div>
             <div className="space-y-4">
               <div>
@@ -172,14 +211,16 @@ export default function FreteConfigPage() {
             <p className="text-xs text-white/40 uppercase tracking-wider mb-3">Pré-visualização das regras</p>
             <div className="space-y-1 text-xs">
               <div className="flex justify-between text-white/60">
-                <span>Frete para pedido de R$100</span>
-                <span className={cfg.fixedShippingEnabled ? 'text-white' : 'text-green-400'}>
-                  {cfg.fixedShippingEnabled ? `R$ ${cfg.fixedShippingValue.toFixed(2)}` : 'Grátis'}
+                <span>Frete para pedido de R$50</span>
+                <span className={cfg.globalFreeShipping ? 'text-green-400' : cfg.fixedShippingEnabled ? 'text-white' : 'text-green-400'}>
+                  {cfg.globalFreeShipping ? '🎁 Grátis (global)' : cfg.fixedShippingEnabled ? `R$ ${cfg.fixedShippingValue.toFixed(2)}` : 'Grátis'}
                 </span>
               </div>
               <div className="flex justify-between text-white/60">
                 <span>Frete para pedido de R${cfg.freeShippingAbove.toFixed(2)}</span>
-                <span className="text-green-400">Grátis</span>
+                <span className="text-green-400">
+                  {cfg.globalFreeShipping ? '🎁 Grátis (global)' : 'Grátis'}
+                </span>
               </div>
               <div className="flex justify-between text-white/60">
                 <span>Prazo item padrão</span>

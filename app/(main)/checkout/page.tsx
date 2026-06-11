@@ -129,7 +129,31 @@ export default function CheckoutPage() {
     }
   }, [isAuthenticated])
 
-  // Load shipping when address changes
+  // Pre-load shipping on mount so sidebar never shows "–" when global free shipping is active
+  useEffect(() => {
+    fetch('/api/shipping/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subtotal, hasCustomItem: hasCustomItem() }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        // If coupon has freeShipping, override
+        if (coupon?.freeShipping) {
+          setShipping({ ...data, cost: 0, isFree: true })
+        } else {
+          setShipping(data)
+        }
+      })
+      .catch(() => {
+        setShipping(coupon?.freeShipping
+          ? { cost: 0, isFree: true, productionDays: 7, estimatedDeliveryDays: 12 }
+          : { cost: 19.9, isFree: false, productionDays: 7, estimatedDeliveryDays: 12 })
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Load shipping when address changes (recalculates after address step)
   async function loadShipping() {
     try {
       const res = await fetch('/api/shipping/calculate', {
@@ -138,9 +162,16 @@ export default function CheckoutPage() {
         body: JSON.stringify({ subtotal, hasCustomItem: hasCustomItem() }),
       })
       const data = await res.json()
-      setShipping(data)
+      // Coupon free shipping overrides everything
+      if (coupon?.freeShipping) {
+        setShipping({ ...data, cost: 0, isFree: true })
+      } else {
+        setShipping(data)
+      }
     } catch {
-      setShipping({ cost: 19.9, isFree: false, productionDays: 7, estimatedDeliveryDays: 12 })
+      setShipping(coupon?.freeShipping
+        ? { cost: 0, isFree: true, productionDays: 7, estimatedDeliveryDays: 12 }
+        : { cost: 19.9, isFree: false, productionDays: 7, estimatedDeliveryDays: 12 })
     }
   }
 
@@ -236,7 +267,8 @@ export default function CheckoutPage() {
   }
 
   const stepIndex = STEPS.findIndex(s => s.id === step)
-  const total = subtotal + (shipping?.cost ?? 0) - discount
+  const effectiveShipping = (coupon?.freeShipping || shipping?.isFree) ? 0 : (shipping?.cost ?? 0)
+  const total = subtotal + effectiveShipping - discount
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -639,18 +671,25 @@ export default function CheckoutPage() {
                     <span className="text-brand-gray-text">Subtotal</span>
                     <span className="text-brand-white">{formatPrice(subtotal)}</span>
                   </div>
-                  {coupon && discount > 0 && (
+                  {coupon && (coupon.discountPct > 0 || coupon.freeShipping) && (
                     <div className="flex justify-between">
-                      <span className="text-green-400">Cupom {coupon.code} ({coupon.discountPct}%)</span>
-                      <span className="text-green-400">- {formatPrice(discount)}</span>
+                      <span className="text-green-400 text-xs">
+                        {coupon.code}
+                        {coupon.discountPct > 0 && ` (${coupon.discountPct}% off)`}
+                        {coupon.freeShipping && ' + Frete Grátis'}
+                      </span>
+                      {coupon.discountPct > 0
+                        ? <span className="text-green-400">- {formatPrice(discount)}</span>
+                        : <span className="text-green-400 text-xs">aplicado</span>
+                      }
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-brand-gray-text">Frete</span>
-                    <span className={shipping?.isFree ? 'text-green-400' : 'text-brand-white'}>
+                    <span className={effectiveShipping === 0 ? 'text-green-400' : 'text-brand-white'}>
                       {shipping
-                        ? shipping.isFree ? 'Grátis' : formatPrice(shipping.cost)
-                        : '–'
+                        ? effectiveShipping === 0 ? '🎁 Grátis' : formatPrice(effectiveShipping)
+                        : <span className="animate-pulse text-white/30">...</span>
                       }
                     </span>
                   </div>

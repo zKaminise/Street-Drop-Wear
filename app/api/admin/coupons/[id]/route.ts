@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const admin = await getAdminFromCookies()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { code, description, discount, maxUses, active } = await req.json()
+    const { code, description, discount, freeShipping, maxUses, active } = await req.json()
 
     const updated = await (prisma as any).discountCoupon.update({
       where: { id: params.id },
@@ -18,6 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(code !== undefined ? { code: String(code).trim().toUpperCase() } : {}),
         ...(description !== undefined ? { description: description || null } : {}),
         ...(discount !== undefined ? { discount } : {}),
+        ...(freeShipping !== undefined ? { freeShipping } : {}),
         ...(maxUses !== undefined ? { maxUses: maxUses ?? null } : {}),
         ...(active !== undefined ? { active } : {}),
       },

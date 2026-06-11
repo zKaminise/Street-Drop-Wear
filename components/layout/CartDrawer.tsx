@@ -3,25 +3,34 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Palette, Truck, Gift, Tag, Check, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
 
-const FREE_SHIPPING_THRESHOLD = 199.9 // R$ 199,90 — must match ShippingConfig default
-
-function ShippingProgressBar({ subtotal }: { subtotal: number }) {
-  const pct     = Math.min(subtotal / FREE_SHIPPING_THRESHOLD, 1)
-  const missing = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0)
-  const free    = pct >= 1
+function ShippingProgressBar({
+  subtotal,
+  globalFree,
+  threshold,
+  couponFreeShipping,
+}: {
+  subtotal: number
+  globalFree: boolean
+  threshold: number
+  couponFreeShipping: boolean
+}) {
+  const isFree = globalFree || couponFreeShipping || subtotal >= threshold
+  const pct = isFree ? 1 : Math.min(subtotal / threshold, 1)
+  const missing = isFree ? 0 : Math.max(threshold - subtotal, 0)
 
   return (
     <div className="bg-white/3 border border-white/8 p-3 space-y-2">
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5">
-          <Truck size={12} className={free ? 'text-green-400' : 'text-brand-gray-text'} />
-          {free ? (
+          <Truck size={12} className={isFree ? 'text-green-400' : 'text-brand-gray-text'} />
+          {isFree ? (
             <span className="text-green-400 font-semibold flex items-center gap-1">
-              <Gift size={11} /> Frete grátis desbloqueado!
+              <Gift size={11} />
+              {couponFreeShipping ? 'Frete grátis pelo cupom!' : 'Frete grátis desbloqueado!'}
             </span>
           ) : (
             <span className="text-brand-gray-text">
@@ -29,12 +38,12 @@ function ShippingProgressBar({ subtotal }: { subtotal: number }) {
             </span>
           )}
         </div>
-        <span className="text-brand-gray-text/60">{Math.round(pct * 100)}%</span>
+        {!isFree && <span className="text-brand-gray-text/60">{Math.round(pct * 100)}%</span>}
       </div>
       <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
         <motion.div
           className="h-full rounded-full"
-          style={{ background: free ? '#4ade80' : 'linear-gradient(90deg, #E10600, #FF3300)' }}
+          style={{ background: isFree ? '#4ade80' : 'linear-gradient(90deg, #E10600, #FF3300)' }}
           initial={{ width: 0 }}
           animate={{ width: `${pct * 100}%` }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -45,15 +54,48 @@ function ShippingProgressBar({ subtotal }: { subtotal: number }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getShipping, getTotal, getDiscount, coupon, applyCoupon, removeCoupon } = useCartStore()
+  const {
+    items, isOpen, closeCart, removeItem, updateQuantity,
+    getSubtotal, getShipping, getTotal, getDiscount,
+    coupon, applyCoupon, removeCoupon,
+    shippingCache, setShippingCache, hasCustomItem,
+  } = useCartStore()
   const [couponInput, setCouponInput] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
 
-  const subtotal  = getSubtotal()
-  const shipping  = getShipping()
-  const discount  = getDiscount()
-  const total     = getTotal()
+  const subtotal = getSubtotal()
+  const shipping = getShipping()
+  const discount = getDiscount()
+  const total    = getTotal()
+
+  // Busca configuração de frete do servidor sempre que o carrinho abre
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return
+    const now = Date.now()
+    // Refrescar a cada 2 minutos ou se ainda não carregou
+    if (shippingCache && now - shippingCache.fetchedAt < 120_000) return
+
+    fetch('/api/shipping/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subtotal, hasCustomItem: hasCustomItem() }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (typeof data.cost === 'number') {
+          setShippingCache({
+            cost: coupon?.freeShipping ? 0 : data.cost,
+            isFree: data.isFree || coupon?.freeShipping || false,
+            freeShippingAbove: data.freeShippingAbove ?? 199.9,
+            globalFreeShipping: data.globalFreeShipping ?? false,
+            fetchedAt: Date.now(),
+          })
+        }
+      })
+      .catch(() => { /* usa fallback do store */ })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, subtotal])
 
   async function handleApplyCoupon() {
     if (!couponInput.trim()) return
@@ -63,8 +105,10 @@ export function CartDrawer() {
       const res = await fetch(`/api/coupons/validate?code=${encodeURIComponent(couponInput.trim())}`)
       const data = await res.json()
       if (data.valid) {
-        applyCoupon(data.code, data.discount, data.description)
+        applyCoupon(data.code, data.discount, data.description, data.freeShipping)
         setCouponInput('')
+        // Invalidar cache de frete para forçar recalculo
+        setShippingCache(shippingCache ? { ...shippingCache, fetchedAt: 0 } : null as any)
       } else {
         setCouponError(data.message ?? 'Cupom inválido.')
       }
@@ -227,7 +271,12 @@ export function CartDrawer() {
             {items.length > 0 && (
               <div className="border-t border-white/10 p-5 space-y-4">
                 {/* Shipping progress bar */}
-                <ShippingProgressBar subtotal={subtotal} />
+                <ShippingProgressBar
+                  subtotal={subtotal}
+                  globalFree={shippingCache?.globalFreeShipping ?? false}
+                  threshold={shippingCache?.freeShippingAbove ?? 199.9}
+                  couponFreeShipping={coupon?.freeShipping ?? false}
+                />
 
                 {/* Coupon section */}
                 <div className="space-y-2">
@@ -236,7 +285,11 @@ export function CartDrawer() {
                       <div className="flex items-center gap-2">
                         <Check size={12} className="text-green-400" />
                         <div>
-                          <p className="text-[11px] font-bold text-green-400">{coupon.code} — {coupon.discountPct}% off</p>
+                          <p className="text-[11px] font-bold text-green-400">
+                            {coupon.code}
+                            {coupon.discountPct > 0 && ` — ${coupon.discountPct}% off`}
+                            {coupon.freeShipping && ` + Frete Grátis`}
+                          </p>
                           {coupon.description && <p className="text-[10px] text-green-400/70">{coupon.description}</p>}
                         </div>
                       </div>
@@ -285,7 +338,7 @@ export function CartDrawer() {
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-gray-text">Frete estimado</span>
                     <span className={shipping === 0 ? 'text-green-400 font-semibold' : 'text-brand-white'}>
-                      {shipping === 0 ? 'Grátis' : formatPrice(shipping)}
+                      {shipping === 0 ? '🎁 Grátis' : formatPrice(shipping)}
                     </span>
                   </div>
                   <div className="flex justify-between text-base font-bold text-brand-white pt-2 border-t border-white/10">

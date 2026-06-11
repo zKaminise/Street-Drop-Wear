@@ -6,10 +6,19 @@ import type { CartItem, CartCustomization, Product, ProductColor, ProductSize, U
 
 // â”€â”€â”€ Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+interface ShippingConfigCache {
+  cost: number
+  isFree: boolean
+  freeShippingAbove: number
+  globalFreeShipping: boolean
+  fetchedAt: number // timestamp
+}
+
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
-  coupon: { code: string; discountPct: number; description?: string } | null
+  coupon: { code: string; discountPct: number; description?: string; freeShipping: boolean } | null
+  shippingCache: ShippingConfigCache | null
   addItem: (
     product: Product,
     color: ProductColor,
@@ -23,8 +32,9 @@ interface CartStore {
   toggleCart: () => void
   openCart: () => void
   closeCart: () => void
-  applyCoupon: (code: string, discountPct: number, description?: string) => void
+  applyCoupon: (code: string, discountPct: number, description?: string, freeShipping?: boolean) => void
   removeCoupon: () => void
+  setShippingCache: (cfg: ShippingConfigCache) => void
   getTotal: () => number
   getSubtotal: () => number
   getDiscount: () => number
@@ -43,6 +53,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
       coupon: null,
+      shippingCache: null,
 
       addItem: (product, color, size, quantity = 1, customization) => {
         set(state => {
@@ -96,20 +107,28 @@ export const useCartStore = create<CartStore>()(
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
 
-      applyCoupon: (code, discountPct, description) => set({ coupon: { code, discountPct, description } }),
+      applyCoupon: (code, discountPct, description, freeShipping = false) =>
+        set({ coupon: { code, discountPct, description, freeShipping } }),
       removeCoupon: () => set({ coupon: null }),
+
+      setShippingCache: (cfg) => set({ shippingCache: cfg }),
 
       getSubtotal: () => get().items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
 
       getDiscount: () => {
         const { coupon } = get()
-        if (!coupon) return 0
+        if (!coupon || coupon.discountPct <= 0) return 0
         return get().getSubtotal() * (coupon.discountPct / 100)
       },
 
       getShipping: () => {
+        const { coupon, shippingCache } = get()
+        // Coupon com frete grátis
+        if (coupon?.freeShipping) return 0
+        // Config carregada do servidor
+        if (shippingCache) return shippingCache.cost
+        // Fallback enquanto não carregou (será atualizado pelo CartDrawer)
         const subtotal = get().getSubtotal()
-        // Sync fallback (actual value calculated async in checkout)
         return subtotal >= 199.9 ? 0 : 19.9
       },
 
@@ -122,6 +141,7 @@ export const useCartStore = create<CartStore>()(
     {
       name: 'streetdrop-cart',
       partialize: state => ({ items: state.items, coupon: state.coupon }),
+      // shippingCache não é persistido — é sempre refrescado ao abrir o carrinho
     }
   )
 )

@@ -174,15 +174,18 @@ export default function PedidosPage() {
         {/* Order Detail Modal */}
         <AnimatePresence>
           {selectedOrder && (
-            <>
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/80 z-50"
+                className="absolute inset-0 bg-black/80"
                 onClick={() => setSelectedOrder(null)}
               />
+              {/* Panel */}
               <motion.div
-                initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-                className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-brand-graphite border border-white/10 z-50 overflow-y-auto max-h-[90vh]"
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="relative w-full sm:max-w-lg bg-brand-graphite sm:border sm:border-white/10 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-none"
               >
                 {/* Header */}
                 <div className="sticky top-0 bg-brand-graphite border-b border-white/10 px-5 py-4 flex items-center justify-between z-10">
@@ -206,7 +209,7 @@ export default function PedidosPage() {
                   </div>
                 </div>
 
-                <div className="p-5 space-y-5">
+                <div className="p-5 space-y-5 overflow-y-auto flex-1">
                   {/* Status */}
                   <div className={`flex items-center gap-2 px-4 py-3 ${STATUS_COLORS[selectedOrder.status] ?? 'bg-white/5 text-white/60'}`}>
                     <span className="text-sm font-bold uppercase tracking-wider">
@@ -309,7 +312,7 @@ export default function PedidosPage() {
                   </div>
                 </div>
               </motion.div>
-            </>
+            </div>
           )}
         </AnimatePresence>
       </div>

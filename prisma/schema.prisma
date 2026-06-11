@@ -325,6 +325,7 @@ model ShippingConfig {
   fixedShippingEnabled Boolean  @default(true)
   fixedShippingValue   Float    @default(19.90)
   freeShippingAbove    Float    @default(199.90)
+  globalFreeShipping   Boolean  @default(false) // true = frete grátis para todos, ignora valor mínimo
   productionDaysStd    Int      @default(7)   // standard items
   productionDaysCustom Int      @default(12)  // custom printed items
   // Cart promotion (free shipping by qty)
@@ -335,15 +336,16 @@ model ShippingConfig {
 
 // Discount coupons (admin-managed)
 model DiscountCoupon {
-  id          String   @id @default(cuid())
-  code        String   @unique
-  description String?
-  discount    Float    // percentage: 10 = 10 %
-  maxUses     Int?     // null = unlimited
-  usedCount   Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  code         String   @unique
+  description  String?
+  discount     Float    // percentage: 10 = 10 % (0 = nenhum desconto)
+  freeShipping Boolean  @default(false) // true = frete grátis ao usar cupom
+  maxUses      Int?     // null = unlimited
+  usedCount    Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // Financial expenses (admin-managed)

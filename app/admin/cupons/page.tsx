@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Plus, Save, Trash2, X, Check, Infinity, AlertCircle } from 'lucide-react'
+import { Plus, Save, Trash2, X, Infinity, AlertCircle, Truck } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 
 type Coupon = {
@@ -10,6 +10,7 @@ type Coupon = {
   code: string
   description: string | null
   discount: number
+  freeShipping: boolean
   maxUses: number | null
   usedCount: number
   active: boolean
@@ -38,6 +39,7 @@ export default function CuponsPage() {
     code: '',
     description: '',
     discount: 10,
+    freeShipping: false,
     maxUses: '',   // empty = unlimited
     active: true,
   })
@@ -52,7 +54,7 @@ export default function CuponsPage() {
 
   function openCreate() {
     setEditId(null)
-    setForm({ code: '', description: '', discount: 10, maxUses: '', active: true })
+    setForm({ code: '', description: '', discount: 10, freeShipping: false, maxUses: '', active: true })
     setError('')
     setShowForm(true)
   }
@@ -63,6 +65,7 @@ export default function CuponsPage() {
       code: c.code,
       description: c.description ?? '',
       discount: c.discount,
+      freeShipping: c.freeShipping ?? false,
       maxUses: c.maxUses !== null ? String(c.maxUses) : '',
       active: c.active,
     })
@@ -72,7 +75,8 @@ export default function CuponsPage() {
 
   async function handleSave() {
     if (!form.code.trim()) { setError('Código obrigatório.'); return }
-    if (form.discount <= 0 || form.discount > 100) { setError('Desconto deve ser entre 1 e 100%.'); return }
+    if (form.discount < 0 || form.discount > 100) { setError('Desconto deve ser entre 0 e 100%.'); return }
+    if (form.discount === 0 && !form.freeShipping) { setError('Informe um desconto ou ative o frete grátis.'); return }
 
     setSaving(true)
     setError('')
@@ -81,6 +85,7 @@ export default function CuponsPage() {
         code: form.code.trim().toUpperCase(),
         description: form.description || null,
         discount: form.discount,
+        freeShipping: form.freeShipping,
         maxUses: form.maxUses ? parseInt(form.maxUses) : null,
         active: form.active,
       }
@@ -165,9 +170,12 @@ export default function CuponsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/40 uppercase tracking-wider block mb-1.5">Desconto (%) *</label>
+                <label className="text-xs text-white/40 uppercase tracking-wider block mb-1.5">
+                  Desconto (%)
+                  {form.freeShipping && form.discount === 0 && <span className="ml-1 text-white/30 normal-case">(0 = sem desconto)</span>}
+                </label>
                 <input
-                  type="number" min="1" max="100"
+                  type="number" min="0" max="100"
                   value={form.discount}
                   onChange={e => setForm(f => ({ ...f, discount: parseFloat(e.target.value) || 0 }))}
                   className={INPUT}
@@ -192,6 +200,25 @@ export default function CuponsPage() {
                   className={INPUT}
                 />
               </div>
+
+              {/* Frete Grátis toggle */}
+              <div className="flex flex-col gap-2 justify-end">
+                <label className="flex items-center gap-2.5 cursor-pointer group">
+                  <div
+                    onClick={() => setForm(f => ({ ...f, freeShipping: !f.freeShipping }))}
+                    className={`w-9 h-5 rounded-full transition-colors cursor-pointer relative flex-shrink-0 ${form.freeShipping ? 'bg-cyan-500' : 'bg-white/10'}`}
+                  >
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.freeShipping ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </div>
+                  <div>
+                    <span className={`text-sm font-medium transition-colors ${form.freeShipping ? 'text-cyan-400' : 'text-white/60 group-hover:text-white/80'}`}>
+                      Frete Grátis
+                    </span>
+                    <p className="text-[10px] text-white/30 mt-0.5 leading-tight">O cupom zera o frete do pedido</p>
+                  </div>
+                </label>
+              </div>
+
               <div className="flex items-end">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <div
@@ -243,7 +270,7 @@ export default function CuponsPage() {
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="text-left text-xs text-white/40 uppercase tracking-wider px-5 py-3">Código</th>
-                    <th className="text-left text-xs text-white/40 uppercase tracking-wider px-4 py-3">Desconto</th>
+                    <th className="text-left text-xs text-white/40 uppercase tracking-wider px-4 py-3">Benefícios</th>
                     <th className="text-left text-xs text-white/40 uppercase tracking-wider px-4 py-3">Usos</th>
                     <th className="text-left text-xs text-white/40 uppercase tracking-wider px-4 py-3">Limite</th>
                     <th className="text-left text-xs text-white/40 uppercase tracking-wider px-4 py-3">Status</th>
@@ -260,7 +287,16 @@ export default function CuponsPage() {
                           <span className="font-mono font-bold text-white tracking-wider">{coupon.code}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-brand-red font-bold">{coupon.discount}%</span>
+                          <div className="flex flex-col gap-1">
+                            {coupon.discount > 0 && (
+                              <span className="text-brand-red font-bold">{coupon.discount}% off</span>
+                            )}
+                            {coupon.freeShipping && (
+                              <span className="flex items-center gap-1 text-cyan-400 text-xs font-semibold">
+                                <Truck size={11} /> Frete Grátis
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <div>

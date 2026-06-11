@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       valid: true,
       code: coupon.code,
       discount: coupon.discount,
+      freeShipping: coupon.freeShipping ?? false,
       description: coupon.description,
     })
   } catch (err: any) {

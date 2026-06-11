@@ -34,7 +34,8 @@ export async function PUT(req: NextRequest) {
   const body = await req.json()
   const {
     originZipCode, fixedShippingEnabled, fixedShippingValue,
-    freeShippingAbove, productionDaysStd, productionDaysCustom,
+    freeShippingAbove, globalFreeShipping,
+    productionDaysStd, productionDaysCustom,
   } = body
 
   let cfg = await db.shippingConfig.findFirst()
@@ -47,6 +48,7 @@ export async function PUT(req: NextRequest) {
         ...(fixedShippingEnabled !== undefined ? { fixedShippingEnabled } : {}),
         ...(fixedShippingValue !== undefined ? { fixedShippingValue: Number(fixedShippingValue) } : {}),
         ...(freeShippingAbove !== undefined ? { freeShippingAbove: Number(freeShippingAbove) } : {}),
+        ...(globalFreeShipping !== undefined ? { globalFreeShipping: Boolean(globalFreeShipping) } : {}),
         ...(productionDaysStd !== undefined ? { productionDaysStd: Number(productionDaysStd) } : {}),
         ...(productionDaysCustom !== undefined ? { productionDaysCustom: Number(productionDaysCustom) } : {}),
       },
