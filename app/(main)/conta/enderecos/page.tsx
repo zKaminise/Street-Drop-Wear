@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -14,8 +14,10 @@ import {
   X,
   Check,
   AlertCircle,
+  Loader2,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
+import { lookupCep } from '@/lib/cep'
 
 type Address = {
   id: string
@@ -86,6 +88,9 @@ export default function EnderecosPage() {
   const [form, setForm] = useState<Omit<Address, 'id'>>({ ...INITIAL })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError, setCepError] = useState('')
+  const numberRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -135,6 +140,30 @@ export default function EnderecosPage() {
 
     setError('')
     setShowModal(true)
+  }
+
+  async function handleCepChange(raw: string) {
+    const clean = raw.replace(/\D/g, '').slice(0, 8)
+    const display = clean.length > 5 ? `${clean.slice(0, 5)}-${clean.slice(5)}` : clean
+    setForm(p => ({ ...p, zipCode: display }))
+    setCepError('')
+    if (clean.length === 8) {
+      setCepLoading(true)
+      const result = await lookupCep(clean)
+      setCepLoading(false)
+      if (result) {
+        setForm(p => ({
+          ...p,
+          street: result.street || p.street,
+          district: result.district || p.district,
+          city: result.city || p.city,
+          state: result.state || p.state,
+        }))
+        setTimeout(() => numberRef.current?.focus(), 50)
+      } else {
+        setCepError('CEP não encontrado. Preencha manualmente.')
+      }
+    }
   }
 
   async function handleSave() {
@@ -345,37 +374,28 @@ export default function EnderecosPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      Label
-                    </label>
-                    <input
-                      value={form.label}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          label: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                      placeholder="Casa"
-                    />
+                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">Label</label>
+                    <input value={form.label} onChange={e => setForm(p => ({ ...p, label: e.target.value }))} className={INPUT} placeholder="Casa" />
                   </div>
 
                   <div>
                     <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
                       CEP *
                     </label>
-                    <input
-                      value={form.zipCode}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          zipCode: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                      placeholder="00000-000"
-                    />
+                    <div className="relative">
+                      <input
+                        value={form.zipCode}
+                        onChange={e => handleCepChange(e.target.value)}
+                        className={`${INPUT} ${cepLoading ? 'pr-8' : ''}`}
+                        placeholder="00000-000"
+                        maxLength={9}
+                        inputMode="numeric"
+                      />
+                      {cepLoading && (
+                        <Loader2 size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-brand-red" />
+                      )}
+                    </div>
+                    {cepError && <p className="text-[10px] text-yellow-400/80 mt-0.5">{cepError}</p>}
                   </div>
 
                   <div className="col-span-2">
@@ -384,14 +404,9 @@ export default function EnderecosPage() {
                     </label>
                     <input
                       value={form.street}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          street: event.target.value,
-                        }))
-                      }
+                      onChange={e => setForm(p => ({ ...p, street: e.target.value }))}
                       className={INPUT}
-                      placeholder="Rua"
+                      placeholder="Preenchido automaticamente pelo CEP"
                     />
                   </div>
 
@@ -400,110 +415,39 @@ export default function EnderecosPage() {
                       Número *
                     </label>
                     <input
+                      ref={numberRef}
                       value={form.number}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          number: event.target.value,
-                        }))
-                      }
+                      onChange={e => setForm(p => ({ ...p, number: e.target.value }))}
                       className={INPUT}
                       placeholder="123"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      Complemento
-                    </label>
-                    <input
-                      value={form.complement}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          complement: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                      placeholder="Apto"
-                    />
+                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">Complemento</label>
+                    <input value={form.complement} onChange={e => setForm(p => ({ ...p, complement: e.target.value }))} className={INPUT} placeholder="Apto" />
                   </div>
 
                   <div>
-                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      Bairro *
-                    </label>
-                    <input
-                      value={form.district}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          district: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                      placeholder="Bairro"
-                    />
+                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">Bairro *</label>
+                    <input value={form.district} onChange={e => setForm(p => ({ ...p, district: e.target.value }))} className={INPUT} placeholder="Bairro" />
                   </div>
 
                   <div>
-                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      Cidade *
-                    </label>
-                    <input
-                      value={form.city}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          city: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                      placeholder="Cidade"
-                    />
+                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">Cidade *</label>
+                    <input value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} className={INPUT} placeholder="Cidade" />
                   </div>
 
                   <div className="col-span-2">
-                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">
-                      Estado *
-                    </label>
-                    <select
-                      value={form.state}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          state: event.target.value,
-                        }))
-                      }
-                      className={INPUT}
-                    >
-                      {STATES.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
-                        </option>
-                      ))}
+                    <label className="text-xs text-white/50 uppercase tracking-wider mb-1 block">Estado *</label>
+                    <select value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} className={INPUT}>
+                      {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
 
                   <div className="col-span-2 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="is-default"
-                      checked={form.isDefault}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          isDefault: event.target.checked,
-                        }))
-                      }
-                      className="cursor-pointer"
-                    />
-                    <label
-                      htmlFor="is-default"
-                      className="text-sm text-white/60 cursor-pointer"
-                    >
-                      Definir como endereço principal
-                    </label>
+                    <input type="checkbox" id="is-default" checked={form.isDefault} onChange={e => setForm(p => ({ ...p, isDefault: e.target.checked }))} className="cursor-pointer" />
+                    <label htmlFor="is-default" className="text-sm text-white/60 cursor-pointer">Definir como endereço principal</label>
                   </div>
                 </div>
 

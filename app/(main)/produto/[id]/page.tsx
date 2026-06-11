@@ -247,8 +247,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               key={`${selectedColor?.name}-${safeIdx}`}
               initial={{ opacity: 0.5 }}
               animate={{ opacity: 1 }}
-              className="aspect-square bg-brand-graphite border border-white/5 flex items-center justify-center relative overflow-hidden cursor-crosshair select-none"
-              style={{ backgroundColor: selectedColor ? `${selectedColor.hex}11` : undefined }}
+              className="aspect-square bg-[#E8E8E6] border border-black/[0.06] flex items-center justify-center relative overflow-hidden cursor-crosshair select-none"
+              style={{ backgroundColor: '#E8E8E6' }}
               onMouseMove={e => {
                 if (!activeImage) return
                 const r = e.currentTarget.getBoundingClientRect()

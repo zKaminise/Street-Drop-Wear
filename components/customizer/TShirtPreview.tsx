@@ -11,9 +11,10 @@ type Props = {
   stampName?: string | null
   isOversized?: boolean
   view?: TShirtView
-  // Optional real mockup image URLs from admin (combination images)
   imageFront?: string | null
   imageBack?: string | null
+  // Override the dark tinted background with a specific color (e.g. off-white)
+  previewBg?: string
 }
 
 const STAMP_COLORS: Record<string, string> = {
@@ -123,6 +124,7 @@ export function TShirtPreview({
   view = 'back',
   imageFront,
   imageBack,
+  previewBg,
 }: Props) {
   const isLight = ['#F5F5F2', '#F0EDE6', '#FFFFFF', '#EDE0CA'].includes(colorHex)
   const strokeColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.07)'
@@ -147,12 +149,15 @@ export function TShirtPreview({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.25 }}
       className="relative w-full aspect-[5/6] flex items-center justify-center overflow-hidden"
-      style={{ backgroundColor: `${colorHex}12` }}
+      style={{ backgroundColor: previewBg ?? `${colorHex}12` }}
     >
-      <div
-        className="absolute inset-0 opacity-25"
-        style={{ background: `radial-gradient(circle at 50% 35%, ${colorHex}80 0%, transparent 65%)` }}
-      />
+      {/* Subtle radial glow — hidden on light backgrounds */}
+      {!previewBg && (
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{ background: `radial-gradient(circle at 50% 35%, ${colorHex}80 0%, transparent 65%)` }}
+        />
+      )}
 
       {/* If real photo available, show it */}
       {realImage ? (

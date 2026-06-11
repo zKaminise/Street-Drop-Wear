@@ -74,12 +74,14 @@ export async function POST(req: NextRequest) {
     const {
       items,
       couponCode,
+      payWithPix,
       addressId,
       guestName, guestEmail, guestPhone, guestCpf,
       guestZipCode, guestStreet, guestNumber, guestComplement,
       guestDistrict, guestCity, guestState,
       notes,
     } = body
+    const pixSelected = Boolean(payWithPix)
 
     // ── Validações básicas ────────────────────────────────────────────────────
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -131,7 +133,10 @@ export async function POST(req: NextRequest) {
     // Frete grátis se: cupom tem freeShipping, ou shippingResult já calculou grátis
     const shippingCost = (couponFreeShipping || shippingResult.isFree) ? 0 : shippingResult.cost
 
-    const total = Math.max(0, subtotal + shippingCost - couponDiscount)
+    // Desconto PIX: 5% sobre o subtotal (não inclui frete)
+    const pixDiscount = pixSelected ? Math.round(subtotal * 0.05 * 100) / 100 : 0
+
+    const total = Math.max(0, subtotal + shippingCost - couponDiscount - pixDiscount)
 
     // ── Gerar número do pedido ────────────────────────────────────────────────
     const orderNumber = `SDW${new Date().getFullYear()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`
@@ -159,10 +164,10 @@ export async function POST(req: NextRequest) {
           addressId: addressId || null,
           status: 'PAYMENT_PENDING',
           paymentStatus: 'PENDING',
-          paymentMethod: 'MERCADO_PAGO',
+          paymentMethod: pixSelected ? 'MERCADO_PAGO_PIX' : 'MERCADO_PAGO',
           subtotal,
           shippingCost,
-          discount: couponDiscount,
+          discount: couponDiscount + pixDiscount,
           couponCode: appliedCouponCode,
           couponDiscount,
           total,
@@ -225,8 +230,20 @@ export async function POST(req: NextRequest) {
     const siteUrl = getSiteUrl()
     const notificationUrl = getNotificationUrl()
 
-    // Calcular fator de desconto para distribuir no MP (MP exige unitPrice > 0)
-    const discountMultiplier = couponDiscount > 0 ? (subtotal - couponDiscount) / subtotal : 1
+    // Fator de desconto combinado (cupom + PIX) distribuído proporcionalmente nos itens
+    const totalDiscount = couponDiscount + pixDiscount
+    const discountMultiplier = totalDiscount > 0 ? Math.max(0, (subtotal - totalDiscount) / subtotal) : 1
+
+    // Quando PIX selecionado, excluir cartão/boleto para forçar somente PIX
+    const pixExcludedTypes = pixSelected
+      ? [
+          { id: 'credit_card' },
+          { id: 'debit_card' },
+          { id: 'ticket' },
+          { id: 'atm' },
+          { id: 'prepaid_card' },
+        ]
+      : []
 
     const preferenceClient = getPreferenceClient()
     const preference = await preferenceClient.create({
@@ -261,7 +278,8 @@ export async function POST(req: NextRequest) {
         },
         payment_methods: {
           excluded_payment_methods: [],
-          excluded_payment_types: [],
+          excluded_payment_types: pixExcludedTypes,
+          ...(pixSelected ? { default_payment_method_id: 'pix' } : {}),
         },
         back_urls: {
           success: `${siteUrl}/checkout/success?order=${order.id}`,

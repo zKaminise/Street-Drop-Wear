@@ -190,7 +190,7 @@ export default function CamisetasPage() {
 
             {/* T-Shirt Preview */}
             <div
-              className="bg-brand-graphite border border-white/5 overflow-hidden relative"
+              className="bg-[#E8E8E6] border border-black/[0.06] overflow-hidden relative"
               style={previewImage ? { cursor: 'crosshair' } : undefined}
               onMouseMove={previewImage ? e => {
                 const r = e.currentTarget.getBoundingClientRect()
@@ -206,6 +206,7 @@ export default function CamisetasPage() {
                 view={view}
                 imageFront={currentCombo?.imageFront}
                 imageBack={currentCombo?.imageBack}
+                previewBg="#E8E8E6"
               />
               {previewImage && previewZoom && (
                 <div

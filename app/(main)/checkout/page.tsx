@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ChevronRight, Lock, Check, ShoppingBag,
-  User, MapPin, Truck, ClipboardList, AlertCircle, Loader2, CreditCard,
+  User, MapPin, Truck, ClipboardList, AlertCircle, Loader2, CreditCard, QrCode,
 } from 'lucide-react'
 import { useCartStore, useAuthStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
+import { lookupCep } from '@/lib/cep'
 
 type Step = 'identity' | 'address' | 'shipping' | 'review'
 
@@ -68,6 +69,10 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<Step>('identity')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [payWithPix, setPayWithPix] = useState(false)
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError, setCepError] = useState('')
+  const numberInputRef = useRef<HTMLInputElement>(null)
   const [savedAddresses, setSavedAddresses] = useState<Array<{
     id: string; label: string; street: string; number: string; district: string; city: string; state: string; zipCode: string; isDefault: boolean
   }>>([])
@@ -175,6 +180,30 @@ export default function CheckoutPage() {
     }
   }
 
+  async function handleCepChange(raw: string) {
+    const formatted = raw.replace(/\D/g, '').slice(0, 8)
+    const display = formatted.length > 5 ? `${formatted.slice(0, 5)}-${formatted.slice(5)}` : formatted
+    setAddress(p => ({ ...p, zipCode: display }))
+    setCepError('')
+    if (formatted.length === 8) {
+      setCepLoading(true)
+      const result = await lookupCep(formatted)
+      setCepLoading(false)
+      if (result) {
+        setAddress(p => ({
+          ...p,
+          street: result.street || p.street,
+          district: result.district || p.district,
+          city: result.city || p.city,
+          state: result.state || p.state,
+        }))
+        setTimeout(() => numberInputRef.current?.focus(), 50)
+      } else {
+        setCepError('CEP não encontrado. Preencha o endereço manualmente.')
+      }
+    }
+  }
+
   function goToStep(s: Step) {
     setError('')
     setStep(s)
@@ -229,6 +258,7 @@ export default function CheckoutPage() {
           productImage: item.product.imageUrl ?? item.product.images?.[0]?.url ?? null,
         })),
         couponCode: coupon?.code ?? null,
+        payWithPix,
         // Address
         addressId: selectedAddr?.id ?? null,
         guestName: identity.name,
@@ -268,7 +298,8 @@ export default function CheckoutPage() {
 
   const stepIndex = STEPS.findIndex(s => s.id === step)
   const effectiveShipping = (coupon?.freeShipping || shipping?.isFree) ? 0 : (shipping?.cost ?? 0)
-  const total = subtotal + effectiveShipping - discount
+  const pixDiscountAmount = payWithPix ? Math.round(subtotal * 0.05 * 100) / 100 : 0
+  const total = subtotal + effectiveShipping - discount - pixDiscountAmount
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -424,22 +455,42 @@ export default function CheckoutPage() {
                     {(useNewAddress || savedAddresses.length === 0) && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Field label="Label (Casa, Trabalho...)" >
+                          <Field label="Label (Casa, Trabalho...)">
                             <input value={address.label} onChange={e => setAddress(p => ({ ...p, label: e.target.value }))} placeholder="Casa" className={INPUT} />
                           </Field>
                         </div>
                         <div>
-                          <Field label="CEP" required>
-                            <input value={address.zipCode} onChange={e => setAddress(p => ({ ...p, zipCode: e.target.value }))} placeholder="00000-000" className={INPUT} />
-                          </Field>
+                          <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">
+                            CEP<span className="text-brand-red ml-0.5">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              value={address.zipCode}
+                              onChange={e => handleCepChange(e.target.value)}
+                              placeholder="00000-000"
+                              maxLength={9}
+                              className={`${INPUT} ${cepLoading ? 'pr-8' : ''}`}
+                              inputMode="numeric"
+                            />
+                            {cepLoading && (
+                              <Loader2 size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-brand-red" />
+                            )}
+                          </div>
+                          {cepError && <p className="text-[11px] text-yellow-400/80 mt-1">{cepError}</p>}
                         </div>
                         <div className="col-span-2">
                           <Field label="Rua / Avenida" required>
-                            <input value={address.street} onChange={e => setAddress(p => ({ ...p, street: e.target.value }))} placeholder="Nome da rua" className={INPUT} />
+                            <input value={address.street} onChange={e => setAddress(p => ({ ...p, street: e.target.value }))} placeholder="Preenchido automaticamente pelo CEP" className={INPUT} />
                           </Field>
                         </div>
                         <Field label="Número" required>
-                          <input value={address.number} onChange={e => setAddress(p => ({ ...p, number: e.target.value }))} placeholder="Nº" className={INPUT} />
+                          <input
+                            ref={numberInputRef}
+                            value={address.number}
+                            onChange={e => setAddress(p => ({ ...p, number: e.target.value }))}
+                            placeholder="Nº"
+                            className={INPUT}
+                          />
                         </Field>
                         <Field label="Complemento">
                           <input value={address.complement} onChange={e => setAddress(p => ({ ...p, complement: e.target.value }))} placeholder="Apto, sala..." className={INPUT} />
@@ -507,17 +558,61 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    <div className="bg-brand-graphite/50 border border-white/5 p-4">
-                      <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Forma de Pagamento</p>
-                      <div className="flex items-center gap-3 p-4 border border-[#009ee3]/20 bg-[#009ee3]/5">
-                        <CreditCard size={20} className="text-[#009ee3] flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-bold text-brand-white">Mercado Pago</p>
-                          <p className="text-xs text-brand-gray-text">PIX · Cartão de crédito · Boleto · e muito mais</p>
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-white/50 uppercase tracking-wider">Forma de Pagamento</p>
+
+                      {/* Option: Other methods */}
+                      <button
+                        type="button"
+                        onClick={() => setPayWithPix(false)}
+                        className={`w-full text-left p-4 border transition-all cursor-pointer ${
+                          !payWithPix ? 'border-[#009ee3]/60 bg-[#009ee3]/8' : 'border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <CreditCard size={20} className={`mt-0.5 flex-shrink-0 ${!payWithPix ? 'text-[#009ee3]' : 'text-white/40'}`} />
+                            <div>
+                              <p className="text-sm font-bold text-brand-white">Cartão de crédito / débito · Boleto</p>
+                              <p className="text-xs text-brand-gray-text mt-0.5">Pague com cartão ou boleto via Mercado Pago</p>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-colors ${!payWithPix ? 'border-[#009ee3] bg-[#009ee3]' : 'border-white/20'}`} />
                         </div>
-                      </div>
-                      <p className="text-xs text-brand-gray-text/60 mt-3">
-                        Você será redirecionado para o ambiente seguro do Mercado Pago para concluir o pagamento.
+                      </button>
+
+                      {/* Option: PIX */}
+                      <button
+                        type="button"
+                        onClick={() => setPayWithPix(true)}
+                        className={`w-full text-left p-4 border transition-all cursor-pointer ${
+                          payWithPix ? 'border-green-400/60 bg-green-400/8' : 'border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <QrCode size={20} className={`mt-0.5 flex-shrink-0 ${payWithPix ? 'text-green-400' : 'text-white/40'}`} />
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-bold text-brand-white">PIX</p>
+                                <span className="text-[10px] font-bold bg-green-400/15 border border-green-400/30 text-green-400 px-2 py-0.5 uppercase tracking-wider">
+                                  5% de desconto
+                                </span>
+                              </div>
+                              <p className="text-xs text-brand-gray-text mt-0.5">Desconto aplicado no subtotal · Pagamento instantâneo</p>
+                              {payWithPix && (
+                                <p className="text-xs text-green-400 font-semibold mt-1">
+                                  Economia: {formatPrice(pixDiscountAmount)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-colors ${payWithPix ? 'border-green-400 bg-green-400' : 'border-white/20'}`} />
+                        </div>
+                      </button>
+
+                      <p className="text-xs text-brand-gray-text/60 pt-1">
+                        Você será redirecionado para o ambiente seguro do Mercado Pago.
                       </p>
                     </div>
 
@@ -619,6 +714,8 @@ export default function CheckoutPage() {
                       >
                         {submitting ? (
                           <><Loader2 size={16} className="animate-spin" /> Redirecionando...</>
+                        ) : payWithPix ? (
+                          <><QrCode size={16} /> Pagar com PIX</>
                         ) : (
                           <><ShoppingBag size={16} /> Pagar com Mercado Pago</>
                         )}
@@ -682,6 +779,12 @@ export default function CheckoutPage() {
                         ? <span className="text-green-400">- {formatPrice(discount)}</span>
                         : <span className="text-green-400 text-xs">aplicado</span>
                       }
+                    </div>
+                  )}
+                  {pixDiscountAmount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-green-400 text-xs">PIX (5% off subtotal)</span>
+                      <span className="text-green-400">- {formatPrice(pixDiscountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">

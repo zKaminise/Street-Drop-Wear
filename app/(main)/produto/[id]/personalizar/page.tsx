@@ -149,12 +149,13 @@ export default function PersonalizarPage({ params }: { params: { id: string } })
 
           {/* LEFT: Preview */}
           <div className="lg:sticky lg:top-20 self-start">
-            <div className="bg-brand-graphite border border-white/5 overflow-hidden">
+            <div className="bg-[#E8E8E6] border border-black/[0.06] overflow-hidden">
               <TShirtPreview
                 colorHex={selectedColor?.hex ?? '#0B0B0D'}
                 stampSlug={selectedStamp?.slug}
                 stampName={selectedStamp?.name}
                 isOversized={shirtType === 'OVERSIZED'}
+                previewBg="#E8E8E6"
               />
             </div>
 
