@@ -40,11 +40,11 @@ export const metadata: Metadata = {
     title: 'StreetDrop Wear – Camisetas Personalizadas & Streetwear Premium',
     description: 'Vista sua identidade. Crie seu drop. Represente seu estilo.',
   },
-  icons: {
-    icon: '/icon-sdw.svg',
-    apple: '/icon-sdw.svg',
-    shortcut: '/icon-sdw.svg',
-  },
+  icons: [
+    { rel: 'icon', url: '/icon-sdw.svg', type: 'image/svg+xml' },
+    { rel: 'apple-touch-icon', url: '/icon-sdw.svg' },
+    { rel: 'shortcut icon', url: '/icon-sdw.svg' },
+  ],
   robots: { index: true, follow: true },
 }
 
@@ -57,6 +57,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${bebasNeue.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        <link rel="icon" href="/icon-sdw.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon-sdw.svg" />
+      </head>
       <body>{children}</body>
     </html>
   )

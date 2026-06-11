@@ -10,6 +10,7 @@ type ApiVariant = { id: string; color?: string; colorHex?: string; size?: string
 type ApiProduct = {
   id: string; name: string; slug: string; type: string; description?: string; subcategory?: string
   price: number; originalPrice?: number; material?: string; isNew: boolean; isFeatured: boolean
+  isFlashSale: boolean; flashSalePrice?: number
   rating: number; reviewCount: number; createdAt: string
   imageUrl?: string; hoverImageUrl?: string
   images: { id: string; url: string; alt?: string; isPrimary?: boolean }[]
@@ -26,10 +27,12 @@ function apiToProduct(p: ApiProduct): Product {
     totalStock += v.stock
   }
   const status = totalStock === 0 ? 'out_of_stock' : totalStock < 10 ? 'low_stock' : 'available'
+  const effectivePrice = (p.isFlashSale && p.flashSalePrice) ? p.flashSalePrice : p.price
+  const effectiveOriginal = (p.isFlashSale && p.flashSalePrice) ? p.price : (p.originalPrice ?? undefined)
   return {
     id: p.id, slug: p.slug, name: p.name,
     description: p.description ?? '', shortDescription: '',
-    price: p.price, originalPrice: p.originalPrice ?? undefined,
+    price: effectivePrice, originalPrice: effectiveOriginal,
     category: 'produtos-3d' as ProductCategory,
     subcategory: p.subcategory,
     imageUrl: p.imageUrl, hoverImageUrl: p.hoverImageUrl,

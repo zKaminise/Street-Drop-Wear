@@ -256,29 +256,53 @@ export default function CombinacoesPage() {
 
                 {/* Image upload */}
                 <div className="border border-white/5 p-4 space-y-4 bg-black/20">
-                  <p className="text-xs text-white/40 uppercase tracking-wider flex items-center gap-2">
-                    <ImageIcon size={12} /> Fotos do Produto (Mockups)
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-white/40 uppercase tracking-wider flex items-center gap-2">
+                      <ImageIcon size={12} /> Fotos do Produto (Mockups)
+                    </p>
+                  </div>
+
+                  {/* Image quality guidance */}
+                  <div className="bg-amber-500/8 border border-amber-500/25 p-3 space-y-1.5">
+                    <p className="text-[11px] text-amber-400 font-semibold flex items-center gap-1.5">
+                      <span>★</span> Tamanho ideal para melhor qualidade
+                    </p>
+                    <ul className="space-y-1 text-[10px] text-amber-300/70 leading-relaxed">
+                      <li><span className="text-white/60">Resolucao:</span> <span className="text-amber-300 font-semibold">1200×1200 px</span> (minimo) · <span className="text-amber-300 font-semibold">2000×2000 px</span> (ideal Full HD/4K)</li>
+                      <li><span className="text-white/60">Formato:</span> <span className="text-amber-300 font-semibold">PNG com fundo transparente</span> — melhor resultado no preview</li>
+                      <li><span className="text-white/60">Proporcao:</span> <span className="text-amber-300 font-semibold">1:1 (quadrado)</span> — centraliza perfeitamente no visualizador</li>
+                      <li><span className="text-white/60">Tamanho do arquivo:</span> maximo <span className="text-amber-300 font-semibold">5 MB</span></li>
+                    </ul>
+                    <p className="text-[10px] text-white/30 border-t border-white/5 pt-1.5 mt-1">
+                      No Canva: exporte como PNG com fundo transparente · 2000×2000 px · qualidade alta
+                    </p>
+                  </div>
 
                   {/* Front image */}
                   <Field label="Foto — Frente">
                     <div className="flex items-start gap-3">
-                      <div className="w-20 h-20 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="w-24 h-24 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {form.imageFront ? (
-                          <Image src={form.imageFront} alt="Frente" width={80} height={80} className="w-full h-full object-contain" unoptimized />
+                          <Image src={form.imageFront} alt="Frente" width={96} height={96} className="w-full h-full object-contain" unoptimized />
                         ) : (
-                          <ImageIcon size={22} className="text-white/20" />
+                          <div className="flex flex-col items-center gap-1">
+                            <ImageIcon size={22} className="text-white/20" />
+                            <span className="text-[9px] text-white/15">Frente</span>
+                          </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <input ref={fileFrontRef} type="file" accept="image/*" className="hidden"
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <input ref={fileFrontRef} type="file" accept="image/png,image/jpg,image/jpeg,image/webp" className="hidden"
                           onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'imageFront'); if (fileFrontRef.current) fileFrontRef.current.value = '' }} />
                         <button type="button" disabled={uploading === 'imageFront'}
                           onClick={() => fileFrontRef.current?.click()}
-                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
-                          {uploading === 'imageFront' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto</>}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50 w-full justify-center">
+                          {uploading === 'imageFront' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto (Frente)</>}
                         </button>
-                        {form.imageFront && <p className="text-[10px] text-white/25 mt-1 truncate">{form.imageFront}</p>}
+                        {form.imageFront
+                          ? <p className="text-[10px] text-green-400/60">✓ Imagem carregada</p>
+                          : <p className="text-[10px] text-white/20">PNG transparente · minimo 1200×1200 px</p>
+                        }
                       </div>
                     </div>
                   </Field>
@@ -286,26 +310,31 @@ export default function CombinacoesPage() {
                   {/* Back image */}
                   <Field label="Foto — Costas">
                     <div className="flex items-start gap-3">
-                      <div className="w-20 h-20 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="w-24 h-24 bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {form.imageBack ? (
-                          <Image src={form.imageBack} alt="Costas" width={80} height={80} className="w-full h-full object-contain" unoptimized />
+                          <Image src={form.imageBack} alt="Costas" width={96} height={96} className="w-full h-full object-contain" unoptimized />
                         ) : (
-                          <ImageIcon size={22} className="text-white/20" />
+                          <div className="flex flex-col items-center gap-1">
+                            <ImageIcon size={22} className="text-white/20" />
+                            <span className="text-[9px] text-white/15">Costas</span>
+                          </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <input ref={fileBackRef} type="file" accept="image/*" className="hidden"
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <input ref={fileBackRef} type="file" accept="image/png,image/jpg,image/jpeg,image/webp" className="hidden"
                           onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f, 'imageBack'); if (fileBackRef.current) fileBackRef.current.value = '' }} />
                         <button type="button" disabled={uploading === 'imageBack'}
                           onClick={() => fileBackRef.current?.click()}
-                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50">
-                          {uploading === 'imageBack' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto</>}
+                          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs px-3 py-2 transition-colors cursor-pointer disabled:opacity-50 w-full justify-center">
+                          {uploading === 'imageBack' ? <><Loader2 size={13} className="animate-spin" /> Enviando...</> : <><Upload size={13} /> Escolher foto (Costas)</>}
                         </button>
-                        {form.imageBack && <p className="text-[10px] text-white/25 mt-1 truncate">{form.imageBack}</p>}
+                        {form.imageBack
+                          ? <p className="text-[10px] text-green-400/60">✓ Imagem carregada</p>
+                          : <p className="text-[10px] text-white/20">PNG transparente · minimo 1200×1200 px</p>
+                        }
                       </div>
                     </div>
                   </Field>
-                  <p className="text-[10px] text-white/20">JPG, PNG, WebP ou SVG · máx. 5 MB · Será salvo em /public/images/mockups/</p>
                 </div>
 
                 <label className="flex items-center gap-2 cursor-pointer">

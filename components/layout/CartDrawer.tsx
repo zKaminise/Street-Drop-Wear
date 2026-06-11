@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Palette, Truck, Gift } from 'lucide-react'
+import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Palette, Truck, Gift, Tag, Check, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
 
@@ -44,11 +45,35 @@ function ShippingProgressBar({ subtotal }: { subtotal: number }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getShipping, getTotal } = useCartStore()
+  const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getShipping, getTotal, getDiscount, coupon, applyCoupon, removeCoupon } = useCartStore()
+  const [couponInput, setCouponInput] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
 
-  const subtotal = getSubtotal()
-  const shipping = getShipping()
-  const total = getTotal()
+  const subtotal  = getSubtotal()
+  const shipping  = getShipping()
+  const discount  = getDiscount()
+  const total     = getTotal()
+
+  async function handleApplyCoupon() {
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponError('')
+    try {
+      const res = await fetch(`/api/coupons/validate?code=${encodeURIComponent(couponInput.trim())}`)
+      const data = await res.json()
+      if (data.valid) {
+        applyCoupon(data.code, data.discount, data.description)
+        setCouponInput('')
+      } else {
+        setCouponError(data.message ?? 'Cupom inválido.')
+      }
+    } catch {
+      setCouponError('Erro ao validar cupom.')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -58,7 +83,7 @@ export function CartDrawer() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-50"
+            className="fixed inset-0 bg-black/70 z-[65]"
             onClick={closeCart}
           />
           <motion.div
@@ -66,7 +91,7 @@ export function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-brand-graphite z-50 flex flex-col shadow-2xl"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-brand-graphite z-[70] flex flex-col shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/10">
@@ -113,26 +138,31 @@ export function CartDrawer() {
                         className="p-4 flex gap-4"
                       >
                         {/* Thumbnail */}
-                        <div
-                          className="w-16 h-20 flex-shrink-0 flex items-center justify-center relative overflow-hidden"
-                          style={{ backgroundColor: preview ? 'transparent' : `${item.selectedColor.hex}33` }}
-                        >
-                          {preview ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={preview} alt={item.product.name} className="w-full h-full object-cover" />
-                          ) : isCustom ? (
-                            <Palette size={24} className="text-brand-red/60" />
-                          ) : (
-                            <TShirtIcon
-                              className="w-10 h-10 opacity-30"
-                              color={
-                                item.selectedColor.hex === '#F0EDE6' || item.selectedColor.hex === '#F5F5F5'
-                                  ? '#333'
-                                  : '#fff'
-                              }
-                            />
-                          )}
-                        </div>
+                        {(() => {
+                          const productImg = item.product.imageUrl ?? item.product.images?.[0]?.url ?? null
+                          const bg = (preview || productImg) ? undefined : `${item.selectedColor.hex}33`
+                          return (
+                            <div
+                              className="w-16 h-20 flex-shrink-0 flex items-center justify-center relative overflow-hidden flex-shrink-0"
+                              style={{ backgroundColor: bg }}
+                            >
+                              {preview ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={preview} alt={item.product.name} className="w-full h-full object-cover" />
+                              ) : productImg ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={productImg} alt={item.product.name} className="w-full h-full object-cover" />
+                              ) : isCustom ? (
+                                <Palette size={24} className="text-brand-red/60" />
+                              ) : (
+                                <TShirtIcon
+                                  className="w-10 h-10 opacity-30"
+                                  color={item.selectedColor.hex === '#F0EDE6' || item.selectedColor.hex === '#F5F5F5' ? '#333' : '#fff'}
+                                />
+                              )}
+                            </div>
+                          )
+                        })()}
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
@@ -199,11 +229,59 @@ export function CartDrawer() {
                 {/* Shipping progress bar */}
                 <ShippingProgressBar subtotal={subtotal} />
 
+                {/* Coupon section */}
+                <div className="space-y-2">
+                  {coupon ? (
+                    <div className="flex items-center justify-between bg-green-400/10 border border-green-400/20 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <Check size={12} className="text-green-400" />
+                        <div>
+                          <p className="text-[11px] font-bold text-green-400">{coupon.code} — {coupon.discountPct}% off</p>
+                          {coupon.description && <p className="text-[10px] text-green-400/70">{coupon.description}</p>}
+                        </div>
+                      </div>
+                      <button onClick={removeCoupon} className="p-1 text-white/30 hover:text-red-400 cursor-pointer transition-colors">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        <Tag size={10} /> Cupom de desconto
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          value={couponInput}
+                          onChange={e => { setCouponInput(e.target.value); setCouponError('') }}
+                          onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
+                          placeholder="Código do cupom"
+                          className="flex-1 bg-black/40 border border-white/10 text-white text-xs px-2.5 py-1.5 placeholder-white/20 focus:outline-none focus:border-white/25 uppercase"
+                          style={{ textTransform: 'uppercase' }}
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          disabled={couponLoading || !couponInput.trim()}
+                          className="px-3 py-1.5 bg-brand-graphite border border-white/15 text-xs text-white/70 hover:text-white hover:border-white/30 transition-colors cursor-pointer disabled:opacity-40"
+                        >
+                          {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
+                        </button>
+                      </div>
+                      {couponError && <p className="text-[10px] text-red-400 mt-1">{couponError}</p>}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-brand-gray-text">
                     <span>Subtotal</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">Desconto ({coupon?.discountPct}%)</span>
+                      <span className="text-green-400">- {formatPrice(discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-gray-text">Frete estimado</span>
                     <span className={shipping === 0 ? 'text-green-400 font-semibold' : 'text-brand-white'}>

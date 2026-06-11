@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShoppingBag, Star, Heart, Zap } from 'lucide-react'
+import { ShoppingBag, Star, Heart, Zap, X } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { formatPrice, formatDiscount } from '@/lib/utils'
 import { useCartStore } from '@/lib/store'
@@ -22,6 +22,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const openCart = useCartStore(s => s.openCart)
   const [hovered, setHovered] = useState(false)
 
+  // Quick-select modal state (for products with multiple colors/sizes)
+  const [showQuickSelect, setShowQuickSelect] = useState(false)
+  const [quickColor, setQuickColor] = useState<Product['colors'][0] | null>(null)
+  const [quickSize, setQuickSize] = useState<Product['sizes'][0] | null>(null)
+
   const firstColor = product.colors[0]
   const firstAvailableSize = product.sizes.find(s => s.available)
 
@@ -36,12 +41,50 @@ export function ProductCard({ product }: ProductCardProps) {
     product.images?.[1]?.url ??
     null
 
+  // Products with multiple color or size options need the selection modal
+  const needsVariantSelect =
+    product.colors.length > 1 || product.sizes.length > 1
+
+  function openQuickSelect(e: React.MouseEvent) {
+    e.preventDefault()
+    setQuickColor(firstColor ?? null)
+    setQuickSize(firstAvailableSize ?? null)
+    setShowQuickSelect(true)
+  }
+
+  function closeQuickSelect(e: React.MouseEvent) {
+    e.preventDefault()
+    setShowQuickSelect(false)
+  }
+
   function handleQuickAdd(e: React.MouseEvent) {
     e.preventDefault()
-    if (!firstColor || !firstAvailableSize) return
-    addItem(product, firstColor, firstAvailableSize)
+
+    // For products with multiple variants (e.g. DryFit): show selection panel
+    if (needsVariantSelect) {
+      openQuickSelect(e)
+      return
+    }
+
+    // For products without variants (Geek, 3D, etc.): add directly with defaults
+    const color = firstColor ?? { name: 'Padrão', hex: '#1A1A1A' }
+    const size = firstAvailableSize ?? { label: 'Único', available: true }
+    addItem(product, color, size)
     openCart()
   }
+
+  function confirmQuickAdd(e: React.MouseEvent) {
+    e.preventDefault()
+    const color = quickColor ?? firstColor ?? { name: 'Padrão', hex: '#1A1A1A' }
+    const size = quickSize ?? firstAvailableSize ?? { label: 'Único', available: true }
+    addItem(product, color, size)
+    openCart()
+    setShowQuickSelect(false)
+  }
+
+  const canConfirm =
+    (product.colors.length === 0 || quickColor !== null) &&
+    (product.sizes.length === 0 || quickSize !== null)
 
   const discount = product.originalPrice
     ? formatDiscount(product.originalPrice, product.price)
@@ -61,7 +104,7 @@ export function ProductCard({ product }: ProductCardProps) {
         className="card-product block group"
         aria-label={product.name}
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseLeave={() => { setHovered(false) }}
       >
         {/* Image area */}
         <div className="relative aspect-[4/5] overflow-hidden bg-brand-black">
@@ -124,7 +167,100 @@ export function ProductCard({ product }: ProductCardProps) {
             <Heart size={14} className="text-brand-white" strokeWidth={1.5} />
           </button>
 
-          {/* Quick add (bottom, on hover) */}
+          {/* ── Quick-select overlay (when active) ── */}
+          {showQuickSelect && (
+            <div
+              className="absolute inset-0 bg-black/70 z-20 flex flex-col justify-end"
+              onClick={closeQuickSelect}
+            >
+              <div
+                className="bg-[#1B1B22] border-t border-white/10 p-3 space-y-2.5"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Close button */}
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                    Escolha suas opções
+                  </span>
+                  <button
+                    onClick={closeQuickSelect}
+                    className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white cursor-pointer"
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+
+                {/* Color select */}
+                {product.colors.length > 0 && (
+                  <div>
+                    <p className="text-[9px] text-white/35 uppercase tracking-wider mb-1.5">Cor</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.colors.map(c => (
+                        <button
+                          key={c.name}
+                          onClick={e => { e.preventDefault(); setQuickColor(c) }}
+                          className={`flex items-center gap-1.5 px-2 py-1 text-[10px] border transition-colors cursor-pointer ${
+                            quickColor?.name === c.name
+                              ? 'border-brand-red bg-brand-red/10 text-white'
+                              : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/80'
+                          }`}
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full border border-white/20 flex-shrink-0"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Size select */}
+                {product.sizes.length > 0 && (
+                  <div>
+                    <p className="text-[9px] text-white/35 uppercase tracking-wider mb-1.5">Tamanho</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.sizes.map(s => (
+                        <button
+                          key={s.label}
+                          onClick={e => { e.preventDefault(); if (s.available) setQuickSize(s) }}
+                          disabled={!s.available}
+                          className={`px-2.5 py-1 text-[10px] border transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                            quickSize?.label === s.label
+                              ? 'border-brand-red bg-brand-red/10 text-white'
+                              : 'border-white/15 text-white/50 hover:border-white/30 hover:text-white/80'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirm / Cancel */}
+                <div className="flex gap-2 pt-0.5">
+                  <button
+                    onClick={closeQuickSelect}
+                    className="flex-1 py-2 text-[10px] border border-white/15 text-white/50 hover:border-white/30 hover:text-white/80 transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmQuickAdd}
+                    disabled={!canConfirm}
+                    className="flex-1 py-2 bg-brand-red text-white text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-brand-red-dark transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ShoppingBag size={11} />
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Add to cart / Personalizar / Esgotado buttons ── */}
           {!isOutOfStock && product.isPersonalizable ? (
             <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
               <button
@@ -138,7 +274,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 Personalizar
               </button>
             </div>
-          ) : !isOutOfStock ? (
+          ) : !isOutOfStock && !showQuickSelect ? (
             <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
               <button
                 onClick={handleQuickAdd}
@@ -148,13 +284,13 @@ export function ProductCard({ product }: ProductCardProps) {
                 Adicionar ao carrinho
               </button>
             </div>
-          ) : (
+          ) : isOutOfStock ? (
             <div className="absolute bottom-0 left-0 right-0 z-10">
               <div className="w-full bg-brand-graphite text-brand-gray-text text-xs font-bold uppercase tracking-wider py-3 text-center">
                 Esgotado
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Info */}

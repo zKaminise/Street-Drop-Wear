@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Package, Shirt, Stamp, BarChart3,
   ShoppingBag, FolderOpen, LogOut, ChevronRight, Box, Layers, Truck,
-  Menu, X, Megaphone
+  Menu, X, Megaphone, Tag, Ticket, DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -15,12 +15,15 @@ const NAV = [
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/admin/bases', label: 'Bases (Camisetas)', icon: Shirt },
   { href: '/admin/estampas', label: 'Estampas', icon: Stamp },
+  { href: '/admin/categorias-estampas', label: 'Categorias de Estampas', icon: Tag },
   { href: '/admin/estoque', label: 'Estoque', icon: BarChart3 },
   { href: '/admin/combinacoes', label: 'Combinações (Mockups)', icon: Layers },
   { href: '/admin/produtos', label: 'Produtos (DryFit/3D/Geek)', icon: Package },
   { href: '/admin/kits', label: 'Kits B2B', icon: FolderOpen },
   { href: '/admin/frete', label: 'Frete & Prazos', icon: Truck },
   { href: '/admin/avisos', label: 'Barra de Avisos', icon: Megaphone },
+  { href: '/admin/cupons', label: 'Cupons de Desconto', icon: Ticket },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: DollarSign },
 ]
 
 export function AdminSidebar() {

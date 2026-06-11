@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Check, Zap, Plus, Minus } from 'lucide-react'
+import { ChevronLeft, Check, Zap, Plus, Minus, ZoomIn } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { TShirtPreview, type TShirtView } from '@/components/customizer/TShirtPreview'
@@ -19,7 +19,11 @@ type ApiStamp = {
   id: string; name: string; slug: string; extraPrice: number
   allowedFor: string; category?: string; active: boolean
   imageUrl?: string
+  categoryId?: string | null
+  categoryName?: string | null
 }
+
+type ApiCategory = { id: string; name: string; slug: string }
 type ApiCombination = {
   id: string; baseId: string; colorId: string; stampId?: string
   imageFront?: string; imageBack?: string
@@ -33,25 +37,30 @@ export default function OversizedPage() {
 
   const [bases, setBases] = useState<ApiBase[]>([])
   const [stamps, setStamps] = useState<ApiStamp[]>([])
+  const [categories, setCategories] = useState<ApiCategory[]>([])
   const [combinations, setCombinations] = useState<ApiCombination[]>([])
   const [loading, setLoading] = useState(true)
 
   const [selectedBase, setSelectedBase] = useState<ApiBase | null>(null)
   const [selectedColor, setSelectedColor] = useState<ApiColor | null>(null)
   const [selectedStamp, setSelectedStamp] = useState<ApiStamp | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [view, setView] = useState<TShirtView>('back')
+  const [previewZoom, setPreviewZoom] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/bases?type=OVERSIZED').then(r => r.json()),
       fetch('/api/stamps?type=OVERSIZED').then(r => r.json()),
       fetch('/api/combinations?type=OVERSIZED').then(r => r.json()).catch(() => []),
-    ]).then(([basesData, stampsData, combosData]) => {
+      fetch('/api/stamp-categories').then(r => r.json()).catch(() => []),
+    ]).then(([basesData, stampsData, combosData, catsData]) => {
       setBases(basesData)
       setStamps(stampsData)
       setCombinations(Array.isArray(combosData) ? combosData : [])
+      setCategories(Array.isArray(catsData) ? catsData : [])
       if (basesData.length > 0) {
         setSelectedBase(basesData[0])
         if (basesData[0].colors.length > 0) setSelectedColor(basesData[0].colors[0])
@@ -83,6 +92,11 @@ export default function OversizedPage() {
     c.colorId === selectedColor?.id &&
     (selectedStamp?.slug === 'sem-estampa' ? !c.stampId : c.stampId === selectedStamp?.id)
   )
+
+  // Image that is actually shown in TShirtPreview (for zoom)
+  const previewImage = view === 'back'
+    ? (currentCombo?.imageBack ?? currentCombo?.imageFront ?? null)
+    : (currentCombo?.imageFront ?? currentCombo?.imageBack ?? null)
 
   const totalPrice = (selectedBase?.basePrice ?? 0) + (selectedStamp?.extraPrice ?? 0)
   const maxQty = selectedSize ? getStock(selectedSize) : 0
@@ -126,13 +140,7 @@ export default function OversizedPage() {
     openCart()
   }
 
-  // Group stamps by category
-  const stampGroups = stamps.reduce<Record<string, ApiStamp[]>>((acc, s) => {
-    const cat = s.category ?? 'Outros'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(s)
-    return acc
-  }, {})
+  // (category grouping is now handled inline inside JSX)
 
   if (loading) {
     return (
@@ -147,7 +155,7 @@ export default function OversizedPage() {
   return (
     <div className="min-h-screen bg-brand-black">
       {/* Header strip */}
-      <div className="sticky top-[72px] z-30 bg-brand-black/95 backdrop-blur-md border-b border-white/5">
+      <div className="sticky z-30 bg-brand-black/95 backdrop-blur-md border-b border-white/5" style={{ top: 'calc(72px + var(--announcement-bar-h, 0px))' }}>
         <div className="container-brand flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors">
             <ChevronLeft size={16} /> Início
@@ -163,7 +171,7 @@ export default function OversizedPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
           {/* LEFT – Preview */}
-          <div className="lg:sticky lg:top-36 self-start space-y-4">
+          <div className="lg:sticky self-start space-y-4" style={{ top: 'calc(144px + var(--announcement-bar-h, 0px))' }}>
             {/* Front/Back toggle */}
             <div className="flex gap-2">
               {(['back', 'front'] as TShirtView[]).map(v => (
@@ -182,7 +190,15 @@ export default function OversizedPage() {
             </div>
 
             {/* T-Shirt Preview */}
-            <div className="bg-brand-graphite border border-white/5 overflow-hidden">
+            <div
+              className="bg-brand-graphite border border-white/5 overflow-hidden relative"
+              style={previewImage ? { cursor: 'crosshair' } : undefined}
+              onMouseMove={previewImage ? e => {
+                const r = e.currentTarget.getBoundingClientRect()
+                setPreviewZoom({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 })
+              } : undefined}
+              onMouseLeave={previewImage ? () => setPreviewZoom(null) : undefined}
+            >
               <TShirtPreview
                 colorHex={selectedColor?.hex ?? '#0B0B0D'}
                 stampSlug={selectedStamp?.slug}
@@ -192,6 +208,22 @@ export default function OversizedPage() {
                 imageFront={currentCombo?.imageFront}
                 imageBack={currentCombo?.imageBack}
               />
+              {previewImage && previewZoom && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `url(${previewImage})`,
+                    backgroundSize: '280%',
+                    backgroundPosition: `${previewZoom.x}% ${previewZoom.y}%`,
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                />
+              )}
+              {previewImage && !previewZoom && (
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white/25 text-[10px] pointer-events-none select-none">
+                  <ZoomIn size={11} /> Ampliar
+                </div>
+              )}
             </div>
 
             {/* Price breakdown */}
@@ -274,32 +306,94 @@ export default function OversizedPage() {
 
             {/* Step 3: Stamp */}
             <StepSection step={bases.length > 1 ? '3' : '2'} title="Escolha a Estampa">
-              <div className="space-y-4">
-                {Object.entries(stampGroups).map(([cat, catStamps]) => (
-                  <div key={cat}>
-                    {cat !== 'Outros' && <p className="text-xs text-white/30 uppercase tracking-widest mb-2">{cat}</p>}
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {catStamps.map(stamp => (
-                        <button
-                          key={stamp.id}
-                          onClick={() => setSelectedStamp(stamp)}
-                          className={`flex flex-col items-center gap-1.5 p-2 border text-center transition-all cursor-pointer ${
-                            selectedStamp?.id === stamp.id
-                              ? 'border-brand-red bg-brand-red/5'
-                              : 'border-white/10 hover:border-white/25'
-                          }`}
-                        >
-                          <StampThumb stamp={stamp} />
-                          <span className="text-[10px] text-white/60 leading-tight">{stamp.name}</span>
-                          {stamp.extraPrice > 0
-                            ? <span className="text-[10px] text-brand-red">+{formatPrice(stamp.extraPrice)}</span>
-                            : <span className="text-[10px] text-white/30">Grátis</span>
-                          }
-                        </button>
+              <div className="space-y-3">
+                {/* Category filter pills — only shown when categories exist */}
+                {categories.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                        !selectedCategory
+                          ? 'bg-brand-red text-white'
+                          : 'border border-white/15 text-white/50 hover:border-white/30 hover:text-white'
+                      }`}
+                    >
+                      Todas
+                    </button>
+                    {categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                        className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                          selectedCategory === cat.id
+                            ? 'bg-brand-red text-white'
+                            : 'border border-white/15 text-white/50 hover:border-white/30 hover:text-white'
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Stamp grid */}
+                {(() => {
+                  const visible = selectedCategory
+                    ? stamps.filter(s => s.categoryId === selectedCategory)
+                    : stamps
+
+                  if (visible.length === 0) {
+                    return (
+                      <p className="text-xs text-white/30 py-4 text-center">
+                        Nenhuma estampa nesta categoria ainda.
+                      </p>
+                    )
+                  }
+
+                  // When a category is selected: flat grid. When "Todas": group by category name
+                  if (selectedCategory) {
+                    return (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {visible.map(stamp => (
+                          <StampCard
+                            key={stamp.id}
+                            stamp={stamp}
+                            selected={selectedStamp?.id === stamp.id}
+                            onSelect={setSelectedStamp}
+                          />
+                        ))}
+                      </div>
+                    )
+                  }
+
+                  // "Todas" — group by category
+                  const groups = visible.reduce<Record<string, ApiStamp[]>>((acc, s) => {
+                    const cat = s.categoryName ?? 'Outros'
+                    if (!acc[cat]) acc[cat] = []
+                    acc[cat].push(s)
+                    return acc
+                  }, {})
+
+                  return (
+                    <div className="space-y-4">
+                      {Object.entries(groups).map(([cat, catStamps]) => (
+                        <div key={cat}>
+                          <p className="text-xs text-white/30 uppercase tracking-widest mb-2">{cat}</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            {catStamps.map(stamp => (
+                              <StampCard
+                                key={stamp.id}
+                                stamp={stamp}
+                                selected={selectedStamp?.id === stamp.id}
+                                onSelect={setSelectedStamp}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                ))}
+                  )
+                })()}
               </div>
             </StepSection>
 
@@ -383,7 +477,29 @@ function StepSection({ step, title, children }: { step: string; title: string; c
   )
 }
 
-function StampThumb({ stamp }: { stamp: ApiStamp }) {
+function StampCard({ stamp, selected, onSelect }: { stamp: ApiStamp; selected: boolean; onSelect: (s: ApiStamp) => void }) {
+  return (
+    <button
+      onClick={() => onSelect(stamp)}
+      className={`flex flex-col items-center gap-2 p-2.5 border text-center transition-all cursor-pointer ${
+        selected
+          ? 'border-brand-red bg-brand-red/5'
+          : 'border-white/10 hover:border-white/30 hover:bg-white/[0.03]'
+      }`}
+    >
+      <div className="w-full">
+        <StampThumb stamp={stamp} selected={selected} />
+      </div>
+      <span className="text-[11px] text-white/70 leading-tight font-medium w-full text-center">{stamp.name}</span>
+      {stamp.extraPrice > 0
+        ? <span className="text-[10px] text-brand-red font-semibold">+{formatPrice(stamp.extraPrice)}</span>
+        : <span className="text-[10px] text-white/30">Gratis</span>
+      }
+    </button>
+  )
+}
+
+function StampThumb({ stamp, selected }: { stamp: ApiStamp; selected?: boolean }) {
   const hasImage =
     stamp.imageUrl &&
     stamp.imageUrl !== '/stamps/placeholder.svg' &&
@@ -391,12 +507,13 @@ function StampThumb({ stamp }: { stamp: ApiStamp }) {
 
   if (hasImage) {
     return (
-      <div className="w-10 h-10 relative overflow-hidden bg-black/30 rounded-sm">
+      <div className="w-full aspect-square relative overflow-hidden bg-black/30">
         <Image
           src={stamp.imageUrl!}
           alt={stamp.name}
           fill
-          className="object-contain p-0.5"
+          className="object-contain p-1"
+          quality={90}
           unoptimized
         />
       </div>
@@ -411,13 +528,14 @@ function StampThumb({ stamp }: { stamp: ApiStamp }) {
   }
   const color = COLORS[stamp.slug] ?? '#E10600'
   return (
-    <svg viewBox="0 0 48 48" className="w-10 h-10" fill="none">
-      <rect width="48" height="48" rx="2" fill={`${color}20`} />
-      <circle cx="24" cy="22" r="11" fill={`${color}40`} />
-      <circle cx="24" cy="22" r="6" fill={color} opacity="0.7" />
-      {stamp.slug === 'sem-estampa' && (
-        <line x1="8" y1="8" x2="40" y2="40" stroke="#555" strokeWidth="1.5" />
-      )}
-    </svg>
+    <div className="w-full aspect-square flex items-center justify-center" style={{ backgroundColor: `${color}12` }}>
+      <svg viewBox="0 0 48 48" className="w-3/4 h-3/4" fill="none">
+        <circle cx="24" cy="22" r="13" fill={`${color}30`} />
+        <circle cx="24" cy="22" r="7" fill={color} opacity={selected ? 1 : 0.65} />
+        {stamp.slug === 'sem-estampa' && (
+          <line x1="8" y1="8" x2="40" y2="40" stroke="#555" strokeWidth="2" />
+        )}
+      </svg>
+    </div>
   )
 }

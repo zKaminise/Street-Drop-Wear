@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { Instagram, MessageCircle, Mail, MapPin, Phone, ArrowRight } from 'lucide-react'
 import { getWhatsAppLink, INSTAGRAM_URL, TIKTOK_URL, EMAIL, PHONE_DISPLAY } from '@/lib/utils'
 
@@ -74,12 +73,11 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <div className="mb-5">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src="/logo-sdw.svg"
                 alt="StreetDrop Wear"
-                width={140}
-                height={46}
-                className="object-contain"
+                className="h-14 w-auto object-contain"
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>

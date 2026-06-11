@@ -6,6 +6,8 @@ import { X } from 'lucide-react'
 
 type BarData = { messages: string[]; active: boolean; speed: number }
 
+const BAR_H = 36 // px
+
 export function AnnouncementBar() {
   const [data, setData]         = useState<BarData | null>(null)
   const [current, setCurrent]   = useState(0)
@@ -18,6 +20,7 @@ export function AnnouncementBar() {
       .catch(() => {})
   }, [])
 
+  // Rotate messages
   useEffect(() => {
     if (!data || data.messages.length <= 1) return
     const t = setInterval(() => {
@@ -26,10 +29,25 @@ export function AnnouncementBar() {
     return () => clearInterval(t)
   }, [data])
 
-  if (!data || !data.active || data.messages.length === 0 || dismissed) return null
+  // Sync CSS custom property so Header and main can react
+  const visible = !!data && data.active && data.messages.length > 0 && !dismissed
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--announcement-bar-h',
+      visible ? `${BAR_H}px` : '0px'
+    )
+    return () => {
+      document.documentElement.style.setProperty('--announcement-bar-h', '0px')
+    }
+  }, [visible])
+
+  if (!visible) return null
 
   return (
-    <div className="relative bg-brand-red overflow-hidden" style={{ height: '36px' }}>
+    <div
+      className="fixed top-0 left-0 right-0 z-[60] bg-brand-red overflow-hidden"
+      style={{ height: `${BAR_H}px` }}
+    >
       <div className="h-full flex items-center justify-center px-10">
         <AnimatePresence mode="wait">
           <motion.p
@@ -40,7 +58,7 @@ export function AnnouncementBar() {
             transition={{ duration: 0.35, ease: 'easeInOut' }}
             className="text-white text-xs font-semibold uppercase tracking-[0.15em] text-center leading-none"
           >
-            {data.messages[current]}
+            {data!.messages[current]}
           </motion.p>
         </AnimatePresence>
       </div>

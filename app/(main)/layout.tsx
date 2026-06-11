@@ -9,7 +9,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <>
       <AnnouncementBar />
       <Header />
-      <main className="min-h-screen pt-[72px]" id="main-content">{children}</main>
+      <main
+        className="min-h-screen"
+        id="main-content"
+        style={{
+          paddingTop: 'calc(72px + var(--announcement-bar-h, 0px))',
+          transition: 'padding-top 0.3s ease',
+        }}
+      >
+        {children}
+      </main>
       <Footer />
       <CartDrawer />
       <SearchModal />

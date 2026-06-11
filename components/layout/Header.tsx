@@ -1,8 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -12,7 +11,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore, useAuthStore, useSearchStore } from '@/lib/store'
@@ -54,12 +52,15 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const itemCount = useCartStore(s => s.getItemCount())
   const openCart = useCartStore(s => s.openCart)
   const { isAuthenticated } = useAuthStore()
   const { openSearch } = useSearchStore()
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20)
@@ -82,14 +83,19 @@ export function Header() {
     <>
       <header
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          'fixed left-0 right-0 z-50',
           isScrolled
-            ? 'bg-brand-black/95 backdrop-blur-md border-b border-white/5 shadow-lg shadow-black/20'
-            : 'bg-transparent'
+            ? 'bg-white/80 backdrop-blur-lg border-b border-gray-200/60 shadow-sm shadow-black/5'
+            : 'bg-white border-b border-gray-100 shadow-sm'
         )}
+        style={{
+          top: 'var(--announcement-bar-h, 0px)',
+          transition: 'top 0.3s ease, background-color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease',
+        }}
       >
         <div className="container-brand flex items-center justify-between h-[72px]">
-          {/* Logo */}
+
+          {/* Logo — cores originais no navbar */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0" aria-label="StreetDrop Wear - Página Inicial">
             <LogoSVG />
           </Link>
@@ -106,12 +112,12 @@ export function Header() {
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-1.5 px-4 py-2 text-sm font-medium uppercase tracking-wider transition-colors duration-200',
+                    'flex items-center gap-1.5 px-4 py-2 text-sm font-semibold uppercase tracking-wider transition-colors duration-200',
                     item.href === '/flash-sale'
-                      ? 'text-brand-red hover:text-brand-red/80'
+                      ? 'text-brand-red hover:text-brand-red/75'
                       : pathname.startsWith(item.href) && item.href !== '/'
                       ? 'text-brand-red'
-                      : 'text-brand-white/80 hover:text-brand-white'
+                      : 'text-gray-700 hover:text-brand-red'
                   )}
                 >
                   {item.label}
@@ -124,13 +130,14 @@ export function Header() {
                     <ChevronDown
                       size={14}
                       className={cn(
-                        'transition-transform duration-200',
+                        'text-gray-400 transition-transform duration-200',
                         activeDropdown === item.label ? 'rotate-180' : ''
                       )}
                     />
                   )}
                 </Link>
 
+                {/* Dropdown */}
                 <AnimatePresence>
                   {item.children && activeDropdown === item.label && (
                     <motion.div
@@ -138,18 +145,18 @@ export function Header() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 mt-1 w-56 bg-brand-graphite border border-white/10 shadow-2xl shadow-black/50"
+                      className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-100 shadow-xl shadow-gray-200/60 rounded-sm"
                     >
                       {item.children.map(child => (
                         <Link
                           key={child.href}
                           href={child.href}
-                          className="block px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
+                          className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 group"
                         >
-                          <span className="block text-sm font-semibold text-brand-white group-hover:text-brand-red transition-colors">
+                          <span className="block text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
                             {child.label}
                           </span>
-                          <span className="block text-xs text-brand-gray-text mt-0.5">
+                          <span className="block text-xs text-gray-400 mt-0.5">
                             {child.desc}
                           </span>
                         </Link>
@@ -165,7 +172,7 @@ export function Header() {
           <div className="flex items-center gap-1">
             <button
               onClick={openSearch}
-              className="p-2.5 text-brand-white/70 hover:text-brand-white transition-colors cursor-pointer"
+              className="p-2.5 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
               aria-label="Buscar produtos"
             >
               <Search size={20} />
@@ -173,7 +180,7 @@ export function Header() {
 
             <Link
               href={isAuthenticated ? '/conta' : '/login'}
-              className="p-2.5 text-brand-white/70 hover:text-brand-white transition-colors hidden sm:flex"
+              className="p-2.5 text-gray-500 hover:text-gray-900 transition-colors hidden sm:flex"
               aria-label={isAuthenticated ? 'Minha conta' : 'Login'}
             >
               <User size={20} />
@@ -181,11 +188,11 @@ export function Header() {
 
             <button
               onClick={openCart}
-              className="relative p-2.5 text-brand-white/70 hover:text-brand-white transition-colors cursor-pointer"
-              aria-label={`Carrinho - ${itemCount} itens`}
+              className="relative p-2.5 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
+              aria-label={`Carrinho${mounted && itemCount > 0 ? ` - ${itemCount} itens` : ''}`}
             >
               <ShoppingBag size={20} />
-              {itemCount > 0 && (
+              {mounted && itemCount > 0 && (
                 <motion.span
                   key={itemCount}
                   initial={{ scale: 0.5 }}
@@ -199,7 +206,7 @@ export function Header() {
 
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2.5 text-brand-white/70 hover:text-brand-white transition-colors cursor-pointer ml-1"
+              className="lg:hidden p-2.5 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer ml-1"
               aria-label="Abrir menu"
             >
               <Menu size={22} />
@@ -208,7 +215,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — painel escuro (mantém logo branca) */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -227,7 +234,8 @@ export function Header() {
               className="fixed top-0 right-0 bottom-0 w-[85vw] max-w-sm bg-brand-graphite z-50 lg:hidden flex flex-col"
             >
               <div className="flex items-center justify-between p-5 border-b border-white/10">
-                <LogoSVG small />
+                {/* Logo branca no menu mobile (fundo escuro) */}
+                <LogoSVG small white />
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="p-2 text-brand-white/70 hover:text-brand-white cursor-pointer"
@@ -238,7 +246,7 @@ export function Header() {
               </div>
 
               <nav className="flex-1 overflow-y-auto py-4">
-                {NAV_ITEMS.map((item, i) => (
+                {NAV_ITEMS.map((item) => (
                   <div key={item.label}>
                     <Link
                       href={item.href}
@@ -250,6 +258,11 @@ export function Header() {
                       )}
                     >
                       {item.label}
+                      {(item as any).badge && (
+                        <span className="px-1.5 py-0.5 bg-brand-red text-white text-[9px] font-black tracking-widest rounded-sm animate-pulse">
+                          {(item as any).badge}
+                        </span>
+                      )}
                     </Link>
                     {item.children && (
                       <div className="bg-black/30">
@@ -279,7 +292,7 @@ export function Header() {
                 </Link>
                 <button onClick={() => { openCart(); setMobileOpen(false) }} className="btn-primary w-full">
                   <ShoppingBag size={16} />
-                  Carrinho {itemCount > 0 && `(${itemCount})`}
+                  Carrinho {mounted && itemCount > 0 && `(${itemCount})`}
                 </button>
               </div>
             </motion.div>
@@ -290,16 +303,15 @@ export function Header() {
   )
 }
 
-function LogoSVG({ small = false }: { small?: boolean }) {
+/* ─── Logo ───────────────────────────────────────────────────────────────── */
+function LogoSVG({ small = false, white = false }: { small?: boolean; white?: boolean }) {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src="/logo-sdw.svg"
       alt="StreetDrop Wear"
-      width={small ? 120 : 160}
-      height={small ? 39 : 52}
-      priority
-      className="object-contain"
-      style={{ filter: 'brightness(0) invert(1)' }}
+      className={`w-auto object-contain ${small ? 'h-10' : 'h-14'}`}
+      style={white ? { filter: 'brightness(0) invert(1)' } : undefined}
     />
   )
 }

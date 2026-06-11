@@ -50,8 +50,12 @@ export async function POST(req: NextRequest) {
       const blob = await put(filename, file, { access: 'public' })
       return NextResponse.json({ url: blob.url })
     } catch (err) {
-      console.error('Vercel Blob upload error:', err)
-      return NextResponse.json({ error: 'Erro ao enviar para o storage. Verifique o BLOB_READ_WRITE_TOKEN.' }, { status: 500 })
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('Vercel Blob upload error:', msg)
+      // Common cause: Blob Store was created as "Private" — recreate it as "Public"
+      return NextResponse.json({
+        error: `Erro no Blob Storage: ${msg}. Se o erro mencionar "public", recrie o Blob Store como Public no Vercel.`,
+      }, { status: 500 })
     }
   }
 
@@ -62,8 +66,11 @@ export async function POST(req: NextRequest) {
     const uploadDir = path.join(process.cwd(), 'public', folder)
     await mkdir(uploadDir, { recursive: true })
     const bytes = await file.arrayBuffer()
-    await writeFile(path.join(uploadDir, `${safeBase}-${Date.now()}${rawExt}`), Buffer.from(bytes))
-    return NextResponse.json({ url: `/${folder}/${safeBase}-${Date.now()}${rawExt}` })
+    // IMPORTANT: use same timestamp variable to avoid filename mismatch
+    const ts = Date.now()
+    const localFilename = `${safeBase}-${ts}${rawExt}`
+    await writeFile(path.join(uploadDir, localFilename), Buffer.from(bytes))
+    return NextResponse.json({ url: `/${folder}/${localFilename}` })
   } catch (err) {
     console.error('Local upload error:', err)
     return NextResponse.json({ error: 'Erro ao salvar arquivo localmente.' }, { status: 500 })

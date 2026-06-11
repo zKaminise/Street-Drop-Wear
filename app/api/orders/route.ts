@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
       total,
       notes,
       addressId,
+      couponCode,
+      couponDiscount = 0,
       // guest fields
       guestName, guestEmail, guestPhone, guestCpf,
       guestZipCode, guestStreet, guestNumber, guestComplement,
@@ -71,6 +73,26 @@ export async function POST(req: NextRequest) {
 
     const orderNumber = `SDW${new Date().getFullYear()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
+    // Validate and apply coupon if provided
+    let appliedCouponCode: string | null = null
+    let finalCouponDiscount = 0
+    if (couponCode) {
+      const coupon = await db.discountCoupon.findUnique({ where: { code: couponCode } })
+      if (coupon && coupon.active && (coupon.maxUses === null || coupon.usedCount < coupon.maxUses)) {
+        appliedCouponCode = coupon.code
+        finalCouponDiscount = couponDiscount
+        // Increment usage count
+        await db.discountCoupon.update({
+          where: { id: coupon.id },
+          data: {
+            usedCount: coupon.usedCount + 1,
+            // Auto-deactivate when limit is reached
+            active: coupon.maxUses !== null && coupon.usedCount + 1 >= coupon.maxUses ? false : coupon.active,
+          },
+        })
+      }
+    }
+
     const order = await db.order.create({
       data: {
         orderNumber,
@@ -80,7 +102,9 @@ export async function POST(req: NextRequest) {
         paymentStatus: 'PENDING',
         subtotal,
         shippingCost: shippingCost ?? 0,
-        discount,
+        discount: discount + finalCouponDiscount,
+        couponCode: appliedCouponCode,
+        couponDiscount: finalCouponDiscount,
         total,
         notes: notes || null,
         guestName: guestName || null,

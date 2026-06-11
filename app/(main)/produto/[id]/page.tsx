@@ -1,24 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { notFound } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  ShoppingBag, Star, ChevronLeft, Plus, Minus,
-  Zap, Shield, Truck, RotateCcw, Check, MessageCircle
+  ShoppingBag, Star, Plus, Minus,
+  Shield, Truck, RotateCcw, Check, ZoomIn
 } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
-import { formatPrice, getStockLabel, getWhatsAppLink } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 
 // Slug redirects: oversized/camiseta go to their customizer pages
 const SLUG_REDIRECTS: Record<string, string> = {
   'oversized': '/oversized',
-  'camiseta': '/camisetas',
+  'camiseta':  '/camisetas',
   'camisetas': '/camisetas',
-  'dryfit': '/dryfit',
+  'dryfit':    '/dryfit',
 }
 
 type ApiVariant = {
@@ -36,6 +35,7 @@ type ApiImage = {
   alt?: string
   isPrimary: boolean
   sortOrder: number
+  colorName?: string | null
 }
 
 type ApiProduct = {
@@ -62,38 +62,33 @@ type ApiProduct = {
 }
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const addItem = useCartStore(s => s.addItem)
+  const router   = useRouter()
+  const addItem  = useCartStore(s => s.addItem)
   const openCart = useCartStore(s => s.openCart)
 
-  const [product, setProduct] = useState<ApiProduct | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [product, setProduct]           = useState<ApiProduct | null>(null)
+  const [loading, setLoading]           = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
 
-  const [selectedColor, setSelectedColor] = useState<{ name: string; hex: string } | null>(null)
+  const [selectedColor, setSelectedColor]   = useState<{ name: string; hex: string } | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<ApiVariant | null>(null)
-  const [quantity, setQuantity] = useState(1)
-  const [tab, setTab] = useState<'desc' | 'material' | 'entrega'>('desc')
+  const [activeImgIdx, setActiveImgIdx]     = useState(0)
+  const [quantity, setQuantity]             = useState(1)
+  const [tab, setTab]                       = useState<'desc' | 'material' | 'entrega'>('desc')
+
+  // Zoom
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     const slug = params.id
-
-    // Redirect slug aliases
-    if (SLUG_REDIRECTS[slug]) {
-      router.replace(SLUG_REDIRECTS[slug])
-      return
-    }
+    if (SLUG_REDIRECTS[slug]) { router.replace(SLUG_REDIRECTS[slug]); return }
 
     fetch(`/api/products?slug=${encodeURIComponent(slug)}`)
       .then(r => r.json())
       .then((data: ApiProduct[]) => {
-        if (!data || data.length === 0) {
-          setNotFoundState(true)
-          return
-        }
+        if (!data || data.length === 0) { setNotFoundState(true); return }
         const p = data[0]
         setProduct(p)
-        // Pick first unique color
         const firstVariant = p.variants.find(v => v.stock > 0) ?? p.variants[0]
         if (firstVariant) {
           setSelectedVariant(firstVariant)
@@ -105,6 +100,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       .catch(() => setNotFoundState(true))
       .finally(() => setLoading(false))
   }, [params.id, router])
+
+  // Derive color images when selected color changes
+  const colorImages = useCallback((imgs: ApiImage[], colorName: string | null): ApiImage[] => {
+    if (!colorName) return imgs
+    const specific = imgs.filter(img => img.colorName === colorName)
+    const general  = imgs.filter(img => !img.colorName)
+    // Show color-specific first, then general
+    return specific.length > 0 ? [...specific, ...general] : general
+  }, [])
 
   if (loading) {
     return (
@@ -119,28 +123,24 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   if (notFoundState || !product) {
     return (
       <div className="min-h-screen bg-brand-black flex flex-col items-center justify-center gap-4">
-        <p className="text-brand-white text-xl font-bold">Produto não encontrado</p>
-        <Link href="/" className="text-brand-red hover:underline text-sm">Voltar ao início</Link>
+        <p className="text-brand-white text-xl font-bold">Produto nao encontrado</p>
+        <Link href="/" className="text-brand-red hover:underline text-sm">Voltar ao inicio</Link>
       </div>
     )
   }
 
-  // Derive unique colors from variants
-  const colorVariants = product.variants.filter(v => v.color && v.colorHex)
-  const uniqueColors = colorVariants.reduce<{ name: string; hex: string }[]>((acc, v) => {
-    if (!acc.find(c => c.name === v.color)) {
-      acc.push({ name: v.color!, hex: v.colorHex! })
-    }
+  // Unique colors from variants
+  const colorVariants  = product.variants.filter(v => v.color && v.colorHex)
+  const uniqueColors   = colorVariants.reduce<{ name: string; hex: string }[]>((acc, v) => {
+    if (!acc.find(c => c.name === v.color)) acc.push({ name: v.color!, hex: v.colorHex! })
     return acc
   }, [])
 
   // Sizes for selected color
   const selectedColorName = selectedColor?.name ?? null
-  const sizesForColor = selectedColorName
+  const sizesForColor     = selectedColorName
     ? product.variants.filter(v => v.color === selectedColorName)
     : product.variants
-
-  // Unique sizes
   const uniqueSizes = product.variants.reduce<string[]>((acc, v) => {
     if (v.size && !acc.includes(v.size)) acc.push(v.size)
     return acc
@@ -150,10 +150,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     ? product.flashSalePrice
     : product.price
 
-  const mainImage =
-    product.images.find(i => i.isPrimary)?.url ??
-    product.images[0]?.url ??
-    product.imageUrl
+  // Images to show in gallery (filtered by selected color)
+  const galleryImages = colorImages(product.images, selectedColorName)
+  const safeIdx       = Math.min(activeImgIdx, Math.max(0, galleryImages.length - 1))
+  const activeImage   =
+    galleryImages[safeIdx]?.url ??
+    product.imageUrl ??
+    null
 
   const isLight =
     selectedColor?.hex === '#F0EDE6' ||
@@ -165,6 +168,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   function handleColorSelect(color: { name: string; hex: string }) {
     setSelectedColor(color)
+    setActiveImgIdx(0)   // reset to first image of new color
+    setZoomPos(null)
     const newVariant = product!.variants.find(v => v.color === color.name && (v.stock > 0 || true))
     setSelectedVariant(newVariant ?? null)
   }
@@ -178,8 +183,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   function handleAddToCart() {
     if (!product) return
-    const size = selectedVariant?.size ?? 'Único'
-    const color = selectedColor ?? { name: 'Padrão', hex: '#1A1A1A' }
+    const size  = selectedVariant?.size ?? 'Unico'
+    const color = selectedColor ?? { name: 'Padrao', hex: '#1A1A1A' }
     addItem(
       {
         id: product.id,
@@ -235,45 +240,66 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <div className="container-brand py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-          {/* Image Gallery */}
-          <div className="space-y-4">
+          {/* ── Image Gallery ── */}
+          <div className="space-y-3">
+            {/* Main image with zoom */}
             <motion.div
-              key={selectedColor?.name}
+              key={`${selectedColor?.name}-${safeIdx}`}
               initial={{ opacity: 0.5 }}
               animate={{ opacity: 1 }}
-              className="aspect-square bg-brand-graphite border border-white/5 flex items-center justify-center relative overflow-hidden"
+              className="aspect-square bg-brand-graphite border border-white/5 flex items-center justify-center relative overflow-hidden cursor-crosshair select-none"
               style={{ backgroundColor: selectedColor ? `${selectedColor.hex}11` : undefined }}
+              onMouseMove={e => {
+                if (!activeImage) return
+                const r = e.currentTarget.getBoundingClientRect()
+                setZoomPos({
+                  x: ((e.clientX - r.left) / r.width) * 100,
+                  y: ((e.clientY - r.top) / r.height) * 100,
+                })
+              }}
+              onMouseLeave={() => setZoomPos(null)}
             >
-              {mainImage ? (
-                <Image
-                  src={mainImage}
-                  alt={product.name}
-                  fill
-                  className="object-contain p-6"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
+              {activeImage ? (
+                <>
+                  <Image
+                    src={activeImage}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-6"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    priority
+                    unoptimized
+                  />
+                  {/* Zoom overlay */}
+                  {zoomPos && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        backgroundImage: `url(${activeImage})`,
+                        backgroundSize: '280%',
+                        backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    />
+                  )}
+                  {/* Zoom hint (shows when not zooming) */}
+                  <div
+                    className="absolute bottom-3 right-3 flex items-center gap-1 text-white/25 text-[10px] pointer-events-none transition-opacity duration-150"
+                    style={{ opacity: zoomPos ? 0 : 1 }}
+                  >
+                    <ZoomIn size={11} /> Ampliar
+                  </div>
+                </>
               ) : (
                 <>
                   <div
                     className="absolute inset-0 opacity-20"
-                    style={{
-                      background: selectedColor
-                        ? `radial-gradient(circle at 50% 40%, ${selectedColor.hex}60 0%, transparent 70%)`
-                        : undefined,
-                    }}
+                    style={{ background: selectedColor ? `radial-gradient(circle at 50% 40%, ${selectedColor.hex}60 0%, transparent 70%)` : undefined }}
                   />
-                  <svg
-                    viewBox="0 0 300 350"
-                    className="w-2/3 max-w-[250px] drop-shadow-2xl relative z-10"
-                    fill="none"
-                  >
+                  <svg viewBox="0 0 300 350" className="w-2/3 max-w-[250px] drop-shadow-2xl relative z-10" fill="none">
                     <ellipse cx="150" cy="344" rx="80" ry="6" fill="rgba(0,0,0,0.3)" />
-                    <path
-                      d="M90 65 L25 115 L58 133 L52 285 L248 285 L242 133 L275 115 L210 65 C195 76 175 83 150 83 C125 83 105 76 90 65Z"
-                      fill={selectedColor?.hex ?? '#1A1A1A'}
-                      stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}
-                      strokeWidth="1"
-                    />
+                    <path d="M90 65 L25 115 L58 133 L52 285 L248 285 L242 133 L275 115 L210 65 C195 76 175 83 150 83 C125 83 105 76 90 65Z"
+                      fill={selectedColor?.hex ?? '#1A1A1A'} stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'} strokeWidth="1" />
                     <path d="M90 65 L25 115 L58 133" fill="rgba(0,0,0,0.2)" />
                     <path d="M210 65 L275 115 L242 133" fill="rgba(0,0,0,0.2)" />
                     <path d="M116 65 Q150 92 184 65" fill="none" stroke={isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.06)'} strokeWidth="1.5" />
@@ -284,34 +310,40 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               )}
 
               {/* Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-20 pointer-events-none">
                 {product.isNew && <span className="badge bg-brand-red text-white text-[10px]">Novo</span>}
                 {product.isFlashSale && product.flashSalePrice && (
-                  <span className="badge bg-yellow-500 text-black text-[10px] font-black">🔥 FLASH SALE</span>
+                  <span className="badge bg-yellow-500 text-black text-[10px] font-black">FLASH SALE</span>
                 )}
               </div>
             </motion.div>
 
-            {/* Image thumbnails */}
-            {product.images.length > 1 && (
+            {/* Thumbnail strip */}
+            {galleryImages.length > 1 && (
               <div className="flex gap-2 flex-wrap">
-                {product.images.map(img => (
-                  <div
+                {galleryImages.map((img, i) => (
+                  <button
                     key={img.id}
-                    className="w-16 h-16 relative border border-white/10 overflow-hidden flex-shrink-0"
+                    type="button"
+                    onClick={() => { setActiveImgIdx(i); setZoomPos(null) }}
+                    className={`w-16 h-16 relative border overflow-hidden flex-shrink-0 cursor-pointer transition-all ${
+                      safeIdx === i
+                        ? 'border-brand-red ring-1 ring-brand-red/40'
+                        : 'border-white/10 hover:border-white/30'
+                    }`}
                   >
-                    <Image src={img.url} alt={img.alt ?? product.name} fill className="object-cover" />
-                  </div>
+                    <Image src={img.url} alt={img.alt ?? product.name} fill className="object-cover" unoptimized />
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Product Info */}
+          {/* ── Product Info ── */}
           <div>
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <h1 className="heading-display text-[clamp(2rem,4vw,3rem)] text-brand-white leading-tight">{product.name}</h1>
-            </div>
+            <h1 className="heading-display text-[clamp(2rem,4vw,3rem)] text-brand-white leading-tight mb-2">
+              {product.name}
+            </h1>
 
             {product.reviewCount > 0 && (
               <div className="flex items-center gap-4 mb-5">
@@ -320,7 +352,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     <Star key={i} size={14} className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-brand-gray-text'} />
                   ))}
                 </div>
-                <span className="text-sm text-brand-gray-text">{product.rating} ({product.reviewCount} avaliações)</span>
+                <span className="text-sm text-brand-gray-text">{product.rating} ({product.reviewCount} avaliacoes)</span>
               </div>
             )}
 
@@ -363,14 +395,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {/* Size Selector */}
             {uniqueSizes.length > 0 && (
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="label-brand">Tamanho</p>
-                </div>
+                <p className="label-brand mb-2">Tamanho</p>
                 <div className="flex flex-wrap gap-2">
                   {uniqueSizes.map(size => {
-                    const variant = product.variants.find(v =>
-                      v.size === size && (selectedColorName ? v.color === selectedColorName : true)
-                    )
+                    const variant  = product.variants.find(v => v.size === size && (selectedColorName ? v.color === selectedColorName : true))
                     const available = (variant?.stock ?? 0) > 0
                     const isSelected = selectedVariant?.size === size
                     return (
@@ -394,24 +422,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {/* Quantity + Add */}
+            {/* Quantity + Add to Cart */}
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center border border-white/10">
-                <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-11 h-11 flex items-center justify-center text-brand-gray-text hover:text-brand-white transition-colors cursor-pointer"
-                >
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-11 h-11 flex items-center justify-center text-brand-gray-text hover:text-brand-white transition-colors cursor-pointer">
                   <Minus size={16} />
                 </button>
                 <span className="w-12 text-center text-base font-bold text-brand-white">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(q => q + 1)}
-                  className="w-11 h-11 flex items-center justify-center text-brand-gray-text hover:text-brand-white transition-colors cursor-pointer"
-                >
+                <button onClick={() => setQuantity(q => q + 1)} className="w-11 h-11 flex items-center justify-center text-brand-gray-text hover:text-brand-white transition-colors cursor-pointer">
                   <Plus size={16} />
                 </button>
               </div>
-
               <button
                 onClick={handleAddToCart}
                 disabled={!canAdd}
@@ -422,21 +443,21 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               </button>
             </div>
 
-            {/* Stock */}
+            {/* Stock indicator */}
             <p className={`text-sm mb-6 flex items-center gap-2 ${
               totalStock === 0 ? 'text-red-400' : totalStock < 5 ? 'text-yellow-400' : 'text-green-400'
             }`}>
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              {totalStock === 0 ? 'Esgotado' : totalStock < 5 ? `Últimas ${totalStock} unidades` : 'Em estoque'}
+              {totalStock === 0 ? 'Esgotado' : totalStock < 5 ? `Ultimas ${totalStock} unidades` : 'Em estoque'}
             </p>
 
             {/* Guarantees */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               {[
-                { icon: Shield, text: 'Pagamento seguro' },
-                { icon: Truck, text: 'Frete grátis acima de R$ 200' },
+                { icon: Shield,   text: 'Pagamento seguro' },
+                { icon: Truck,    text: 'Frete gratis acima de R$ 200' },
                 { icon: RotateCcw, text: '7 dias para troca' },
-                { icon: Check, text: 'Produção garantida' },
+                { icon: Check,    text: 'Producao garantida' },
               ].map(g => (
                 <div key={g.text} className="flex items-center gap-2 text-xs text-brand-gray-text">
                   <g.icon size={14} className="text-brand-red flex-shrink-0" />
@@ -453,16 +474,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     key={t}
                     onClick={() => setTab(t)}
                     className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors cursor-pointer -mb-px ${
-                      tab === t
-                        ? 'border-brand-red text-brand-red'
-                        : 'border-transparent text-brand-gray-text hover:text-brand-white'
+                      tab === t ? 'border-brand-red text-brand-red' : 'border-transparent text-brand-gray-text hover:text-brand-white'
                     }`}
                   >
-                    {t === 'desc' ? 'Descrição' : t === 'material' ? 'Material' : 'Entrega'}
+                    {t === 'desc' ? 'Descricao' : t === 'material' ? 'Material' : 'Entrega'}
                   </button>
                 ))}
               </div>
-
               {tab === 'desc' && (
                 <p className="text-sm text-brand-gray-text leading-relaxed">
                   {product.description ?? 'Produto premium StreetDrop Wear.'}
@@ -470,17 +488,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               )}
               {tab === 'material' && (
                 <div className="text-sm text-brand-gray-text space-y-2">
-                  {product.material && <p><span className="text-brand-white">Composição:</span> {product.material}</p>}
-                  <p><span className="text-brand-white">Impressão:</span> DTF (Direct to Film) de alta resolução</p>
-                  <p><span className="text-brand-white">Lavagem:</span> Lavar a frio, não usar secadora, não torcer</p>
+                  {product.material && <p><span className="text-brand-white">Composicao:</span> {product.material}</p>}
+                  <p><span className="text-brand-white">Impressao:</span> DTF (Direct to Film) de alta resolucao</p>
+                  <p><span className="text-brand-white">Lavagem:</span> Lavar a frio, nao usar secadora, nao torcer</p>
                 </div>
               )}
               {tab === 'entrega' && (
                 <div className="text-sm text-brand-gray-text space-y-2">
-                  <p><span className="text-brand-white">Produtos prontos:</span> 3-7 dias úteis</p>
-                  <p><span className="text-brand-white">Personalizados:</span> 7-12 dias úteis</p>
-                  <p><span className="text-brand-white">Frete grátis:</span> Compras acima de R$ 199,90</p>
-                  <p><span className="text-brand-white">Rastreamento:</span> Disponível no painel e por WhatsApp</p>
+                  <p><span className="text-brand-white">Produtos prontos:</span> 3-7 dias uteis</p>
+                  <p><span className="text-brand-white">Personalizados:</span> 7-12 dias uteis</p>
+                  <p><span className="text-brand-white">Frete gratis:</span> Compras acima de R$ 199,90</p>
+                  <p><span className="text-brand-white">Rastreamento:</span> Disponivel no painel e por WhatsApp</p>
                 </div>
               )}
             </div>

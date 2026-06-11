@@ -15,8 +15,25 @@ export async function GET(req: NextRequest) {
         OR: [{ allowedFor: type }, { allowedFor: 'BOTH' }],
       } : {}),
     },
-    orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    orderBy: [{ name: 'asc' }],
+    include: {
+      stampCategory: { select: { id: true, name: true, slug: true, sortOrder: true } },
+    },
   })
 
-  return NextResponse.json(stamps)
+  // Shape response: flatten stampCategory into top-level fields for easier frontend use
+  const response = stamps.map(s => ({
+    ...s,
+    categoryId:   s.stampCategory?.id   ?? null,
+    categoryName: s.stampCategory?.name ?? s.category ?? null,
+    categorySortOrder: s.stampCategory?.sortOrder ?? 999,
+  }))
+
+  // Sort: by category sortOrder, then by name
+  response.sort((a, b) => {
+    if (a.categorySortOrder !== b.categorySortOrder) return a.categorySortOrder - b.categorySortOrder
+    return a.name.localeCompare(b.name)
+  })
+
+  return NextResponse.json(response)
 }

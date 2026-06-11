@@ -146,7 +146,7 @@ export function TShirtPreview({
       initial={{ opacity: 0.6, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.25 }}
-      className="relative w-full aspect-square flex items-center justify-center overflow-hidden"
+      className="relative w-full aspect-[5/6] flex items-center justify-center overflow-hidden"
       style={{ backgroundColor: `${colorHex}12` }}
     >
       <div
@@ -157,7 +157,15 @@ export function TShirtPreview({
       {/* If real photo available, show it */}
       {realImage ? (
         <div className="relative w-full h-full">
-          <Image src={realImage} alt="Preview" fill className="object-contain p-4" />
+          <Image
+            src={realImage}
+            alt="Preview"
+            fill
+            className="object-contain p-1"
+            quality={95}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized
+          />
         </div>
       ) : (
         <svg viewBox="0 0 300 360" className="w-4/5 max-w-[280px] drop-shadow-2xl relative z-10" fill="none">

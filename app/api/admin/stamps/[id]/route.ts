@@ -9,8 +9,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const admin = await getAdminFromCookies()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const data = await req.json()
-  const stamp = await prisma.stamp.update({ where: { id: params.id }, data })
+  const { stampCategory, categoryId, ...rest } = await req.json()
+  const stamp = await prisma.stamp.update({
+    where: { id: params.id },
+    data: {
+      ...rest,
+      categoryId: categoryId || null,
+    },
+    include: { stampCategory: { select: { id: true, name: true, slug: true } } },
+  })
   return NextResponse.json(stamp)
 }
 

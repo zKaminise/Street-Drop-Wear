@@ -9,7 +9,10 @@ export async function GET() {
   const admin = await getAdminFromCookies()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const stamps = await prisma.stamp.findMany({ orderBy: { createdAt: 'desc' } })
+  const stamps = await prisma.stamp.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { stampCategory: { select: { id: true, name: true, slug: true } } },
+  })
   return NextResponse.json(stamps)
 }
 
@@ -17,7 +20,13 @@ export async function POST(req: NextRequest) {
   const admin = await getAdminFromCookies()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const data = await req.json()
-  const stamp = await prisma.stamp.create({ data })
+  const { categoryId, stampCategory, ...rest } = await req.json()
+  const stamp = await prisma.stamp.create({
+    data: {
+      ...rest,
+      ...(categoryId ? { categoryId } : {}),
+    },
+    include: { stampCategory: { select: { id: true, name: true, slug: true } } },
+  })
   return NextResponse.json(stamp)
 }

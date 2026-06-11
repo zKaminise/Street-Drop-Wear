@@ -108,6 +108,8 @@ function FlashCard({ product }: { product: FlashProduct }) {
         id: product.id, slug: product.slug, name: product.name,
         category: product.type.toLowerCase() as any,
         price: displayPrice, originalPrice: product.price,
+        imageUrl: mainImage ?? undefined,
+        hoverImageUrl: hoverImage ?? undefined,
         colors: [color],
         sizes: [size],
         images: product.images.map(i => ({ id: i.id, url: i.url, alt: i.alt ?? product.name })),

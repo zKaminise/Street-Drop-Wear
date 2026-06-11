@@ -9,6 +9,7 @@ import type { CartItem, CartCustomization, Product, ProductColor, ProductSize, U
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
+  coupon: { code: string; discountPct: number; description?: string } | null
   addItem: (
     product: Product,
     color: ProductColor,
@@ -22,8 +23,11 @@ interface CartStore {
   toggleCart: () => void
   openCart: () => void
   closeCart: () => void
+  applyCoupon: (code: string, discountPct: number, description?: string) => void
+  removeCoupon: () => void
   getTotal: () => number
   getSubtotal: () => number
+  getDiscount: () => number
   getShipping: () => number
   getItemCount: () => number
   hasCustomItem: () => boolean
@@ -38,6 +42,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      coupon: null,
 
       addItem: (product, color, size, quantity = 1, customization) => {
         set(state => {
@@ -85,13 +90,22 @@ export const useCartStore = create<CartStore>()(
         }))
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], coupon: null }),
 
       toggleCart: () => set(state => ({ isOpen: !state.isOpen })),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
 
+      applyCoupon: (code, discountPct, description) => set({ coupon: { code, discountPct, description } }),
+      removeCoupon: () => set({ coupon: null }),
+
       getSubtotal: () => get().items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+
+      getDiscount: () => {
+        const { coupon } = get()
+        if (!coupon) return 0
+        return get().getSubtotal() * (coupon.discountPct / 100)
+      },
 
       getShipping: () => {
         const subtotal = get().getSubtotal()
@@ -99,7 +113,7 @@ export const useCartStore = create<CartStore>()(
         return subtotal >= 199.9 ? 0 : 19.9
       },
 
-      getTotal: () => get().getSubtotal() + get().getShipping(),
+      getTotal: () => get().getSubtotal() + get().getShipping() - get().getDiscount(),
 
       getItemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
 
@@ -107,7 +121,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'streetdrop-cart',
-      partialize: state => ({ items: state.items }),
+      partialize: state => ({ items: state.items, coupon: state.coupon }),
     }
   )
 )

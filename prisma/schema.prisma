@@ -84,19 +84,31 @@ model StockItem {
   updatedAt DateTime  @updatedAt
 }
 
+model StampCategory {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  stamps    Stamp[]
+  createdAt DateTime @default(now())
+}
+
 model Stamp {
-  id           String             @id @default(cuid())
-  name         String
-  slug         String             @unique
-  category     String?
-  imageUrl     String
-  thumbnailUrl String?
-  extraPrice   Float              @default(0)
-  allowedFor   String             @default("BOTH") // OVERSIZED | CAMISETA | BOTH
-  active       Boolean            @default(true)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  combinations ShirtCombination[]
+  id             String             @id @default(cuid())
+  name           String
+  slug           String             @unique
+  category       String?            // legacy string — replaced by stampCategory relation
+  categoryId     String?
+  stampCategory  StampCategory?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  imageUrl       String
+  thumbnailUrl   String?
+  extraPrice     Float              @default(0)
+  allowedFor     String             @default("BOTH") // OVERSIZED | CAMISETA | BOTH
+  active         Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  combinations   ShirtCombination[]
 }
 
 model ShirtCombination {
@@ -154,6 +166,7 @@ model ProductImage {
   alt       String?
   isPrimary Boolean @default(false)
   sortOrder Int     @default(0)
+  colorName String? // null = shown for all colors; set = shown only for that color
 }
 
 model ProductVariant {
@@ -208,6 +221,8 @@ model Order {
   subtotal        Float
   shippingCost    Float                @default(0)
   discount        Float                @default(0)
+  couponCode      String?              // coupon code used, if any
+  couponDiscount  Float                @default(0) // R$ discount from coupon
   total           Float
   notes           String?              // customer notes
   internalNotes   String?              // admin internal notes
@@ -282,6 +297,30 @@ model ShippingConfig {
   promoQtyEnabled      Boolean  @default(false)
   promoQtyThreshold    Int      @default(3)
   updatedAt            DateTime @updatedAt
+}
+
+// Discount coupons (admin-managed)
+model DiscountCoupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  description String?
+  discount    Float    // percentage: 10 = 10 %
+  maxUses     Int?     // null = unlimited
+  usedCount   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Financial expenses (admin-managed)
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  category    String   @default("Geral")
+  amount      Float
+  date        DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
 }
 
 // Announcement bar (scrolling messages above navbar)

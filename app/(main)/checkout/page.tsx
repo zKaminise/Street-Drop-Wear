@@ -61,7 +61,7 @@ function Field({ label, children, required }: { label: string; children: React.R
 }
 
 export default function CheckoutPage() {
-  const { items, getSubtotal, hasCustomItem, clearCart } = useCartStore()
+  const { items, getSubtotal, getDiscount, hasCustomItem, clearCart, coupon } = useCartStore()
   const { user, isAuthenticated } = useAuthStore()
   const router = useRouter()
 
@@ -89,7 +89,8 @@ export default function CheckoutPage() {
 
   const [shipping, setShipping] = useState<ShippingData | null>(null)
 
-  const subtotal = getSubtotal()
+  const subtotal  = getSubtotal()
+  const discount  = getDiscount()
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -200,8 +201,10 @@ export default function CheckoutPage() {
         })),
         subtotal,
         shippingCost: shipping?.cost ?? 0,
-        discount: 0,
-        total: subtotal + (shipping?.cost ?? 0),
+        discount,
+        couponCode: coupon?.code ?? null,
+        couponDiscount: discount,
+        total: subtotal + (shipping?.cost ?? 0) - discount,
         // Address
         addressId: selectedAddr?.id ?? null,
         guestName: identity.name,
@@ -270,7 +273,7 @@ export default function CheckoutPage() {
   }
 
   const stepIndex = STEPS.findIndex(s => s.id === step)
-  const total = subtotal + (shipping?.cost ?? 0)
+  const total = subtotal + (shipping?.cost ?? 0) - discount
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -582,19 +585,41 @@ export default function CheckoutPage() {
                     {/* Items */}
                     <div className="bg-brand-graphite/50 border border-white/5 p-4 space-y-3">
                       <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Itens do Pedido</p>
-                      {items.map(item => (
-                        <div key={`${item.product.id}-${item.selectedColor.name}-${item.selectedSize.label}`} className="flex items-center justify-between text-sm">
-                          <div className="flex-1 min-w-0 mr-3">
-                            <span className="text-brand-white font-semibold block truncate">{item.product.name}</span>
-                            <span className="text-brand-gray-text text-xs">
-                              {item.selectedColor.name} · {item.selectedSize.label} · ×{item.quantity}
+                      {items.map(item => {
+                        const imgSrc = item.customization?.previewImageUrl
+                          ?? item.product.imageUrl
+                          ?? item.product.images?.[0]?.url
+                          ?? null
+                        return (
+                          <div key={`${item.product.id}-${item.selectedColor.name}-${item.selectedSize.label}`} className="flex items-center gap-3 text-sm">
+                            <div
+                              className="w-12 h-14 flex-shrink-0 overflow-hidden bg-black/30 flex items-center justify-center"
+                              style={{ backgroundColor: imgSrc ? undefined : `${item.selectedColor.hex}33` }}
+                            >
+                              {imgSrc ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={imgSrc} alt={item.product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <svg viewBox="0 0 100 100" className="w-7 h-7 opacity-20" fill="#fff">
+                                  <path d="M30 15 L10 30 L25 35 L20 85 L80 85 L75 35 L90 30 L70 15 L60 22 Q50 28 40 22 Z" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-brand-white font-semibold block truncate">{item.product.name}</span>
+                              <span className="text-brand-gray-text text-xs">
+                                {item.selectedColor.name} · {item.selectedSize.label} · ×{item.quantity}
+                              </span>
+                              {item.customization?.stampName && (
+                                <span className="text-brand-red/70 text-[10px] block">Estampa: {item.customization.stampName}</span>
+                              )}
+                            </div>
+                            <span className="text-brand-white font-bold flex-shrink-0">
+                              {formatPrice(item.product.price * item.quantity)}
                             </span>
                           </div>
-                          <span className="text-brand-white font-bold flex-shrink-0">
-                            {formatPrice(item.product.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
 
                     <div className="flex gap-3 pt-2">
@@ -620,11 +645,50 @@ export default function CheckoutPage() {
             <div>
               <div className="bg-brand-graphite border border-white/5 p-5 sticky top-24">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-brand-white mb-4">Resumo</h2>
-                <div className="space-y-2 text-sm mb-4">
+
+                {/* Item thumbnails */}
+                <div className="space-y-2 mb-4 max-h-56 overflow-y-auto">
+                  {items.map(item => {
+                    const imgSrc = item.customization?.previewImageUrl
+                      ?? item.product.imageUrl
+                      ?? item.product.images?.[0]?.url
+                      ?? null
+                    return (
+                      <div key={`${item.product.id}-${item.selectedColor.name}-${item.selectedSize.label}`} className="flex items-center gap-2 text-xs">
+                        <div
+                          className="w-10 h-12 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                          style={{ backgroundColor: imgSrc ? undefined : `${item.selectedColor.hex}33` }}
+                        >
+                          {imgSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={imgSrc} alt={item.product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <svg viewBox="0 0 100 100" className="w-6 h-6 opacity-20" fill="#fff">
+                              <path d="M30 15 L10 30 L25 35 L20 85 L80 85 L75 35 L90 30 L70 15 L60 22 Q50 28 40 22 Z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-brand-white truncate">{item.product.name}</p>
+                          <p className="text-brand-gray-text">{item.selectedColor.name} · {item.selectedSize.label} × {item.quantity}</p>
+                        </div>
+                        <span className="text-brand-white font-semibold flex-shrink-0">{formatPrice(item.product.price * item.quantity)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="space-y-2 text-sm mb-4 border-t border-white/5 pt-3">
                   <div className="flex justify-between">
                     <span className="text-brand-gray-text">Subtotal</span>
                     <span className="text-brand-white">{formatPrice(subtotal)}</span>
                   </div>
+                  {coupon && discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-green-400">Cupom {coupon.code} ({coupon.discountPct}%)</span>
+                      <span className="text-green-400">- {formatPrice(discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-brand-gray-text">Frete</span>
                     <span className={shipping?.isFree ? 'text-green-400' : 'text-brand-white'}>
@@ -638,19 +702,6 @@ export default function CheckoutPage() {
                 <div className="border-t border-white/5 pt-3 flex justify-between font-bold">
                   <span className="text-brand-white">Total</span>
                   <span className="heading-display text-xl text-brand-white">{formatPrice(total)}</span>
-                </div>
-
-                {/* Item thumbnails */}
-                <div className="mt-5 space-y-2">
-                  {items.map(item => (
-                    <div key={`${item.product.id}-${item.selectedColor.name}-${item.selectedSize.label}`} className="flex items-center gap-2 text-xs">
-                      <div className="w-8 h-8 flex-shrink-0" style={{ backgroundColor: `${item.selectedColor.hex}33` }} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-brand-white truncate">{item.product.name}</p>
-                        <p className="text-brand-gray-text">{item.selectedSize.label} × {item.quantity}</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

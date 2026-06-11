@@ -1,9 +1,10 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Save } from 'lucide-react'
+import { Save, ChevronDown, ChevronRight, Search, Plus } from 'lucide-react'
 
+/* ─────────────────────────── types ──────────────────────────── */
 type StockItem = {
   id: string
   size: string
@@ -16,7 +17,7 @@ type StockItem = {
   }
 }
 
-type Grouped = {
+type BaseGrouped = {
   baseId: string
   baseName: string
   baseType: string
@@ -28,45 +29,168 @@ type Grouped = {
   }[]
 }
 
+type ApiVariant = {
+  id: string
+  color: string | null
+  colorHex: string | null
+  size: string | null
+  stock: number
+  active: boolean
+}
+
+type ApiProduct = {
+  id: string
+  name: string
+  type: string
+  variants: ApiVariant[]
+}
+
+type ProdGroup = {
+  productId: string
+  productName: string
+  productType: string
+  expanded: boolean
+  colorGroups: {
+    color: string
+    colorHex: string | null
+    variants: ApiVariant[]
+  }[]
+}
+
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
+const TYPE_LABELS: Record<string, string> = { DRYFIT: 'DryFit', PRODUTO_3D: '3D', GEEK: 'Geek' }
+const PRODUCT_TYPES = ['TODOS', 'DRYFIT', 'PRODUTO_3D', 'GEEK']
+const INPUT_CLS = 'bg-black/40 border border-white/10 text-white text-sm px-3 py-1.5 focus:outline-none focus:border-white/30 transition-colors'
 
+/* ─────────────────────────── page ───────────────────────────── */
 export default function EstoquePage() {
+  /* shirt-base stock */
   const [stock, setStock] = useState<StockItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [edits, setEdits] = useState<Record<string, number>>({})
-  const [saving, setSaving] = useState<string | null>(null)
+  const [baseLoading, setBaseLoading] = useState(true)
+  const [baseEdits, setBaseEdits] = useState<Record<string, number>>({})
+  const [baseSaving, setBaseSaving] = useState<string | null>(null)
+  const [baseSearch, setBaseSearch] = useState('')
 
-  async function load() {
+  /* product-variant stock */
+  const [products, setProducts] = useState<ProdGroup[]>([])
+  const [prodLoading, setProdLoading] = useState(true)
+  const [prodEdits, setProdEdits] = useState<Record<string, number>>({})
+  const [prodSaving, setProdSaving] = useState<string | null>(null)
+  const [prodSearch, setProdSearch] = useState('')
+  const [prodTypeFilter, setProdTypeFilter] = useState('TODOS')
+
+  /* simple-stock state (for Geek/3D products with no variants) */
+  const [simpleStockEdits, setSimpleStockEdits] = useState<Record<string, number>>({})
+  const [simpleStockSaving, setSimpleStockSaving] = useState<string | null>(null)
+
+  /* ── loaders ── */
+  async function loadBase() {
     const data = await fetch('/api/admin/stock').then(r => r.json())
     setStock(data)
-    setLoading(false)
+    setBaseLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  async function loadProducts() {
+    const [dryfit, p3d, geek] = await Promise.all([
+      fetch('/api/admin/products?type=DRYFIT').then(r => r.json()).catch(() => []),
+      fetch('/api/admin/products?type=PRODUTO_3D').then(r => r.json()).catch(() => []),
+      fetch('/api/admin/products?type=GEEK').then(r => r.json()).catch(() => []),
+    ])
 
-  async function saveItem(id: string) {
-    if (edits[id] === undefined) return
-    setSaving(id)
+    const all: ApiProduct[] = [
+      ...(Array.isArray(dryfit) ? dryfit : []),
+      ...(Array.isArray(p3d) ? p3d : []),
+      ...(Array.isArray(geek) ? geek : []),
+    ]
+
+    const seen = new Set<string>()
+    const unique = all.filter(p => { if (seen.has(p.id)) return false; seen.add(p.id); return true })
+
+    const grouped: ProdGroup[] = unique.map(p => {
+      const colorMap = new Map<string, { hex: string | null; variants: ApiVariant[] }>()
+      for (const v of p.variants) {
+        const key = v.color ?? 'Padrão'
+        if (!colorMap.has(key)) colorMap.set(key, { hex: v.colorHex, variants: [] })
+        colorMap.get(key)!.variants.push(v)
+      }
+      return {
+        productId: p.id,
+        productName: p.name,
+        productType: p.type,
+        expanded: false,
+        colorGroups: Array.from(colorMap.entries()).map(([color, val]) => ({
+          color,
+          colorHex: val.hex,
+          variants: val.variants,
+        })),
+      }
+    })
+
+    setProducts(grouped)
+    setProdLoading(false)
+  }
+
+  useEffect(() => { loadBase(); loadProducts() }, [])
+
+  /* ── save shirt-base item ── */
+  async function saveBaseItem(id: string) {
+    if (baseEdits[id] === undefined) return
+    setBaseSaving(id)
     await fetch('/api/admin/stock', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, quantity: edits[id] }),
+      body: JSON.stringify({ id, quantity: baseEdits[id] }),
     })
-    setEdits(e => { const n = { ...e }; delete n[id]; return n })
-    await load()
-    setSaving(null)
+    setBaseEdits(e => { const n = { ...e }; delete n[id]; return n })
+    await loadBase()
+    setBaseSaving(null)
   }
 
-  // Group stock by base > color
-  const grouped: Grouped[] = []
-  const baseMap = new Map<string, Grouped>()
+  /* ── save product-variant ── */
+  async function saveProdVariant(id: string) {
+    if (prodEdits[id] === undefined) return
+    setProdSaving(id)
+    await fetch(`/api/admin/product-variants/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stock: prodEdits[id] }),
+    })
+    setProdEdits(e => { const n = { ...e }; delete n[id]; return n })
+    await loadProducts()
+    setProdSaving(null)
+  }
 
+  /* ── save simple stock (create/update default variant) ── */
+  async function saveSimpleStock(productId: string) {
+    const stockVal = simpleStockEdits[productId]
+    if (stockVal === undefined) return
+    setSimpleStockSaving(productId)
+    await fetch('/api/admin/product-variants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, stock: stockVal }),
+    })
+    setSimpleStockEdits(e => { const n = { ...e }; delete n[productId]; return n })
+    await loadProducts()
+    setSimpleStockSaving(null)
+  }
+
+  /* ── toggle product expansion ── */
+  function toggleExpand(productId: string) {
+    setProducts(prev => prev.map(p =>
+      p.productId === productId ? { ...p, expanded: !p.expanded } : p
+    ))
+  }
+
+  /* ── group shirt-base stock ── */
+  const baseGrouped: BaseGrouped[] = []
+  const baseMap = new Map<string, BaseGrouped>()
   for (const item of stock) {
     const b = item.color.base
     if (!baseMap.has(b.id)) {
-      const g: Grouped = { baseId: b.id, baseName: b.name, baseType: b.type, colors: [] }
+      const g: BaseGrouped = { baseId: b.id, baseName: b.name, baseType: b.type, colors: [] }
       baseMap.set(b.id, g)
-      grouped.push(g)
+      baseGrouped.push(g)
     }
     const group = baseMap.get(b.id)!
     let colorGroup = group.colors.find(c => c.colorId === item.color.id)
@@ -77,6 +201,19 @@ export default function EstoquePage() {
     colorGroup.sizes.push(item)
   }
 
+  /* ── filtered bases ── */
+  const filteredBases = baseSearch
+    ? baseGrouped.filter(b => b.baseName.toLowerCase().includes(baseSearch.toLowerCase()))
+    : baseGrouped
+
+  /* ── filtered products ── */
+  const filteredProducts = products.filter(p => {
+    const matchType = prodTypeFilter === 'TODOS' || p.productType === prodTypeFilter
+    const matchSearch = !prodSearch || p.productName.toLowerCase().includes(prodSearch.toLowerCase())
+    return matchType && matchSearch
+  })
+
+  /* ─────────────────────────── render ───────────────────────── */
   return (
     <div className="flex">
       <AdminSidebar />
@@ -88,18 +225,35 @@ export default function EstoquePage() {
           <p className="text-white/40 text-sm mt-1">Atualize as quantidades por cor e tamanho</p>
         </div>
 
-        {loading ? (
-          <p className="text-white/40 text-sm">Carregando...</p>
+        {/* ════ SECTION 1: Shirt Bases ════ */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/30">
+            Bases de Camisetas (Oversized / Camiseta)
+          </h2>
+          <div className="relative">
+            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30" />
+            <input
+              value={baseSearch}
+              onChange={e => setBaseSearch(e.target.value)}
+              placeholder="Buscar base..."
+              className="bg-black/40 border border-white/10 text-white text-xs pl-8 pr-3 py-1.5 w-40 focus:outline-none focus:border-white/25"
+            />
+          </div>
+        </div>
+
+        {baseLoading ? (
+          <p className="text-white/40 text-sm mb-8">Carregando bases...</p>
         ) : (
-          <div className="space-y-6">
-            {grouped.map(base => (
+          <div className="space-y-6 mb-12">
+            {filteredBases.length === 0 && (
+              <p className="text-white/30 text-sm">Nenhuma base encontrada.</p>
+            )}
+            {filteredBases.map(base => (
               <div key={base.baseId} className="bg-[#161616] border border-white/5">
                 <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
-                  <h2 className="text-white font-semibold">{base.baseName}</h2>
+                  <h3 className="text-white font-semibold">{base.baseName}</h3>
                   <span className="text-xs text-white/40 border border-white/10 px-2 py-0.5">{base.baseType}</span>
                 </div>
-
-                {/* Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -122,16 +276,14 @@ export default function EstoquePage() {
                           {SIZES.map(size => {
                             const item = color.sizes.find(s => s.size === size)
                             if (!item) return <td key={size} className="px-2 py-2 text-center text-white/20">–</td>
-                            const val = edits[item.id] ?? item.quantity
-                            const changed = edits[item.id] !== undefined
+                            const val = baseEdits[item.id] ?? item.quantity
+                            const changed = baseEdits[item.id] !== undefined
                             return (
                               <td key={size} className="px-2 py-2">
                                 <div className="flex items-center gap-1 justify-center">
                                   <input
-                                    type="number"
-                                    min="0"
-                                    value={val}
-                                    onChange={e => setEdits(prev => ({ ...prev, [item.id]: parseInt(e.target.value) || 0 }))}
+                                    type="number" min="0" value={val}
+                                    onChange={e => setBaseEdits(prev => ({ ...prev, [item.id]: parseInt(e.target.value) || 0 }))}
                                     className={`w-14 text-center bg-black/40 border py-1 text-sm focus:outline-none ${
                                       val <= 0 ? 'border-red-400/50 text-red-400' :
                                       val <= 5 ? 'border-yellow-400/50 text-yellow-400' :
@@ -139,11 +291,8 @@ export default function EstoquePage() {
                                     }`}
                                   />
                                   {changed && (
-                                    <button
-                                      onClick={() => saveItem(item.id)}
-                                      disabled={saving === item.id}
-                                      className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40"
-                                    >
+                                    <button onClick={() => saveBaseItem(item.id)} disabled={baseSaving === item.id}
+                                      className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
                                       <Save size={12} />
                                     </button>
                                   )}
@@ -160,8 +309,168 @@ export default function EstoquePage() {
             ))}
           </div>
         )}
+
+        {/* ════ SECTION 2: DryFit / 3D / Geek Products ════ */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/30">
+            Produtos Cadastrados (DryFit / 3D / Geek)
+          </h2>
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1">
+              {PRODUCT_TYPES.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setProdTypeFilter(t)}
+                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${
+                    prodTypeFilter === t
+                      ? 'border-brand-red bg-brand-red/10 text-white'
+                      : 'border-white/10 text-white/40 hover:text-white/70 hover:border-white/20'
+                  }`}
+                >
+                  {t === 'TODOS' ? 'Todos' : TYPE_LABELS[t] ?? t}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                value={prodSearch}
+                onChange={e => setProdSearch(e.target.value)}
+                placeholder="Buscar produto..."
+                className="bg-black/40 border border-white/10 text-white text-xs pl-8 pr-3 py-1.5 w-44 focus:outline-none focus:border-white/25"
+              />
+            </div>
+          </div>
+        </div>
+
+        {prodLoading ? (
+          <p className="text-white/40 text-sm">Carregando produtos...</p>
+        ) : filteredProducts.length === 0 ? (
+          <p className="text-white/30 text-sm">
+            {products.length === 0 ? 'Nenhum produto DryFit, 3D ou Geek cadastrado.' : 'Nenhum produto encontrado com esse filtro.'}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {filteredProducts.map(prod => {
+              const totalStockAll = prod.colorGroups.reduce((s, cg) => s + cg.variants.reduce((ss, v) => ss + v.stock, 0), 0)
+              const hasNoVariants = prod.colorGroups.length === 0
+              const simpleVal = simpleStockEdits[prod.productId]
+              const simpleChanged = simpleVal !== undefined
+
+              return (
+                <div key={prod.productId} className="bg-[#161616] border border-white/5">
+                  {/* Product header */}
+                  <button
+                    onClick={() => toggleExpand(prod.productId)}
+                    className="w-full flex items-center justify-between px-5 py-3 border-b border-white/5 hover:bg-white/3 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      {prod.expanded
+                        ? <ChevronDown size={14} className="text-white/40" />
+                        : <ChevronRight size={14} className="text-white/40" />
+                      }
+                      <span className="text-white font-semibold text-sm">{prod.productName}</span>
+                      {hasNoVariants && (
+                        <span className="text-[9px] text-yellow-400/70 border border-yellow-400/20 px-1.5 py-0.5">Sem variantes</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {!hasNoVariants && (
+                        <span className="text-xs text-white/30">{totalStockAll} unid. total</span>
+                      )}
+                      <span className="text-xs text-white/40 border border-white/10 px-2 py-0.5">
+                        {TYPE_LABELS[prod.productType] ?? prod.productType}
+                      </span>
+                    </div>
+                  </button>
+
+                  {prod.expanded && (
+                    <div className="p-4 space-y-4">
+                      {hasNoVariants ? (
+                        /* ── Simple stock for Geek/3D with no variants ── */
+                        <div>
+                          <p className="text-xs text-white/40 mb-2">
+                            Produto sem variantes de cor/tamanho. Defina o estoque total:
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Qtd. em estoque"
+                              value={simpleVal ?? ''}
+                              onChange={e => setSimpleStockEdits(prev => ({ ...prev, [prod.productId]: parseInt(e.target.value) || 0 }))}
+                              className={`w-24 text-center border py-1.5 text-sm focus:outline-none bg-black/40 ${
+                                (simpleVal ?? 0) === 0 ? 'border-white/10 text-white/40' : 'border-white/20 text-white'
+                              }`}
+                            />
+                            {simpleChanged && (
+                              <button
+                                onClick={() => saveSimpleStock(prod.productId)}
+                                disabled={simpleStockSaving === prod.productId}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/20 border border-green-400/30 text-green-400 text-xs cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40"
+                              >
+                                <Save size={11} />
+                                Salvar
+                              </button>
+                            )}
+                            <p className="text-xs text-white/30">
+                              Após salvar, o estoque aparecerá aqui como variante "Padrão".
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Color-based variants ── */
+                        prod.colorGroups.map(cg => (
+                          <div key={cg.color}>
+                            <div className="flex items-center gap-2 mb-2">
+                              {cg.colorHex && (
+                                <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
+                              )}
+                              <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{cg.color}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                              {cg.variants.map(v => {
+                                const currentVal = prodEdits[v.id] ?? v.stock
+                                const changed = prodEdits[v.id] !== undefined
+                                return (
+                                  <div key={v.id} className="flex flex-col items-center gap-1">
+                                    {v.size && (
+                                      <span className="text-[10px] text-white/40 uppercase">{v.size}</span>
+                                    )}
+                                    <div className="flex items-center gap-1">
+                                      <input
+                                        type="number" min="0" value={currentVal}
+                                        onChange={e => setProdEdits(prev => ({ ...prev, [v.id]: parseInt(e.target.value) || 0 }))}
+                                        className={`w-16 text-center bg-black/40 border py-1 text-sm focus:outline-none ${
+                                          currentVal <= 0 ? 'border-red-400/50 text-red-400' :
+                                          currentVal <= 5 ? 'border-yellow-400/50 text-yellow-400' :
+                                          'border-white/10 text-white'
+                                        }`}
+                                      />
+                                      {changed && (
+                                        <button onClick={() => saveProdVariant(v.id)} disabled={prodSaving === v.id}
+                                          className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
+                                          <Save size={12} />
+                                        </button>
+                                      )}
+                                    </div>
+                                    {!v.active && <span className="text-[9px] text-yellow-400/60">Inativo</span>}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </main>
     </div>
   )
 }
-

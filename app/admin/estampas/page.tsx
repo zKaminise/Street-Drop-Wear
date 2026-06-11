@@ -6,11 +6,15 @@ import { Plus, Edit2, Trash2, X, Check, Upload, ImageIcon, Loader2 } from 'lucid
 import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
 
+type StampCategory = { id: string; name: string; slug: string }
+
 type Stamp = {
   id: string
   name: string
   slug: string
   category?: string
+  categoryId?: string
+  stampCategory?: StampCategory
   imageUrl: string
   extraPrice: number
   allowedFor: string
@@ -18,12 +22,13 @@ type Stamp = {
 }
 
 const INITIAL: Omit<Stamp, 'id'> = {
-  name: '', slug: '', category: '', imageUrl: '/stamps/placeholder.svg',
+  name: '', slug: '', category: '', categoryId: '', imageUrl: '/stamps/placeholder.svg',
   extraPrice: 0, allowedFor: 'BOTH', active: true,
 }
 
 export default function EstampasPage() {
   const [stamps, setStamps] = useState<Stamp[]>([])
+  const [categories, setCategories] = useState<StampCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Stamp | null>(null)
@@ -31,11 +36,16 @@ export default function EstampasPage() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [search, setSearch] = useState('')
+  const [filterCat, setFilterCat] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function load() {
-    const data = await fetch('/api/admin/stamps').then(r => r.json())
-    setStamps(data)
+    const [stampsData, catsData] = await Promise.all([
+      fetch('/api/admin/stamps').then(r => r.json()),
+      fetch('/api/admin/stamp-categories').then(r => r.json()),
+    ])
+    setStamps(Array.isArray(stampsData) ? stampsData : [])
+    setCategories(Array.isArray(catsData) ? catsData : [])
     setLoading(false)
   }
 
@@ -49,14 +59,22 @@ export default function EstampasPage() {
 
   function openEdit(s: Stamp) {
     setEditing(s)
-    setForm({ name: s.name, slug: s.slug, category: s.category ?? '', imageUrl: s.imageUrl, extraPrice: s.extraPrice, allowedFor: s.allowedFor, active: s.active })
+    setForm({
+      name: s.name, slug: s.slug, category: s.category ?? '',
+      categoryId: s.categoryId ?? '', imageUrl: s.imageUrl,
+      extraPrice: s.extraPrice, allowedFor: s.allowedFor, active: s.active,
+    })
     setShowModal(true)
   }
 
   async function handleSave() {
     setSaving(true)
+    const payload = {
+      ...form,
+      categoryId: form.categoryId || null,
+    }
     const url = editing ? `/api/admin/stamps/${editing.id}` : '/api/admin/stamps'
-    await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+    await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     await load()
     setShowModal(false)
     setSaving(false)
@@ -91,7 +109,11 @@ export default function EstampasPage() {
     }
   }
 
-  const filtered = stamps.filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase()) || (s.category ?? '').toLowerCase().includes(search.toLowerCase()))
+  const filtered = stamps.filter(s => {
+    const matchSearch = !search || s.name.toLowerCase().includes(search.toLowerCase()) || (s.stampCategory?.name ?? s.category ?? '').toLowerCase().includes(search.toLowerCase())
+    const matchCat = !filterCat || s.categoryId === filterCat
+    return matchSearch && matchCat
+  })
 
   return (
     <div className="flex">
@@ -109,12 +131,31 @@ export default function EstampasPage() {
           </button>
         </div>
 
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar estampa..."
-          className="w-full max-w-sm bg-[#161616] border border-white/10 text-white placeholder-white/20 px-4 py-2 text-sm mb-6 focus:outline-none focus:border-[#E10600]/60"
-        />
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar estampa..."
+            className="bg-[#161616] border border-white/10 text-white placeholder-white/20 px-4 py-2 text-sm focus:outline-none focus:border-[#E10600]/60 w-56"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setFilterCat('')}
+              className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${!filterCat ? 'bg-[#E10600] text-white' : 'border border-white/10 text-white/40 hover:text-white'}`}
+            >
+              Todas
+            </button>
+            {categories.map(c => (
+              <button
+                key={c.id}
+                onClick={() => setFilterCat(filterCat === c.id ? '' : c.id)}
+                className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${filterCat === c.id ? 'bg-[#E10600] text-white' : 'border border-white/10 text-white/40 hover:text-white'}`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {loading ? (
           <p className="text-white/40 text-sm">Carregando...</p>
@@ -126,7 +167,7 @@ export default function EstampasPage() {
                   <StampPreview stamp={s} />
                 </div>
                 <p className="text-sm text-white font-medium truncate">{s.name}</p>
-                <p className="text-xs text-white/40 mb-1">{s.category ?? '–'} • {s.allowedFor}</p>
+                <p className="text-xs text-white/40 mb-1">{s.stampCategory?.name ?? s.category ?? '–'} • {s.allowedFor}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#E10600] font-bold">
                     {s.extraPrice > 0 ? `+${formatPrice(s.extraPrice)}` : 'Grátis'}
@@ -154,8 +195,24 @@ export default function EstampasPage() {
                 <Field label="Nome"><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} className={INPUT} /></Field>
                 <Field label="Slug"><input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={INPUT} /></Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Categoria"><input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className={INPUT} /></Field>
-                  <Field label="Preço Extra">
+                  <Field label="Categoria">
+                    <select
+                      value={form.categoryId ?? ''}
+                      onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))}
+                      className={INPUT}
+                    >
+                      <option value="">Sem categoria</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {categories.length === 0 && (
+                      <p className="text-[10px] text-amber-400/70 mt-1">
+                        Crie categorias em <strong>Categorias de Estampas</strong> primeiro
+                      </p>
+                    )}
+                  </Field>
+                  <Field label="Preco Extra">
                     <input type="number" step="0.01" min="0" value={form.extraPrice} onChange={e => setForm(f => ({ ...f, extraPrice: parseFloat(e.target.value) }))} className={INPUT} />
                   </Field>
                 </div>
@@ -166,6 +223,17 @@ export default function EstampasPage() {
                     <option value="CAMISETA">Somente Camiseta</option>
                   </select>
                 </Field>
+                {/* ── IMAGE QUALITY GUIDANCE ── */}
+                <div className="bg-amber-500/8 border border-amber-500/25 p-3 space-y-1">
+                  <p className="text-[11px] text-amber-400 font-semibold">★ Tamanho ideal da imagem de estampa</p>
+                  <ul className="space-y-0.5 text-[10px] text-amber-300/70">
+                    <li><span className="text-white/50">Resolucao:</span> <span className="text-amber-300 font-semibold">1000×1000 px</span> (minimo) · <span className="text-amber-300 font-semibold">2000×2000 px</span> (ideal)</li>
+                    <li><span className="text-white/50">Formato:</span> <span className="text-amber-300 font-semibold">PNG com fundo transparente</span></li>
+                    <li><span className="text-white/50">Proporcao:</span> <span className="text-amber-300 font-semibold">1:1 (quadrado)</span> — aparece centralizado no thumbnail</li>
+                    <li><span className="text-white/50">Tamanho:</span> maximo <span className="text-amber-300 font-semibold">5 MB</span></li>
+                  </ul>
+                </div>
+
                 {/* ── IMAGE UPLOAD ── */}
                 <Field label="Imagem da Estampa">
                   <div className="space-y-2">
