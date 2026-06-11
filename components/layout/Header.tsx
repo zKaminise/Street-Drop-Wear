@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ShoppingBag,
@@ -11,6 +11,9 @@ import {
   Menu,
   X,
   ChevronDown,
+  LogOut,
+  Package,
+  UserCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore, useAuthStore, useSearchStore } from '@/lib/store'
@@ -52,15 +55,26 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const itemCount = useCartStore(s => s.getItemCount())
   const openCart = useCartStore(s => s.openCart)
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, logout } = useAuthStore()
   const { openSearch } = useSearchStore()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setMounted(true) }, [])
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch { /* ignora erro de rede */ }
+    logout()
+    setProfileOpen(false)
+    router.push('/')
+  }
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20)
@@ -178,13 +192,91 @@ export function Header() {
               <Search size={20} />
             </button>
 
-            <Link
-              href={isAuthenticated ? '/conta' : '/login'}
-              className="p-2.5 text-gray-500 hover:text-gray-900 transition-colors hidden sm:flex"
-              aria-label={isAuthenticated ? 'Minha conta' : 'Login'}
+            {/* Profile hover dropdown */}
+            <div
+              className="relative hidden sm:flex"
+              onMouseEnter={() => setProfileOpen(true)}
+              onMouseLeave={() => setProfileOpen(false)}
             >
-              <User size={20} />
-            </Link>
+              <button
+                className="p-2.5 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
+                aria-label={isAuthenticated ? 'Minha conta' : 'Login'}
+                onClick={() => router.push(isAuthenticated ? '/conta' : '/login')}
+              >
+                <User size={20} />
+              </button>
+
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full right-0 pt-1.5 z-50"
+                  >
+                    <div className="w-52 bg-white border border-gray-100 shadow-xl shadow-gray-200/60 rounded-sm overflow-hidden">
+                      {isAuthenticated ? (
+                        <>
+                          <Link
+                            href="/conta"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 group"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <UserCircle size={15} className="text-gray-400 group-hover:text-brand-red transition-colors flex-shrink-0" />
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
+                              Ver Perfil
+                            </span>
+                          </Link>
+                          <Link
+                            href="/pedidos"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 group"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <Package size={15} className="text-gray-400 group-hover:text-brand-red transition-colors flex-shrink-0" />
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
+                              Meus Pedidos
+                            </span>
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors group cursor-pointer"
+                          >
+                            <LogOut size={15} className="text-gray-400 group-hover:text-brand-red transition-colors flex-shrink-0" />
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
+                              Sair da Conta
+                            </span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            href="/login"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 group"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <User size={15} className="text-gray-400 group-hover:text-brand-red transition-colors flex-shrink-0" />
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
+                              Entrar
+                            </span>
+                          </Link>
+                          <Link
+                            href="/cadastro"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <UserCircle size={15} className="text-gray-400 group-hover:text-brand-red transition-colors flex-shrink-0" />
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-brand-red transition-colors">
+                              Cadastrar
+                            </span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <button
               onClick={openCart}
@@ -283,13 +375,42 @@ export function Header() {
               </nav>
 
               <div className="p-5 border-t border-white/10 space-y-3">
-                <Link
-                  href={isAuthenticated ? '/conta' : '/login'}
-                  className="btn-secondary w-full text-center"
-                >
-                  <User size={16} />
-                  {isAuthenticated ? 'Minha Conta' : 'Entrar / Cadastrar'}
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/conta"
+                      onClick={() => setMobileOpen(false)}
+                      className="btn-secondary w-full text-center"
+                    >
+                      <UserCircle size={16} />
+                      Ver Perfil
+                    </Link>
+                    <Link
+                      href="/pedidos"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full py-3 border border-white/10 text-brand-gray-text hover:text-brand-white hover:border-white/30 text-sm font-semibold uppercase tracking-wider transition-colors"
+                    >
+                      <Package size={16} />
+                      Meus Pedidos
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setMobileOpen(false) }}
+                      className="flex items-center justify-center gap-2 w-full py-3 border border-brand-red/30 text-brand-red hover:bg-brand-red/10 text-sm font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                      Sair da Conta
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="btn-secondary w-full text-center"
+                  >
+                    <User size={16} />
+                    Entrar / Cadastrar
+                  </Link>
+                )}
                 <button onClick={() => { openCart(); setMobileOpen(false) }} className="btn-primary w-full">
                   <ShoppingBag size={16} />
                   Carrinho {mounted && itemCount > 0 && `(${itemCount})`}

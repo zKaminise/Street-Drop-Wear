@@ -190,15 +190,16 @@ function FlashCard({ product }: { product: FlashProduct }) {
             </div>
           )}
 
-          {/* Quick add */}
+          {/* Quick add — mobile: sempre visível | desktop (lg+): aparece no hover */}
           {totalStock > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
+            <div className="absolute bottom-0 left-0 right-0 translate-y-0 lg:translate-y-full lg:group-hover:translate-y-0 transition-transform duration-300 z-10">
               <button
                 onClick={handleQuickAdd}
                 className="w-full bg-brand-red text-white text-xs font-bold uppercase tracking-wider py-3 flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors cursor-pointer"
               >
                 <ShoppingBag size={13} />
-                Adicionar ao carrinho
+                <span className="hidden sm:inline">Adicionar ao carrinho</span>
+                <span className="sm:hidden">Adicionar</span>
               </button>
             </div>
           )}

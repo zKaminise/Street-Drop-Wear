@@ -104,7 +104,7 @@ export default function DryfitPage() {
 
       {/* Content */}
       <div className="container-brand py-8">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters totalResults={products.length} />
           <div className="flex-1 min-w-0">
             <div className="hidden lg:flex items-center mb-6">

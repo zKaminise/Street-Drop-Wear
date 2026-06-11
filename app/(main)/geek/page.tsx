@@ -98,7 +98,7 @@ export default function GeekPage() {
       </div>
 
       <div className="container-brand py-8">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters
             totalResults={products.length}
             showSubcategories={SUBCATEGORIES}

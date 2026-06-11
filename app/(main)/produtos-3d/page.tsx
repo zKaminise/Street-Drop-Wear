@@ -77,7 +77,7 @@ export default function Produtos3DPage() {
             <p className="text-brand-gray-text mt-3 max-w-lg">
               Chaveiros, medalhas, troféus, brindes e decoração impressos em PLA premium. Personalize com seu logo, arte ou texto.
             </p>
-            <div className="flex items-center gap-4 mt-5">
+            <div className="flex flex-wrap items-center gap-2 mt-5">
               {['PLA Premium', 'Multicolorido', 'Mín. 10 un.', 'Prazo 5-7 dias'].map(tag => (
                 <span key={tag} className="text-xs text-violet-400/80 bg-violet-400/10 border border-violet-400/20 px-3 py-1">
                   {tag}
@@ -89,7 +89,7 @@ export default function Produtos3DPage() {
       </div>
 
       <div className="container-brand py-10">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters
             totalResults={products.length}
             showSubcategories={SUBCATEGORIES}
