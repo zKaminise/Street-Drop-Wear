@@ -103,11 +103,11 @@ function ProductCard({ product }: { product: RelatedProduct }) {
         )}
       </div>
       {/* Info */}
-      <div className="p-4 flex flex-col gap-1 flex-1">
-        <p className="text-white text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[#E10600] transition-colors">
+      <div className="p-3 sm:p-4 flex flex-col gap-1 flex-1">
+        <p className="text-white text-xs sm:text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[#E10600] transition-colors">
           {product.name}
         </p>
-        <p className="text-[#E10600] font-bold text-base mt-auto pt-2">{formatPrice(product.price)}</p>
+        <p className="text-[#E10600] font-bold text-sm sm:text-base mt-auto pt-1 sm:pt-2">{formatPrice(product.price)}</p>
       </div>
     </Link>
   )
@@ -137,19 +137,19 @@ function PromoCard({ card }: { card: PromoCard }) {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-between p-6 h-full flex-1">
+      <div className="relative z-10 flex flex-col justify-between p-3 sm:p-6 h-full flex-1">
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-3 sm:mb-4"
           style={{ background: `${card.accentHex}15`, border: `1px solid ${card.accentHex}30` }}
         >
           <card.Icon size={22} style={{ color: card.accentHex }} />
         </div>
         <div>
-          <p className="text-white font-bold text-base leading-snug mb-1">{card.title}</p>
-          <p className="text-white/40 text-xs leading-relaxed">{card.subtitle}</p>
+          <p className="text-white font-bold text-sm sm:text-base leading-snug mb-1">{card.title}</p>
+          <p className="text-white/40 text-[10px] sm:text-xs leading-relaxed">{card.subtitle}</p>
         </div>
         <div
-          className="flex items-center gap-1.5 mt-4 text-xs font-semibold transition-all group-hover:gap-2.5"
+          className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs font-semibold transition-all group-hover:gap-2.5"
           style={{ color: card.accentHex }}
         >
           Ver produtos <ArrowRight size={13} />
@@ -172,11 +172,11 @@ export function RelatedExplore({ currentType, relatedProducts = [] }: RelatedExp
 
   return (
     <section className="border-t border-white/5 bg-brand-black">
-      <div className="container-brand py-16">
+      <div className="container-brand py-10 md:py-16">
         <div className="mb-8">
           <span className="text-[#E10600] text-xs font-bold uppercase tracking-[0.3em]">Descubra mais</span>
           <h2
-            className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-black text-white uppercase tracking-widest mt-1"
+            className="text-[clamp(1.4rem,3.5vw,2.4rem)] font-black text-white uppercase tracking-wider sm:tracking-widest mt-1"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
             Produtos que podem te interessar

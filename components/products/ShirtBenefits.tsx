@@ -150,7 +150,7 @@ export function ShirtBenefits({
       <div className="container-brand">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-b border-black/10">
           {/* Text */}
-          <div className="flex flex-col justify-center py-14 pr-0 md:pr-16">
+          <div className="flex flex-col justify-center py-8 md:py-14 pr-0 md:pr-16">
             <span className="text-xs text-[#6B6B6B] uppercase tracking-[0.2em] mb-4">{c.tag}</span>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.6rem)] font-black text-[#0B0B0D] leading-tight mb-6">
               {c.headline}
@@ -173,9 +173,9 @@ export function ShirtBenefits({
 
       {/* ── Bottom row: features | gallery ── */}
       <div className="container-brand">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 pb-8 md:pb-14">
           {/* Features list */}
-          <div className="pr-0 md:pr-16">
+          <div className="pr-0 md:pr-16 py-8 md:py-0">
             <h3 className="text-base font-black uppercase tracking-widest text-[#0B0B0D] mb-6 pb-4 border-b border-black/10 flex items-center justify-between">
               Características
               <span className="text-lg font-light text-[#0B0B0D]/30">—</span>

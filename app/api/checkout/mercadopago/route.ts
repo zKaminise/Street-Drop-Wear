@@ -245,25 +245,40 @@ export async function POST(req: NextRequest) {
         ]
       : []
 
+    // Build absolute picture_url — MP API rejects relative paths
+    function toAbsoluteUrl(url: string | null | undefined): string | undefined {
+      if (!url) return undefined
+      if (url.startsWith('http://') || url.startsWith('https://')) return url
+      return `${siteUrl}${url}`
+    }
+
     const preferenceClient = getPreferenceClient()
     const preference = await preferenceClient.create({
       body: {
         external_reference: order.id,
-        items: recalculated.map(item => ({
-          id: item.productId ?? item.shirtBaseId ?? 'custom',
-          title: item.productName.substring(0, 256),
-          description: [item.colorName, item.size].filter(Boolean).join(' – ').substring(0, 256) || undefined,
-          quantity: item.quantity,
-          unit_price: Math.max(0.01, Math.round((item.unitPrice * discountMultiplier) * 100) / 100),
-          currency_id: 'BRL',
-          picture_url: item.productImage ?? item.previewImage ?? undefined,
-          category_id: item.isCustomShirt ? 'fashion' : 'others',
-        })),
+        items: recalculated.map(item => {
+          const descParts = [item.colorName, item.size].filter(Boolean).join(' – ')
+          return {
+            id: item.productId ?? item.shirtBaseId ?? 'custom',
+            title: item.productName.substring(0, 256),
+            ...(descParts ? { description: descParts.substring(0, 256) } : {}),
+            quantity: item.quantity,
+            unit_price: Math.max(0.01, Math.round((item.unitPrice * discountMultiplier) * 100) / 100),
+            currency_id: 'BRL',
+            ...(toAbsoluteUrl(item.productImage ?? item.previewImage) ? { picture_url: toAbsoluteUrl(item.productImage ?? item.previewImage) } : {}),
+            category_id: item.isCustomShirt ? 'fashion' : 'others',
+          }
+        }),
         payer: {
           name: guestName ?? payload?.name ?? '',
           email: guestEmail ?? payload?.email ?? '',
           ...(guestCpf ? { identification: { type: 'CPF', number: String(guestCpf).replace(/\D/g, '') } } : {}),
-          ...(guestPhone ? { phone: { area_code: String(guestPhone).replace(/\D/g, '').substring(0, 2), number: String(guestPhone).replace(/\D/g, '').substring(2) } } : {}),
+          ...(guestPhone ? {
+            phone: {
+              area_code: String(guestPhone).replace(/\D/g, '').substring(0, 2),
+              number: String(guestPhone).replace(/\D/g, '').substring(2),
+            }
+          } : {}),
           ...(hasGuestAddress ? {
             address: {
               zip_code: String(guestZipCode).replace(/\D/g, ''),
@@ -272,14 +287,11 @@ export async function POST(req: NextRequest) {
             },
           } : {}),
         },
-        shipments: {
-          cost: shippingCost,
-          mode: 'not_specified',
-        },
+        ...(shippingCost > 0 ? { shipments: { cost: shippingCost, mode: 'not_specified' } } : {}),
         payment_methods: {
-          excluded_payment_methods: [],
-          excluded_payment_types: pixExcludedTypes,
-          ...(pixSelected ? { default_payment_method_id: 'pix' } : {}),
+          // PIX-only: exclude all non-bank-transfer types
+          // NOTE: do NOT use default_payment_method_id='pix' — invalid for Checkout Pro
+          ...(pixExcludedTypes.length > 0 ? { excluded_payment_types: pixExcludedTypes } : {}),
         },
         back_urls: {
           success: `${siteUrl}/checkout/success?order=${order.id}`,
@@ -318,9 +330,20 @@ export async function POST(req: NextRequest) {
       preferenceId,
     }, { status: 201 })
 
-  } catch (err) {
-    console.error('[POST /api/checkout/mercadopago]', err)
-    const message = err instanceof Error ? err.message : 'Erro ao criar preferência de pagamento.'
+  } catch (err: unknown) {
+    // Log the full error — MP SDK throws objects, not always Error instances
+    console.error('[POST /api/checkout/mercadopago]', JSON.stringify(err, null, 2))
+
+    let message = 'Erro ao criar preferência de pagamento.'
+    if (err instanceof Error) {
+      message = err.message
+    } else if (err && typeof err === 'object') {
+      const e = err as Record<string, unknown>
+      message = (e.message as string)
+        ?? (e.error as string)
+        ?? (e.cause as string)
+        ?? JSON.stringify(e)
+    }
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
