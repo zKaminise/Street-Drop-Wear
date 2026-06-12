@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Check, Zap, Plus, Minus, ZoomIn } from 'lucide-react'
 import Link from 'next/link'
@@ -8,6 +8,8 @@ import Image from 'next/image'
 import { TShirtPreview, type TShirtView } from '@/components/customizer/TShirtPreview'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
+import { ShirtBenefits } from '@/components/products/ShirtBenefits'
+import { RelatedExplore } from '@/components/products/RelatedExplore'
 
 type StockBySize = { size: string; quantity: number }
 type ApiColor = { id: string; name: string; hex: string; active: boolean; stock: StockBySize[] }
@@ -78,12 +80,41 @@ export default function OversizedPage() {
   function handleColorSelect(color: ApiColor) {
     setSelectedColor(color)
     setSelectedSize(null)
+    // If the current stamp has no combination for the new color, reset to "sem-estampa"
+    if (selectedStamp && selectedStamp.slug !== 'sem-estampa') {
+      const stillAvailable = combinations.some(
+        c => c.baseId === selectedBase?.id && c.colorId === color.id && c.stampId === selectedStamp.id
+      )
+      if (!stillAvailable) {
+        const noStamp = stamps.find(s => s.slug === 'sem-estampa')
+        setSelectedStamp(noStamp ?? null)
+      }
+    }
   }
 
   function handleBaseSelect(base: ApiBase) {
     setSelectedBase(base)
     setSelectedColor(base.colors[0] ?? null)
     setSelectedSize(null)
+  }
+
+  // Stamp IDs that have a registered combination for the current base + color
+  const availableStampIds = useMemo(() => {
+    if (!selectedBase || !selectedColor) return null
+    const ids = new Set<string>()
+    for (const c of combinations) {
+      if (c.baseId === selectedBase.id && c.colorId === selectedColor.id && c.stampId) {
+        ids.add(c.stampId)
+      }
+    }
+    return ids
+  }, [combinations, selectedBase, selectedColor])
+
+  // Returns true if a stamp should be shown for the current color selection
+  function isStampAvailable(stamp: ApiStamp) {
+    if (stamp.slug === 'sem-estampa') return true
+    if (!availableStampIds) return true
+    return availableStampIds.has(stamp.id)
   }
 
   // Find combination images
@@ -308,7 +339,7 @@ export default function OversizedPage() {
             {/* Step 3: Stamp */}
             <StepSection step={bases.length > 1 ? '3' : '2'} title="Escolha a Estampa">
               <div className="space-y-3">
-                {/* Category filter pills — only shown when categories exist */}
+                {/* Category filter pills — only show categories that have at least one available stamp */}
                 {categories.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     <button
@@ -321,7 +352,9 @@ export default function OversizedPage() {
                     >
                       Todas
                     </button>
-                    {categories.map(cat => (
+                    {categories.filter(cat =>
+                      stamps.some(s => s.categoryId === cat.id && isStampAvailable(s))
+                    ).map(cat => (
                       <button
                         key={cat.id}
                         onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
@@ -337,16 +370,17 @@ export default function OversizedPage() {
                   </div>
                 )}
 
-                {/* Stamp grid */}
+                {/* Stamp grid — only stamps available for the selected color */}
                 {(() => {
-                  const visible = selectedCategory
+                  const visible = (selectedCategory
                     ? stamps.filter(s => s.categoryId === selectedCategory)
                     : stamps
+                  ).filter(isStampAvailable)
 
                   if (visible.length === 0) {
                     return (
                       <p className="text-xs text-white/30 py-4 text-center">
-                        Nenhuma estampa nesta categoria ainda.
+                        Nenhuma estampa disponível para esta cor ainda.
                       </p>
                     )
                   }
@@ -367,7 +401,7 @@ export default function OversizedPage() {
                     )
                   }
 
-                  // "Todas" — group by category
+                  // "Todas" — group by category name
                   const groups = visible.reduce<Record<string, ApiStamp[]>>((acc, s) => {
                     const cat = s.categoryName ?? 'Outros'
                     if (!acc[cat]) acc[cat] = []
@@ -462,6 +496,17 @@ export default function OversizedPage() {
           </div>
         </div>
       </div>
+
+      {/* Quality benefits */}
+      <ShirtBenefits
+        type="oversized"
+        heroImageUrl="/images/benefits/oversized-hero.png"
+        gallery1Url="/images/benefits/oversized-gallery1.png"
+        gallery2Url="/images/benefits/oversized-gallery2.png"
+      />
+
+      {/* Related sections */}
+      <RelatedExplore currentType="OVERSIZED" />
     </div>
   )
 }

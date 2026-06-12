@@ -8,6 +8,8 @@ import Image from 'next/image'
 import { TShirtPreview, type TShirtView } from '@/components/customizer/TShirtPreview'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
+import { ShirtBenefits } from '@/components/products/ShirtBenefits'
+import { RelatedExplore } from '@/components/products/RelatedExplore'
 
 type StockBySize = { size: string; quantity: number }
 type ApiColor = { id: string; name: string; hex: string; active: boolean; stock: StockBySize[] }
@@ -444,6 +446,12 @@ export default function CamisetasPage() {
           </div>
         </div>
       </div>
+
+      {/* Quality benefits */}
+      <ShirtBenefits type="camiseta" />
+
+      {/* Related sections */}
+      <RelatedExplore currentType="CAMISETA" />
     </div>
   )
 }

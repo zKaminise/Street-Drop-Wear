@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
+import { ShirtBenefits } from '@/components/products/ShirtBenefits'
+import { RelatedExplore, type RelatedProduct } from '@/components/products/RelatedExplore'
 
 // Slug redirects: oversized/camiseta go to their customizer pages
 const SLUG_REDIRECTS: Record<string, string> = {
@@ -43,6 +45,7 @@ type ApiProduct = {
   name: string
   slug: string
   type: string
+  gender?: string
   description?: string
   price: number
   originalPrice?: number
@@ -75,6 +78,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [activeImgIdx, setActiveImgIdx]     = useState(0)
   const [quantity, setQuantity]             = useState(1)
   const [tab, setTab]                       = useState<'desc' | 'material' | 'entrega'>('desc')
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
 
   // Zoom
   const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null)
@@ -96,6 +100,24 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             setSelectedColor({ name: firstVariant.color, hex: firstVariant.colorHex })
           }
         }
+        // Fetch related products of same type
+        fetch(`/api/products?type=${p.type}`)
+          .then(r => r.json())
+          .then((all: ApiProduct[]) => {
+            const others = all
+              .filter(x => x.id !== p.id)
+              .slice(0, 2)
+              .map(x => ({
+                id: x.id,
+                name: x.name,
+                slug: x.slug,
+                price: (x.isFlashSale && x.flashSalePrice) ? x.flashSalePrice : x.price,
+                imageUrl: x.imageUrl,
+                type: x.type,
+              }))
+            setRelatedProducts(others)
+          })
+          .catch(() => {})
       })
       .catch(() => setNotFoundState(true))
       .finally(() => setLoading(false))
@@ -505,6 +527,23 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+
+      {/* Quality benefits — shirt/dryfit types only */}
+      {(product.type === 'DRYFIT' || product.type === 'OVERSIZED' || product.type === 'CAMISETA') && (() => {
+        const dryfitPrefix = product.gender === 'FEMININO' ? 'dryfit-feminino' : 'dryfit-masculino'
+        return (
+          <ShirtBenefits
+            type={product.type === 'DRYFIT' ? 'dryfit' : product.type === 'CAMISETA' ? 'camiseta' : 'oversized'}
+            gender={product.gender}
+            heroImageUrl={product.type === 'DRYFIT' ? `/images/benefits/${dryfitPrefix}-hero.png` : undefined}
+            gallery1Url={product.type === 'DRYFIT' ? `/images/benefits/${dryfitPrefix}-gallery1.png` : undefined}
+            gallery2Url={product.type === 'DRYFIT' ? `/images/benefits/${dryfitPrefix}-gallery2.png` : undefined}
+          />
+        )
+      })()}
+
+      {/* Related products & section cards */}
+      <RelatedExplore currentType={product.type} relatedProducts={relatedProducts} />
     </div>
   )
 }

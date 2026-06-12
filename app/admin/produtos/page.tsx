@@ -34,6 +34,7 @@ type Product = {
   name: string
   slug: string
   type: string
+  gender: string
   price: number
   originalPrice?: number
   active: boolean
@@ -65,7 +66,7 @@ const PRODUCT_TYPES = [
 ]
 
 const INITIAL: Partial<Product> = {
-  name: '', slug: '', type: 'DRYFIT', price: 79.90, originalPrice: undefined,
+  name: '', slug: '', type: 'DRYFIT', gender: 'UNISEX', price: 79.90, originalPrice: undefined,
   description: '', material: '', isNew: false, isFeatured: false, active: true,
   isFlashSale: false, flashSalePrice: undefined, flashSaleEndsAt: '',
   imageUrl: '', hoverImageUrl: '',
@@ -155,6 +156,7 @@ export default function ProdutosPage() {
       name: p.name, slug: p.slug, type: p.type, price: p.price,
       originalPrice: p.originalPrice, description: p.description ?? '',
       material: p.material ?? '', isNew: p.isNew, isFeatured: p.isFeatured, active: p.active,
+      gender: p.gender ?? 'UNISEX',
       isFlashSale: p.isFlashSale, flashSalePrice: p.flashSalePrice,
       flashSaleEndsAt: p.flashSaleEndsAt ? p.flashSaleEndsAt.slice(0, 16) : '',
       imageUrl: p.imageUrl ?? '', hoverImageUrl: p.hoverImageUrl ?? '',
@@ -498,6 +500,29 @@ export default function ProdutosPage() {
                     <select value={form.type ?? 'DRYFIT'} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className={INPUT}>
                       {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
+                  </Field>
+
+                  <Field label="Público-alvo">
+                    <div className="flex gap-1">
+                      {[
+                        { value: 'MASCULINO', label: '♂ Masculino' },
+                        { value: 'FEMININO',  label: '♀ Feminino' },
+                        { value: 'UNISEX',    label: 'Unisex' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, gender: opt.value }))}
+                          className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border ${
+                            (form.gender ?? 'UNISEX') === opt.value
+                              ? 'bg-[#E10600] border-[#E10600] text-white'
+                              : 'border-white/10 text-white/40 hover:text-white hover:border-white/30'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </Field>
 
                   {/* Prices */}

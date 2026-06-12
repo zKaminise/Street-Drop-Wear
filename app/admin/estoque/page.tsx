@@ -129,36 +129,87 @@ export default function EstoquePage() {
       }
     })
 
-    setProducts(grouped)
+    // Preserve expanded state across reloads
+    setProducts(prev => {
+      const expandedMap = new Map(prev.map(p => [p.productId, p.expanded]))
+      return grouped.map(p => ({ ...p, expanded: expandedMap.get(p.productId) ?? false }))
+    })
     setProdLoading(false)
   }
 
   useEffect(() => { loadBase(); loadProducts() }, [])
 
-  /* ── save shirt-base item ── */
-  async function saveBaseItem(id: string) {
-    if (baseEdits[id] === undefined) return
-    setBaseSaving(id)
-    await fetch('/api/admin/stock', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, quantity: baseEdits[id] }),
+  /* ── save all pending edits for a shirt-base color row ── */
+  async function saveBaseRow(colorId: string, items: StockItem[]) {
+    const toSave = items.filter(item => baseEdits[item.id] !== undefined)
+    if (toSave.length === 0) return
+    setBaseSaving(colorId)
+    await Promise.all(toSave.map(item =>
+      fetch('/api/admin/stock', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, quantity: baseEdits[item.id] }),
+      })
+    ))
+    setBaseEdits(e => {
+      const n = { ...e }
+      toSave.forEach(item => delete n[item.id])
+      return n
     })
-    setBaseEdits(e => { const n = { ...e }; delete n[id]; return n })
     await loadBase()
     setBaseSaving(null)
   }
 
-  /* ── save product-variant (3D / Geek) ── */
-  async function saveProdVariant(id: string) {
-    if (prodEdits[id] === undefined) return
-    setProdSaving(id)
-    await fetch(`/api/admin/product-variants/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stock: prodEdits[id] }),
+  /* ── save all pending DryFit edits for one product ── */
+  async function saveDryfitProduct(prod: ProdGroup) {
+    const keysToSave = Object.keys(dryfitEdits).filter(k => k.startsWith(`${prod.productId}|`))
+    if (keysToSave.length === 0) return
+    setDryfitSaving(prod.productId)
+    await Promise.all(keysToSave.map(cellKey => {
+      const parts = cellKey.split('|')
+      const color = parts[1]
+      const size = parts[2]
+      const cg = prod.colorGroups.find(c => c.color === color)
+      return fetch('/api/admin/product-variants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: prod.productId,
+          color,
+          colorHex: cg?.colorHex ?? null,
+          size,
+          stock: dryfitEdits[cellKey],
+        }),
+      })
+    }))
+    setDryfitEdits(e => {
+      const n = { ...e }
+      keysToSave.forEach(k => delete n[k])
+      return n
     })
-    setProdEdits(e => { const n = { ...e }; delete n[id]; return n })
+    await loadProducts()
+    setDryfitSaving(null)
+  }
+
+  /* ── save all pending prodEdits for one product ── */
+  async function saveProdVariantsAll(prod: ProdGroup) {
+    const toSave = prod.colorGroups
+      .flatMap(cg => cg.variants)
+      .filter(v => prodEdits[v.id] !== undefined)
+    if (toSave.length === 0) return
+    setProdSaving(prod.productId)
+    await Promise.all(toSave.map(v =>
+      fetch(`/api/admin/product-variants/${v.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: prodEdits[v.id] }),
+      })
+    ))
+    setProdEdits(e => {
+      const n = { ...e }
+      toSave.forEach(v => delete n[v.id])
+      return n
+    })
     await loadProducts()
     setProdSaving(null)
   }
@@ -176,27 +227,6 @@ export default function EstoquePage() {
     setSimpleStockEdits(e => { const n = { ...e }; delete n[productId]; return n })
     await loadProducts()
     setSimpleStockSaving(null)
-  }
-
-  /* ── save DryFit size cell (upsert via POST) ── */
-  async function saveDryfitCell(
-    productId: string,
-    color: string,
-    colorHex: string | null,
-    size: string,
-  ) {
-    const cellKey = `${productId}|${color}|${size}`
-    const stockVal = dryfitEdits[cellKey]
-    if (stockVal === undefined) return
-    setDryfitSaving(cellKey)
-    await fetch('/api/admin/product-variants', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, color, colorHex, size, stock: stockVal }),
-    })
-    setDryfitEdits(e => { const n = { ...e }; delete n[cellKey]; return n })
-    await loadProducts()
-    setDryfitSaving(null)
   }
 
   /* ── toggle product expansion ── */
@@ -284,25 +314,27 @@ export default function EstoquePage() {
                         {SIZES.map(s => (
                           <th key={s} className="text-center text-xs text-white/40 uppercase tracking-wider px-2 py-2 w-20">{s}</th>
                         ))}
+                        <th className="w-20" />
                       </tr>
                     </thead>
                     <tbody>
-                      {base.colors.map(color => (
-                        <tr key={color.colorId} className="border-b border-white/5 last:border-0">
-                          <td className="px-5 py-2">
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: color.colorHex }} />
-                              <span className="text-white/70">{color.colorName}</span>
-                            </div>
-                          </td>
-                          {SIZES.map(size => {
-                            const item = color.sizes.find(s => s.size === size)
-                            if (!item) return <td key={size} className="px-2 py-2 text-center text-white/20">–</td>
-                            const val = baseEdits[item.id] ?? item.quantity
-                            const changed = baseEdits[item.id] !== undefined
-                            return (
-                              <td key={size} className="px-2 py-2">
-                                <div className="flex items-center gap-1 justify-center">
+                      {base.colors.map(color => {
+                        const rowHasChanges = color.sizes.some(item => baseEdits[item.id] !== undefined)
+                        const rowSaving = baseSaving === color.colorId
+                        return (
+                          <tr key={color.colorId} className="border-b border-white/5 last:border-0">
+                            <td className="px-5 py-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: color.colorHex }} />
+                                <span className="text-white/70">{color.colorName}</span>
+                              </div>
+                            </td>
+                            {SIZES.map(size => {
+                              const item = color.sizes.find(s => s.size === size)
+                              if (!item) return <td key={size} className="px-2 py-2 text-center text-white/20">–</td>
+                              const val = baseEdits[item.id] ?? item.quantity
+                              return (
+                                <td key={size} className="px-2 py-2">
                                   <input
                                     type="number" min="0" value={val}
                                     onChange={e => setBaseEdits(prev => ({ ...prev, [item.id]: parseInt(e.target.value) || 0 }))}
@@ -312,18 +344,25 @@ export default function EstoquePage() {
                                       'border-white/10 text-white'
                                     }`}
                                   />
-                                  {changed && (
-                                    <button onClick={() => saveBaseItem(item.id)} disabled={baseSaving === item.id}
-                                      className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
-                                      <Save size={12} />
-                                    </button>
-                                  )}
-                                </div>
-                              </td>
-                            )
-                          })}
-                        </tr>
-                      ))}
+                                </td>
+                              )
+                            })}
+                            {/* Per-row save button */}
+                            <td className="px-2 py-2">
+                              {rowHasChanges && (
+                                <button
+                                  onClick={() => saveBaseRow(color.colorId, color.sizes)}
+                                  disabled={rowSaving}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/20 border border-green-400/30 text-green-400 text-xs cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40 whitespace-nowrap"
+                                >
+                                  <Save size={11} />
+                                  {rowSaving ? 'Salvando...' : 'Salvar'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -380,6 +419,10 @@ export default function EstoquePage() {
               const simpleChanged = simpleVal !== undefined
               const isDryfit = prod.productType === 'DRYFIT'
 
+              /* pending change counts */
+              const dryfitPending = Object.keys(dryfitEdits).filter(k => k.startsWith(`${prod.productId}|`)).length
+              const prodPending = prod.colorGroups.flatMap(cg => cg.variants).filter(v => prodEdits[v.id] !== undefined).length
+
               return (
                 <div key={prod.productId} className="bg-[#161616] border border-white/5">
                   {/* Product header */}
@@ -415,36 +458,35 @@ export default function EstoquePage() {
                             Sem cores cadastradas. Adicione variantes de cor no cadastro do produto para gerenciar o estoque por tamanho.
                           </p>
                         ) : (
-                          <div className="overflow-x-auto">
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Estoque por Cor × Tamanho</p>
-                            <table className="w-full text-sm min-w-[480px]">
-                              <thead>
-                                <tr className="border-b border-white/5">
-                                  <th className="text-left text-xs text-white/40 uppercase tracking-wider px-3 py-2 w-36">Cor</th>
-                                  {SIZES.map(s => (
-                                    <th key={s} className="text-center text-xs text-white/40 uppercase tracking-wider px-2 py-2 w-20">{s}</th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {prod.colorGroups.map(cg => (
-                                  <tr key={cg.color} className="border-b border-white/5 last:border-0">
-                                    <td className="px-3 py-2">
-                                      <div className="flex items-center gap-2">
-                                        {cg.colorHex && (
-                                          <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
-                                        )}
-                                        <span className="text-white/70 text-xs">{cg.color}</span>
-                                      </div>
-                                    </td>
-                                    {SIZES.map(size => {
-                                      const existing = cg.variants.find(v => v.size === size)
-                                      const cellKey = `${prod.productId}|${cg.color}|${size}`
-                                      const currentVal = dryfitEdits[cellKey] ?? existing?.stock ?? 0
-                                      const changed = dryfitEdits[cellKey] !== undefined
-                                      return (
-                                        <td key={size} className="px-2 py-2">
-                                          <div className="flex items-center gap-1 justify-center">
+                          <>
+                            <div className="overflow-x-auto">
+                              <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Estoque por Cor × Tamanho</p>
+                              <table className="w-full text-sm min-w-[480px]">
+                                <thead>
+                                  <tr className="border-b border-white/5">
+                                    <th className="text-left text-xs text-white/40 uppercase tracking-wider px-3 py-2 w-36">Cor</th>
+                                    {SIZES.map(s => (
+                                      <th key={s} className="text-center text-xs text-white/40 uppercase tracking-wider px-2 py-2 w-20">{s}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {prod.colorGroups.map(cg => (
+                                    <tr key={cg.color} className="border-b border-white/5 last:border-0">
+                                      <td className="px-3 py-2">
+                                        <div className="flex items-center gap-2">
+                                          {cg.colorHex && (
+                                            <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
+                                          )}
+                                          <span className="text-white/70 text-xs">{cg.color}</span>
+                                        </div>
+                                      </td>
+                                      {SIZES.map(size => {
+                                        const existing = cg.variants.find(v => v.size === size)
+                                        const cellKey = `${prod.productId}|${cg.color}|${size}`
+                                        const currentVal = dryfitEdits[cellKey] ?? existing?.stock ?? 0
+                                        return (
+                                          <td key={size} className="px-2 py-2">
                                             <input
                                               type="number" min="0" value={currentVal}
                                               onChange={e => setDryfitEdits(prev => ({ ...prev, [cellKey]: parseInt(e.target.value) || 0 }))}
@@ -454,24 +496,33 @@ export default function EstoquePage() {
                                                 'border-white/10 text-white'
                                               }`}
                                             />
-                                            {changed && (
-                                              <button
-                                                onClick={() => saveDryfitCell(prod.productId, cg.color, cg.colorHex, size)}
-                                                disabled={dryfitSaving === cellKey}
-                                                className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40"
-                                              >
-                                                <Save size={12} />
-                                              </button>
-                                            )}
-                                          </div>
-                                        </td>
-                                      )
-                                    })}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                                          </td>
+                                        )
+                                      })}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Batch save button for DryFit */}
+                            <div className="flex items-center justify-end mt-4 pt-3 border-t border-white/5">
+                              {dryfitPending > 0 ? (
+                                <button
+                                  onClick={() => saveDryfitProduct(prod)}
+                                  disabled={dryfitSaving === prod.productId}
+                                  className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-400/30 text-green-400 text-sm font-semibold cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40"
+                                >
+                                  <Save size={14} />
+                                  {dryfitSaving === prod.productId
+                                    ? 'Salvando...'
+                                    : `Salvar ${dryfitPending} alteraç${dryfitPending === 1 ? 'ão' : 'ões'}`}
+                                </button>
+                              ) : (
+                                <span className="text-xs text-white/20">Sem alterações pendentes</span>
+                              )}
+                            </div>
+                          </>
                         )
                       )}
 
@@ -509,25 +560,24 @@ export default function EstoquePage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="space-y-4">
-                            {prod.colorGroups.map(cg => (
-                              <div key={cg.color}>
-                                <div className="flex items-center gap-2 mb-2">
-                                  {cg.colorHex && (
-                                    <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
-                                  )}
-                                  <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{cg.color}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-3">
-                                  {cg.variants.map(v => {
-                                    const currentVal = prodEdits[v.id] ?? v.stock
-                                    const changed = prodEdits[v.id] !== undefined
-                                    return (
-                                      <div key={v.id} className="flex flex-col items-center gap-1">
-                                        {v.size && (
-                                          <span className="text-[10px] text-white/40 uppercase">{v.size}</span>
-                                        )}
-                                        <div className="flex items-center gap-1">
+                          <>
+                            <div className="space-y-4">
+                              {prod.colorGroups.map(cg => (
+                                <div key={cg.color}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    {cg.colorHex && (
+                                      <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
+                                    )}
+                                    <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{cg.color}</span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {cg.variants.map(v => {
+                                      const currentVal = prodEdits[v.id] ?? v.stock
+                                      return (
+                                        <div key={v.id} className="flex flex-col items-center gap-1">
+                                          {v.size && (
+                                            <span className="text-[10px] text-white/40 uppercase">{v.size}</span>
+                                          )}
                                           <input
                                             type="number" min="0" value={currentVal}
                                             onChange={e => setProdEdits(prev => ({ ...prev, [v.id]: parseInt(e.target.value) || 0 }))}
@@ -537,21 +587,33 @@ export default function EstoquePage() {
                                               'border-white/10 text-white'
                                             }`}
                                           />
-                                          {changed && (
-                                            <button onClick={() => saveProdVariant(v.id)} disabled={prodSaving === v.id}
-                                              className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
-                                              <Save size={12} />
-                                            </button>
-                                          )}
+                                          {!v.active && <span className="text-[9px] text-yellow-400/60">Inativo</span>}
                                         </div>
-                                        {!v.active && <span className="text-[9px] text-yellow-400/60">Inativo</span>}
-                                      </div>
-                                    )
-                                  })}
+                                      )
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
+                              ))}
+                            </div>
+
+                            {/* Batch save button for 3D/Geek variants */}
+                            <div className="flex items-center justify-end mt-4 pt-3 border-t border-white/5">
+                              {prodPending > 0 ? (
+                                <button
+                                  onClick={() => saveProdVariantsAll(prod)}
+                                  disabled={prodSaving === prod.productId}
+                                  className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-400/30 text-green-400 text-sm font-semibold cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40"
+                                >
+                                  <Save size={14} />
+                                  {prodSaving === prod.productId
+                                    ? 'Salvando...'
+                                    : `Salvar ${prodPending} alteraç${prodPending === 1 ? 'ão' : 'ões'}`}
+                                </button>
+                              ) : (
+                                <span className="text-xs text-white/20">Sem alterações pendentes</span>
+                              )}
+                            </div>
+                          </>
                         )
                       )}
 

@@ -22,13 +22,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { colorVariants, galleryImages, variants: _v, images: _i, id: _id, createdAt: _c, updatedAt: _u, ...productData } = body
+  const { colorVariants, galleryImages, variants: _v, images: _i, id: _id, createdAt: _c, updatedAt: _u, gender, ...productData } = body
 
-  // Update basic product fields
+  // Update basic product fields (gender excluded — handled via raw SQL below)
   await prisma.product.update({
     where: { id: params.id },
     data: productData,
   })
+
+  // gender column was added after client generation — update via raw SQL to bypass stale types
+  if (gender !== undefined) {
+    await prisma.$executeRaw`UPDATE "Product" SET "gender" = ${gender} WHERE "id" = ${params.id}`
+  }
 
   // If colorVariants or galleryImages were sent, replace all images
   if (colorVariants !== undefined || galleryImages !== undefined) {

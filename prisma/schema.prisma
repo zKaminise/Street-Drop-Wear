@@ -144,6 +144,7 @@ model Product {
   rating          Float            @default(5.0)
   reviewCount     Int              @default(0)
   sortOrder       Int              @default(0)
+  gender          String           @default("UNISEX") // MASCULINO | FEMININO | UNISEX
   // Flash Sale
   isFlashSale     Boolean          @default(false)
   flashSalePrice  Float?
