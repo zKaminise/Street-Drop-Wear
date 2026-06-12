@@ -33,7 +33,7 @@ type Order = {
   notes?: string; internalNotes?: string
   customer?: { name: string; email: string }
   guestName?: string; guestEmail?: string; guestPhone?: string
-  guestZipCode?: string; guestStreet?: string; guestNumber?: string
+  guestZipCode?: string; guestStreet?: string; guestNumber?: string; guestComplement?: string
   guestDistrict?: string; guestCity?: string; guestState?: string
   items: OrderItem[]
   statusHistory?: HistoryEntry[]
@@ -313,9 +313,10 @@ export default function AdminPedidosPage() {
                   <div>
                     <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Endereço de Entrega</p>
                     <p className="text-xs text-white/60">
-                      {selected.guestStreet}{selected.guestNumber ? `, ${selected.guestNumber}` : ''} — {selected.guestDistrict}
+                      {selected.guestStreet}{selected.guestNumber ? `, ${selected.guestNumber}` : ''}
+                      {selected.guestComplement ? ` — ${selected.guestComplement}` : ''}
                     </p>
-                    <p className="text-xs text-white/60">{selected.guestCity}/{selected.guestState} · CEP {selected.guestZipCode}</p>
+                    <p className="text-xs text-white/60">{selected.guestDistrict} · {selected.guestCity}/{selected.guestState} · CEP {selected.guestZipCode}</p>
                   </div>
                 )}
 

@@ -35,6 +35,11 @@ type DbOrder = {
   createdAt: string; items: DbOrderItem[]
   statusHistory?: HistoryEntry[]
   payment?: DbPayment | null
+  // Delivery address (guest fields)
+  guestStreet?: string | null; guestNumber?: string | null; guestComplement?: string | null
+  guestDistrict?: string | null; guestCity?: string | null; guestState?: string | null; guestZipCode?: string | null
+  // Linked address
+  address?: { street: string; number: string; complement?: string | null; district: string; city: string; state: string; zipCode: string } | null
 }
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
@@ -62,6 +67,11 @@ const STATUS_PROGRESS: Record<string, number> = {
   IN_PREPARATION: 50, PRODUCED: 65, AWAITING_SHIPMENT: 75,
   SHIPPED: 85, IN_TRANSIT: 92, DELIVERED: 100, CANCELLED: 0,
 }
+
+const STATUS_FLOW = [
+  'CREATED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED', 'IN_PREPARATION',
+  'PRODUCED', 'AWAITING_SHIPMENT', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED',
+]
 
 export default function PedidosPage() {
   const { isAuthenticated, user } = useAuthStore()
@@ -210,20 +220,86 @@ export default function PedidosPage() {
                 </div>
 
                 <div className="p-5 space-y-5 overflow-y-auto flex-1">
-                  {/* Status */}
+                  {/* Status badge */}
                   <div className={`flex items-center gap-2 px-4 py-3 ${STATUS_COLORS[selectedOrder.status] ?? 'bg-white/5 text-white/60'}`}>
+                    {(() => { const Icon = STATUS_ICONS[selectedOrder.status] ?? Package; return <Icon size={15} className="flex-shrink-0" /> })()}
                     <span className="text-sm font-bold uppercase tracking-wider">
                       {STATUS_LABELS[selectedOrder.status] ?? selectedOrder.status}
                     </span>
-                    {selectedOrder.trackingCode && (
-                      <span className="text-xs ml-auto opacity-70 font-mono">
-                        {selectedOrder.carrier ? `${selectedOrder.carrier}: ` : 'Rastreio: '}
-                        {selectedOrder.trackingCode}
-                      </span>
-                    )}
                   </div>
 
-                  {selectedOrder.estimatedDelivery && (
+                  {/* Visual status journey */}
+                  {(() => {
+                    const JOURNEY = [
+                      { key: 'CREATED', label: 'Recebido' },
+                      { key: 'PAYMENT_APPROVED', label: 'Pago' },
+                      { key: 'IN_PREPARATION', label: 'Em Preparação' },
+                      { key: 'SHIPPED', label: 'Enviado' },
+                      { key: 'DELIVERED', label: 'Entregue' },
+                    ]
+                    if (selectedOrder.status === 'CANCELLED') return null
+                    const currentIdx = JOURNEY.findIndex(j => {
+                      if (j.key === 'IN_PREPARATION') return ['IN_PREPARATION','PRODUCED','AWAITING_SHIPMENT'].includes(selectedOrder.status)
+                      if (j.key === 'SHIPPED') return ['SHIPPED','IN_TRANSIT'].includes(selectedOrder.status)
+                      return j.key === selectedOrder.status
+                    })
+                    const activeIdx = currentIdx === -1
+                      ? JOURNEY.findIndex(j => STATUS_FLOW.indexOf(selectedOrder.status) < STATUS_FLOW.indexOf(j.key)) - 1
+                      : currentIdx
+                    return (
+                      <div className="flex items-center gap-0">
+                        {JOURNEY.map((step, i) => {
+                          const done = i < activeIdx
+                          const active = i === activeIdx
+                          return (
+                            <div key={step.key} className="flex items-center flex-1 min-w-0">
+                              <div className="flex flex-col items-center flex-1">
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                  done ? 'border-brand-red bg-brand-red' :
+                                  active ? 'border-brand-red bg-brand-red/20' :
+                                  'border-white/15 bg-transparent'
+                                }`}>
+                                  {done ? <Check size={10} className="text-white" /> : (
+                                    <span className={`text-[9px] font-bold ${active ? 'text-brand-red' : 'text-white/20'}`}>{i+1}</span>
+                                  )}
+                                </div>
+                                <span className={`text-[9px] mt-1 text-center leading-tight ${active ? 'text-brand-white font-bold' : done ? 'text-brand-red' : 'text-white/25'}`}>
+                                  {step.label}
+                                </span>
+                              </div>
+                              {i < JOURNEY.length - 1 && (
+                                <div className={`h-[2px] flex-1 mx-1 -mt-4 ${done || (active && i < JOURNEY.length - 1) ? 'bg-brand-red/40' : 'bg-white/10'}`} />
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Tracking code — prominent section */}
+                  {selectedOrder.trackingCode && (
+                    <div className="bg-blue-400/5 border border-blue-400/20 p-4">
+                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Código de Rastreio</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <code className="text-sm font-bold text-blue-300 font-mono tracking-wider">
+                          {selectedOrder.trackingCode}
+                        </code>
+                        {selectedOrder.carrier && (
+                          <span className="text-xs text-white/40 uppercase">{selectedOrder.carrier}</span>
+                        )}
+                      </div>
+                      {selectedOrder.estimatedDelivery && (
+                        <p className="text-xs text-brand-gray-text mt-2 flex items-center gap-1.5">
+                          <Truck size={11} className="text-brand-red" />
+                          Previsão: <span className="text-brand-white">{selectedOrder.estimatedDelivery}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Estimated delivery (without tracking) */}
+                  {!selectedOrder.trackingCode && selectedOrder.estimatedDelivery && (
                     <p className="text-xs text-brand-gray-text flex items-center gap-1.5">
                       <Truck size={12} className="text-brand-red" />
                       Previsão de entrega: <span className="text-brand-white">{selectedOrder.estimatedDelivery}</span>
@@ -237,6 +313,31 @@ export default function PedidosPage() {
                       <OrderTimeline history={selectedOrder.statusHistory} />
                     </div>
                   )}
+
+                  {/* Delivery address */}
+                  {(() => {
+                    const addr = selectedOrder.address
+                    const street = addr?.street ?? selectedOrder.guestStreet
+                    const number = addr?.number ?? selectedOrder.guestNumber
+                    const complement = addr?.complement ?? selectedOrder.guestComplement
+                    const district = addr?.district ?? selectedOrder.guestDistrict
+                    const city = addr?.city ?? selectedOrder.guestCity
+                    const state = addr?.state ?? selectedOrder.guestState
+                    const zipCode = addr?.zipCode ?? selectedOrder.guestZipCode
+                    if (!street) return null
+                    return (
+                      <div className="bg-black/20 border border-white/5 p-4">
+                        <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Endereço de Entrega</p>
+                        <p className="text-sm text-brand-white">
+                          {street}{number ? `, ${number}` : ''}
+                          {complement ? ` — ${complement}` : ''}
+                        </p>
+                        <p className="text-xs text-brand-gray-text mt-0.5">
+                          {district ? `${district} · ` : ''}{city}/{state}{zipCode ? ` · CEP ${zipCode}` : ''}
+                        </p>
+                      </div>
+                    )
+                  })()}
 
                   {/* Items */}
                   <div>
@@ -265,7 +366,7 @@ export default function PedidosPage() {
                     </div>
                   </div>
 
-                  {/* MP Payment info */}
+                  {/* Payment info */}
                   {selectedOrder.payment && (
                     <div className="bg-black/20 border border-white/5 p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-brand-gray-text mb-3">Pagamento</p>
@@ -278,12 +379,6 @@ export default function PedidosPage() {
                                 : selectedOrder.payment.paymentMethodId === 'bolbradesco' ? 'Boleto'
                                 : selectedOrder.payment.paymentMethodId}
                             </span>
-                          </div>
-                        )}
-                        {selectedOrder.payment.mpPaymentId && (
-                          <div className="flex justify-between">
-                            <span className="text-brand-gray-text">ID do pagamento</span>
-                            <span className="text-brand-white/70 font-mono">{selectedOrder.payment.mpPaymentId}</span>
                           </div>
                         )}
                         {selectedOrder.payment.approvedAt && (

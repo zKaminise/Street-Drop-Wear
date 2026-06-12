@@ -78,6 +78,7 @@ export default function CheckoutPage() {
   }>>([])
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [useNewAddress, setUseNewAddress] = useState(false)
+  const [saveAddress, setSaveAddress] = useState(false)
 
   const [identity, setIdentity] = useState<IdentityData>({
     name: user?.name ?? '',
@@ -272,6 +273,25 @@ export default function CheckoutPage() {
         guestDistrict: selectedAddr ? selectedAddr.district : address.district,
         guestCity: selectedAddr ? selectedAddr.city : address.city,
         guestState: selectedAddr ? selectedAddr.state : address.state,
+      }
+
+      // Save address to account (fire-and-forget, doesn't block checkout)
+      if (saveAddress && useNewAddress && isAuthenticated) {
+        fetch('/api/customer/addresses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            label: address.label || 'Casa',
+            zipCode: address.zipCode,
+            street: address.street,
+            number: address.number,
+            complement: address.complement || null,
+            district: address.district,
+            city: address.city,
+            state: address.state,
+            isDefault: savedAddresses.length === 0,
+          }),
+        }).catch(() => { /* ignora falha silenciosa */ })
       }
 
       const res = await fetch('/api/checkout/mercadopago', {
@@ -512,7 +532,13 @@ export default function CheckoutPage() {
                         {/* Save address option */}
                         {isAuthenticated && (
                           <div className="col-span-2 flex items-center gap-2">
-                            <input type="checkbox" id="save-addr" className="cursor-pointer" />
+                            <input
+                              type="checkbox"
+                              id="save-addr"
+                              checked={saveAddress}
+                              onChange={e => setSaveAddress(e.target.checked)}
+                              className="cursor-pointer"
+                            />
                             <label htmlFor="save-addr" className="text-sm text-brand-gray-text cursor-pointer">
                               Salvar este endereço na minha conta
                             </label>
