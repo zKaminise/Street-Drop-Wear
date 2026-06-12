@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
-import { Save, ChevronDown, ChevronRight, Search, Plus } from 'lucide-react'
+import { Save, ChevronDown, ChevronRight, Search } from 'lucide-react'
 
 /* ─────────────────────────── types ──────────────────────────── */
 type StockItem = {
@@ -60,7 +60,6 @@ type ProdGroup = {
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
 const TYPE_LABELS: Record<string, string> = { DRYFIT: 'DryFit', PRODUTO_3D: '3D', GEEK: 'Geek' }
 const PRODUCT_TYPES = ['TODOS', 'DRYFIT', 'PRODUTO_3D', 'GEEK']
-const INPUT_CLS = 'bg-black/40 border border-white/10 text-white text-sm px-3 py-1.5 focus:outline-none focus:border-white/30 transition-colors'
 
 /* ─────────────────────────── page ───────────────────────────── */
 export default function EstoquePage() {
@@ -79,9 +78,13 @@ export default function EstoquePage() {
   const [prodSearch, setProdSearch] = useState('')
   const [prodTypeFilter, setProdTypeFilter] = useState('TODOS')
 
-  /* simple-stock state (for Geek/3D products with no variants) */
+  /* simple-stock (Geek/3D without variants) */
   const [simpleStockEdits, setSimpleStockEdits] = useState<Record<string, number>>({})
   const [simpleStockSaving, setSimpleStockSaving] = useState<string | null>(null)
+
+  /* dryfit size-matrix edits — key: `${productId}|${color}|${size}` */
+  const [dryfitEdits, setDryfitEdits] = useState<Record<string, number>>({})
+  const [dryfitSaving, setDryfitSaving] = useState<string | null>(null)
 
   /* ── loaders ── */
   async function loadBase() {
@@ -146,7 +149,7 @@ export default function EstoquePage() {
     setBaseSaving(null)
   }
 
-  /* ── save product-variant ── */
+  /* ── save product-variant (3D / Geek) ── */
   async function saveProdVariant(id: string) {
     if (prodEdits[id] === undefined) return
     setProdSaving(id)
@@ -160,7 +163,7 @@ export default function EstoquePage() {
     setProdSaving(null)
   }
 
-  /* ── save simple stock (create/update default variant) ── */
+  /* ── save simple stock (Geek/3D with no variants) ── */
   async function saveSimpleStock(productId: string) {
     const stockVal = simpleStockEdits[productId]
     if (stockVal === undefined) return
@@ -173,6 +176,27 @@ export default function EstoquePage() {
     setSimpleStockEdits(e => { const n = { ...e }; delete n[productId]; return n })
     await loadProducts()
     setSimpleStockSaving(null)
+  }
+
+  /* ── save DryFit size cell (upsert via POST) ── */
+  async function saveDryfitCell(
+    productId: string,
+    color: string,
+    colorHex: string | null,
+    size: string,
+  ) {
+    const cellKey = `${productId}|${color}|${size}`
+    const stockVal = dryfitEdits[cellKey]
+    if (stockVal === undefined) return
+    setDryfitSaving(cellKey)
+    await fetch('/api/admin/product-variants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, color, colorHex, size, stock: stockVal }),
+    })
+    setDryfitEdits(e => { const n = { ...e }; delete n[cellKey]; return n })
+    await loadProducts()
+    setDryfitSaving(null)
   }
 
   /* ── toggle product expansion ── */
@@ -201,12 +225,10 @@ export default function EstoquePage() {
     colorGroup.sizes.push(item)
   }
 
-  /* ── filtered bases ── */
   const filteredBases = baseSearch
     ? baseGrouped.filter(b => b.baseName.toLowerCase().includes(baseSearch.toLowerCase()))
     : baseGrouped
 
-  /* ── filtered products ── */
   const filteredProducts = products.filter(p => {
     const matchType = prodTypeFilter === 'TODOS' || p.productType === prodTypeFilter
     const matchSearch = !prodSearch || p.productName.toLowerCase().includes(prodSearch.toLowerCase())
@@ -315,7 +337,6 @@ export default function EstoquePage() {
           <h2 className="text-xs font-bold uppercase tracking-widest text-white/30">
             Produtos Cadastrados (DryFit / 3D / Geek)
           </h2>
-          {/* Filters */}
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex gap-1">
               {PRODUCT_TYPES.map(t => (
@@ -357,13 +378,14 @@ export default function EstoquePage() {
               const hasNoVariants = prod.colorGroups.length === 0
               const simpleVal = simpleStockEdits[prod.productId]
               const simpleChanged = simpleVal !== undefined
+              const isDryfit = prod.productType === 'DRYFIT'
 
               return (
                 <div key={prod.productId} className="bg-[#161616] border border-white/5">
                   {/* Product header */}
                   <button
                     onClick={() => toggleExpand(prod.productId)}
-                    className="w-full flex items-center justify-between px-5 py-3 border-b border-white/5 hover:bg-white/3 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between px-5 py-3 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       {prod.expanded
@@ -371,14 +393,12 @@ export default function EstoquePage() {
                         : <ChevronRight size={14} className="text-white/40" />
                       }
                       <span className="text-white font-semibold text-sm">{prod.productName}</span>
-                      {hasNoVariants && (
+                      {hasNoVariants && !isDryfit && (
                         <span className="text-[9px] text-yellow-400/70 border border-yellow-400/20 px-1.5 py-0.5">Sem variantes</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      {!hasNoVariants && (
-                        <span className="text-xs text-white/30">{totalStockAll} unid. total</span>
-                      )}
+                      <span className="text-xs text-white/30">{totalStockAll} unid. total</span>
                       <span className="text-xs text-white/40 border border-white/10 px-2 py-0.5">
                         {TYPE_LABELS[prod.productType] ?? prod.productType}
                       </span>
@@ -386,83 +406,155 @@ export default function EstoquePage() {
                   </button>
 
                   {prod.expanded && (
-                    <div className="p-4 space-y-4">
-                      {hasNoVariants ? (
-                        /* ── Simple stock for Geek/3D with no variants ── */
-                        <div>
-                          <p className="text-xs text-white/40 mb-2">
-                            Produto sem variantes de cor/tamanho. Defina o estoque total:
+                    <div className="p-4">
+
+                      {/* ── DryFit: color × size matrix ── */}
+                      {isDryfit && (
+                        prod.colorGroups.length === 0 ? (
+                          <p className="text-xs text-yellow-400/70 bg-yellow-400/5 border border-yellow-400/15 px-4 py-3">
+                            Sem cores cadastradas. Adicione variantes de cor no cadastro do produto para gerenciar o estoque por tamanho.
                           </p>
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="Qtd. em estoque"
-                              value={simpleVal ?? ''}
-                              onChange={e => setSimpleStockEdits(prev => ({ ...prev, [prod.productId]: parseInt(e.target.value) || 0 }))}
-                              className={`w-24 text-center border py-1.5 text-sm focus:outline-none bg-black/40 ${
-                                (simpleVal ?? 0) === 0 ? 'border-white/10 text-white/40' : 'border-white/20 text-white'
-                              }`}
-                            />
-                            {simpleChanged && (
-                              <button
-                                onClick={() => saveSimpleStock(prod.productId)}
-                                disabled={simpleStockSaving === prod.productId}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/20 border border-green-400/30 text-green-400 text-xs cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40"
-                              >
-                                <Save size={11} />
-                                Salvar
-                              </button>
-                            )}
-                            <p className="text-xs text-white/30">
-                              Após salvar, o estoque aparecerá aqui como variante &quot;Padrão&quot;.
-                            </p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Estoque por Cor × Tamanho</p>
+                            <table className="w-full text-sm min-w-[480px]">
+                              <thead>
+                                <tr className="border-b border-white/5">
+                                  <th className="text-left text-xs text-white/40 uppercase tracking-wider px-3 py-2 w-36">Cor</th>
+                                  {SIZES.map(s => (
+                                    <th key={s} className="text-center text-xs text-white/40 uppercase tracking-wider px-2 py-2 w-20">{s}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {prod.colorGroups.map(cg => (
+                                  <tr key={cg.color} className="border-b border-white/5 last:border-0">
+                                    <td className="px-3 py-2">
+                                      <div className="flex items-center gap-2">
+                                        {cg.colorHex && (
+                                          <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
+                                        )}
+                                        <span className="text-white/70 text-xs">{cg.color}</span>
+                                      </div>
+                                    </td>
+                                    {SIZES.map(size => {
+                                      const existing = cg.variants.find(v => v.size === size)
+                                      const cellKey = `${prod.productId}|${cg.color}|${size}`
+                                      const currentVal = dryfitEdits[cellKey] ?? existing?.stock ?? 0
+                                      const changed = dryfitEdits[cellKey] !== undefined
+                                      return (
+                                        <td key={size} className="px-2 py-2">
+                                          <div className="flex items-center gap-1 justify-center">
+                                            <input
+                                              type="number" min="0" value={currentVal}
+                                              onChange={e => setDryfitEdits(prev => ({ ...prev, [cellKey]: parseInt(e.target.value) || 0 }))}
+                                              className={`w-14 text-center bg-black/40 border py-1 text-sm focus:outline-none ${
+                                                currentVal <= 0 ? 'border-red-400/50 text-red-400' :
+                                                currentVal <= 5 ? 'border-yellow-400/50 text-yellow-400' :
+                                                'border-white/10 text-white'
+                                              }`}
+                                            />
+                                            {changed && (
+                                              <button
+                                                onClick={() => saveDryfitCell(prod.productId, cg.color, cg.colorHex, size)}
+                                                disabled={dryfitSaving === cellKey}
+                                                className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40"
+                                              >
+                                                <Save size={12} />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </td>
+                                      )
+                                    })}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
-                        </div>
-                      ) : (
-                        /* ── Color-based variants ── */
-                        prod.colorGroups.map(cg => (
-                          <div key={cg.color}>
-                            <div className="flex items-center gap-2 mb-2">
-                              {cg.colorHex && (
-                                <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
-                              )}
-                              <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{cg.color}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-3">
-                              {cg.variants.map(v => {
-                                const currentVal = prodEdits[v.id] ?? v.stock
-                                const changed = prodEdits[v.id] !== undefined
-                                return (
-                                  <div key={v.id} className="flex flex-col items-center gap-1">
-                                    {v.size && (
-                                      <span className="text-[10px] text-white/40 uppercase">{v.size}</span>
-                                    )}
-                                    <div className="flex items-center gap-1">
-                                      <input
-                                        type="number" min="0" value={currentVal}
-                                        onChange={e => setProdEdits(prev => ({ ...prev, [v.id]: parseInt(e.target.value) || 0 }))}
-                                        className={`w-16 text-center bg-black/40 border py-1 text-sm focus:outline-none ${
-                                          currentVal <= 0 ? 'border-red-400/50 text-red-400' :
-                                          currentVal <= 5 ? 'border-yellow-400/50 text-yellow-400' :
-                                          'border-white/10 text-white'
-                                        }`}
-                                      />
-                                      {changed && (
-                                        <button onClick={() => saveProdVariant(v.id)} disabled={prodSaving === v.id}
-                                          className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
-                                          <Save size={12} />
-                                        </button>
-                                      )}
-                                    </div>
-                                    {!v.active && <span className="text-[9px] text-yellow-400/60">Inativo</span>}
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        ))
+                        )
                       )}
+
+                      {/* ── 3D / Geek: simple or color-only variants ── */}
+                      {!isDryfit && (
+                        hasNoVariants ? (
+                          <div>
+                            <p className="text-xs text-white/40 mb-2">
+                              Produto sem variantes. Defina o estoque total:
+                            </p>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="Qtd. em estoque"
+                                value={simpleVal ?? ''}
+                                onChange={e => setSimpleStockEdits(prev => ({ ...prev, [prod.productId]: parseInt(e.target.value) || 0 }))}
+                                className={`w-24 text-center border py-1.5 text-sm focus:outline-none bg-black/40 ${
+                                  (simpleVal ?? 0) === 0 ? 'border-white/10 text-white/40' : 'border-white/20 text-white'
+                                }`}
+                              />
+                              {simpleChanged && (
+                                <button
+                                  onClick={() => saveSimpleStock(prod.productId)}
+                                  disabled={simpleStockSaving === prod.productId}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/20 border border-green-400/30 text-green-400 text-xs cursor-pointer hover:bg-green-600/30 transition-colors disabled:opacity-40"
+                                >
+                                  <Save size={11} />
+                                  Salvar
+                                </button>
+                              )}
+                              <p className="text-xs text-white/30">
+                                Após salvar, aparecerá como variante &quot;Padrão&quot;.
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {prod.colorGroups.map(cg => (
+                              <div key={cg.color}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  {cg.colorHex && (
+                                    <span className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0" style={{ backgroundColor: cg.colorHex }} />
+                                  )}
+                                  <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{cg.color}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                  {cg.variants.map(v => {
+                                    const currentVal = prodEdits[v.id] ?? v.stock
+                                    const changed = prodEdits[v.id] !== undefined
+                                    return (
+                                      <div key={v.id} className="flex flex-col items-center gap-1">
+                                        {v.size && (
+                                          <span className="text-[10px] text-white/40 uppercase">{v.size}</span>
+                                        )}
+                                        <div className="flex items-center gap-1">
+                                          <input
+                                            type="number" min="0" value={currentVal}
+                                            onChange={e => setProdEdits(prev => ({ ...prev, [v.id]: parseInt(e.target.value) || 0 }))}
+                                            className={`w-16 text-center bg-black/40 border py-1 text-sm focus:outline-none ${
+                                              currentVal <= 0 ? 'border-red-400/50 text-red-400' :
+                                              currentVal <= 5 ? 'border-yellow-400/50 text-yellow-400' :
+                                              'border-white/10 text-white'
+                                            }`}
+                                          />
+                                          {changed && (
+                                            <button onClick={() => saveProdVariant(v.id)} disabled={prodSaving === v.id}
+                                              className="p-1 text-green-400 hover:text-green-300 cursor-pointer disabled:opacity-40">
+                                              <Save size={12} />
+                                            </button>
+                                          )}
+                                        </div>
+                                        {!v.active && <span className="text-[9px] text-yellow-400/60">Inativo</span>}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+
                     </div>
                   )}
                 </div>

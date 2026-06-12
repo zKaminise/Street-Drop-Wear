@@ -1,22 +1,10 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const COLORS_AVAILABLE = [
-  { name: 'Preto', hex: '#1A1A1A' },
-  { name: 'Branco', hex: '#F0EDE6' },
-  { name: 'Grafite', hex: '#4A4A4A' },
-  { name: 'Vermelho', hex: '#CC0000' },
-  { name: 'Navy', hex: '#1B2B5E' },
-  { name: 'Verde', hex: '#2A5C2A' },
-  { name: 'Creme', hex: '#EDE0CA' },
-  { name: 'Azul Royal', hex: '#2244AA' },
-]
-
-const SIZES_AVAILABLE = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
 const PRICE_RANGES = [
   { label: 'Até R$ 60', min: 0, max: 60 },
   { label: 'R$ 60 - R$ 100', min: 60, max: 100 },
@@ -24,7 +12,9 @@ const PRICE_RANGES = [
   { label: 'Acima de R$ 150', min: 150, max: 9999 },
 ]
 
-interface FilterState {
+const SIZES_AVAILABLE = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
+
+export interface FilterState {
   colors: string[]
   sizes: string[]
   priceRange: string
@@ -40,6 +30,10 @@ interface ProductFiltersProps {
   showSubcategories?: string[]
   selectedSubcategory?: string
   onSubcategoryChange?: (sub: string) => void
+  /** 'dryfit' = cores dinâmicas + tamanhos | '3d' | 'geek' = só preço + subcategorias */
+  mode?: 'dryfit' | '3d' | 'geek'
+  /** Cores extraídas dos produtos carregados (usada quando mode === 'dryfit') */
+  availableColors?: { name: string; hex: string }[]
 }
 
 export function ProductFilters({
@@ -48,6 +42,8 @@ export function ProductFilters({
   showSubcategories,
   selectedSubcategory,
   onSubcategoryChange,
+  mode,
+  availableColors,
 }: ProductFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     colors: [],
@@ -61,6 +57,12 @@ export function ProductFilters({
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openSection, setOpenSection] = useState<string[]>(['cores', 'tamanhos', 'preco'])
 
+  // Derived display flags
+  const showColors = mode !== '3d' && mode !== 'geek'
+  const showSizes  = mode !== '3d' && mode !== 'geek'
+  const showPersonalizable = !mode
+  const colorsToShow = (mode === 'dryfit' && availableColors?.length) ? availableColors : []
+
   function updateFilter<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     const updated = { ...filters, [key]: value }
     setFilters(updated)
@@ -68,17 +70,15 @@ export function ProductFilters({
   }
 
   function toggleColor(color: string) {
-    const updated = filters.colors.includes(color)
+    updateFilter('colors', filters.colors.includes(color)
       ? filters.colors.filter(c => c !== color)
-      : [...filters.colors, color]
-    updateFilter('colors', updated)
+      : [...filters.colors, color])
   }
 
   function toggleSize(size: string) {
-    const updated = filters.sizes.includes(size)
+    updateFilter('sizes', filters.sizes.includes(size)
       ? filters.sizes.filter(s => s !== size)
-      : [...filters.sizes, size]
-    updateFilter('sizes', updated)
+      : [...filters.sizes, size])
   }
 
   function toggleSection(id: string) {
@@ -89,13 +89,8 @@ export function ProductFilters({
 
   function clearAll() {
     const cleared: FilterState = {
-      colors: [],
-      sizes: [],
-      priceRange: '',
-      onlyInStock: false,
-      onlyPersonalizable: false,
-      onlyNew: false,
-      sortBy: 'relevance',
+      colors: [], sizes: [], priceRange: '',
+      onlyInStock: false, onlyPersonalizable: false, onlyNew: false, sortBy: 'relevance',
     }
     setFilters(cleared)
     onFilterChange?.(cleared)
@@ -162,64 +157,68 @@ export function ProductFilters({
         </div>
       )}
 
-      {/* Colors */}
-      <FilterSection
-        id="cores"
-        title="Cor"
-        open={openSection.includes('cores')}
-        onToggle={() => toggleSection('cores')}
-      >
-        <div className="flex flex-wrap gap-2">
-          {COLORS_AVAILABLE.map(color => (
-            <button
-              key={color.name}
-              onClick={() => toggleColor(color.name)}
-              className={cn(
-                'flex items-center gap-2 px-3 py-1.5 border text-xs transition-all cursor-pointer',
-                filters.colors.includes(color.name)
-                  ? 'border-brand-red bg-brand-red/10 text-brand-white'
-                  : 'border-white/10 text-brand-gray-text hover:border-white/30'
-              )}
-              title={color.name}
-              aria-pressed={filters.colors.includes(color.name)}
-            >
-              <span
-                className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0"
-                style={{ backgroundColor: color.hex }}
-              />
-              {color.name}
-            </button>
-          ))}
-        </div>
-      </FilterSection>
+      {/* Colors — only for dryfit (dynamic) or default mode */}
+      {showColors && colorsToShow.length > 0 && (
+        <FilterSection
+          id="cores"
+          title="Cor"
+          open={openSection.includes('cores')}
+          onToggle={() => toggleSection('cores')}
+        >
+          <div className="flex flex-wrap gap-2">
+            {colorsToShow.map(color => (
+              <button
+                key={color.name}
+                onClick={() => toggleColor(color.name)}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 border text-xs transition-all cursor-pointer',
+                  filters.colors.includes(color.name)
+                    ? 'border-brand-red bg-brand-red/10 text-brand-white'
+                    : 'border-white/10 text-brand-gray-text hover:border-white/30'
+                )}
+                title={color.name}
+                aria-pressed={filters.colors.includes(color.name)}
+              >
+                <span
+                  className="w-3 h-3 rounded-full border border-white/20 flex-shrink-0"
+                  style={{ backgroundColor: color.hex }}
+                />
+                {color.name}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
-      {/* Sizes */}
-      <FilterSection
-        id="tamanhos"
-        title="Tamanho"
-        open={openSection.includes('tamanhos')}
-        onToggle={() => toggleSection('tamanhos')}
-      >
-        <div className="flex flex-wrap gap-2">
-          {SIZES_AVAILABLE.map(size => (
-            <button
-              key={size}
-              onClick={() => toggleSize(size)}
-              className={cn(
-                'w-11 h-11 border text-xs font-bold uppercase transition-all cursor-pointer',
-                filters.sizes.includes(size)
-                  ? 'border-brand-red bg-brand-red/10 text-brand-red'
-                  : 'border-white/10 text-brand-gray-text hover:border-white/30 hover:text-brand-white'
-              )}
-              aria-pressed={filters.sizes.includes(size)}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </FilterSection>
+      {/* Sizes — only for dryfit or default mode */}
+      {showSizes && (
+        <FilterSection
+          id="tamanhos"
+          title="Tamanho"
+          open={openSection.includes('tamanhos')}
+          onToggle={() => toggleSection('tamanhos')}
+        >
+          <div className="flex flex-wrap gap-2">
+            {SIZES_AVAILABLE.map(size => (
+              <button
+                key={size}
+                onClick={() => toggleSize(size)}
+                className={cn(
+                  'w-11 h-11 border text-xs font-bold uppercase transition-all cursor-pointer',
+                  filters.sizes.includes(size)
+                    ? 'border-brand-red bg-brand-red/10 text-brand-red'
+                    : 'border-white/10 text-brand-gray-text hover:border-white/30 hover:text-brand-white'
+                )}
+                aria-pressed={filters.sizes.includes(size)}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
-      {/* Price */}
+      {/* Price — always shown */}
       <FilterSection
         id="preco"
         title="Faixa de Preço"
@@ -247,33 +246,28 @@ export function ProductFilters({
 
       {/* Toggles */}
       <div className="pt-4 space-y-3">
-        {[
-          { key: 'onlyInStock', label: 'Apenas em estoque' },
-          { key: 'onlyPersonalizable', label: 'Personalizáveis' },
-          { key: 'onlyNew', label: 'Novidades' },
-        ].map(toggle => (
-          <label
-            key={toggle.key}
-            className="flex items-center justify-between cursor-pointer group"
-          >
+        {([
+          { key: 'onlyInStock', label: 'Apenas em estoque', show: true },
+          { key: 'onlyPersonalizable', label: 'Personalizáveis', show: showPersonalizable },
+          { key: 'onlyNew', label: 'Novidades', show: true },
+        ] as const).filter(t => t.show).map(toggle => (
+          <label key={toggle.key} className="flex items-center justify-between cursor-pointer group">
             <span className="text-sm text-brand-gray-text group-hover:text-brand-white transition-colors">
               {toggle.label}
             </span>
             <div
-              onClick={() => updateFilter(toggle.key as keyof FilterState, !filters[toggle.key as keyof FilterState] as FilterState[keyof FilterState])}
+              onClick={() => updateFilter(toggle.key, !filters[toggle.key])}
               className={cn(
                 'w-10 h-5 rounded-full relative transition-colors',
-                filters[toggle.key as keyof FilterState]
-                  ? 'bg-brand-red'
-                  : 'bg-white/10'
+                filters[toggle.key] ? 'bg-brand-red' : 'bg-white/10'
               )}
               role="switch"
-              aria-checked={filters[toggle.key as keyof FilterState] as boolean}
+              aria-checked={filters[toggle.key]}
             >
               <div
                 className={cn(
                   'absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform',
-                  filters[toggle.key as keyof FilterState] ? 'translate-x-5' : 'translate-x-0.5'
+                  filters[toggle.key] ? 'translate-x-5' : 'translate-x-0.5'
                 )}
               />
             </div>

@@ -1,9 +1,9 @@
-﻿'use client'
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ProductCard } from '@/components/products/ProductCard'
-import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductFilters, type FilterState } from '@/components/products/ProductFilters'
 import { Zap, Shield, Droplets } from 'lucide-react'
 import type { Product, ProductCategory } from '@/lib/types'
 
@@ -47,6 +47,13 @@ function apiToProduct(p: ApiProduct): Product {
   }
 }
 
+const PRICE_RANGES = [
+  { label: 'Até R$ 60', min: 0, max: 60 },
+  { label: 'R$ 60 - R$ 100', min: 60, max: 100 },
+  { label: 'R$ 100 - R$ 150', min: 100, max: 150 },
+  { label: 'Acima de R$ 150', min: 150, max: 9999 },
+]
+
 const FEATURES = [
   { icon: Zap, label: 'Alta performance', desc: 'Tecido dry-fit 150g ultra leve' },
   { icon: Shield, label: 'Proteção UV50+', desc: 'Bloqueio solar profissional' },
@@ -54,16 +61,44 @@ const FEATURES = [
 ]
 
 export default function DryfitPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<FilterState>({
+    colors: [], sizes: [], priceRange: '',
+    onlyInStock: false, onlyPersonalizable: false, onlyNew: false, sortBy: 'relevance',
+  })
 
   useEffect(() => {
     fetch('/api/products?type=DRYFIT')
       .then(r => r.json())
-      .then((data: ApiProduct[]) => setProducts(data.map(apiToProduct)))
+      .then((data: ApiProduct[]) => setAllProducts(data.map(apiToProduct)))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  // Extract unique colors present in loaded products
+  const availableColors = useMemo(() => {
+    const map = new Map<string, { name: string; hex: string }>()
+    allProducts.forEach(p => p.colors.forEach(c => map.set(c.name, c)))
+    return Array.from(map.values())
+  }, [allProducts])
+
+  // Apply all active filters
+  const products = useMemo(() => {
+    const priceRange = PRICE_RANGES.find(r => r.label === filters.priceRange)
+    return allProducts
+      .filter(p => !filters.colors.length || p.colors.some(c => filters.colors.includes(c.name)))
+      .filter(p => !filters.sizes.length  || p.sizes.some(s => filters.sizes.includes(s.label) && s.available))
+      .filter(p => !priceRange || (p.price >= priceRange.min && p.price <= priceRange.max))
+      .filter(p => !filters.onlyInStock || p.status !== 'out_of_stock')
+      .filter(p => !filters.onlyNew || p.isNew)
+      .sort((a, b) => {
+        if (filters.sortBy === 'price_asc') return a.price - b.price
+        if (filters.sortBy === 'price_desc') return b.price - a.price
+        if (filters.sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return 0
+      })
+  }, [allProducts, filters])
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -98,14 +133,19 @@ export default function DryfitPage() {
       <div className="container-brand pt-6">
         <div className="bg-blue-400/5 border border-blue-400/20 px-5 py-3 text-sm text-blue-300/80 flex items-center gap-2">
           <span className="font-bold text-blue-400">Info:</span>
-          Produtos dry-fit não possuem personalização de estampa. Escolha modelo, cor, tamanho e quantidade.
+          Produtos dry-fit não possuem personalização de estampa. Escolha modelo, cor e tamanho.
         </div>
       </div>
 
       {/* Content */}
       <div className="container-brand py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          <ProductFilters totalResults={products.length} />
+          <ProductFilters
+            totalResults={products.length}
+            onFilterChange={setFilters}
+            mode="dryfit"
+            availableColors={availableColors}
+          />
           <div className="flex-1 min-w-0">
             <div className="hidden lg:flex items-center mb-6">
               <span className="text-sm text-brand-gray-text">
@@ -124,7 +164,9 @@ export default function DryfitPage() {
               </div>
             ) : (
               <div className="text-center py-20 text-brand-gray-text">
-                Nenhum produto dry-fit cadastrado ainda.
+                {allProducts.length === 0
+                  ? 'Nenhum produto dry-fit cadastrado ainda.'
+                  : 'Nenhum produto encontrado com esses filtros.'}
               </div>
             )}
           </div>

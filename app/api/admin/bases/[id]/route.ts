@@ -5,6 +5,8 @@ import { getAdminFromCookies } from '@/lib/admin-auth'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+const STOCK_SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XGG']
+
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getAdminFromCookies()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -33,8 +35,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           data: { name: c.name, hex: c.hex, active: c.active ?? true },
         })
       } else {
-        await prisma.baseColor.create({
+        // New color — create and auto-generate StockItems for all sizes
+        const newColor = await prisma.baseColor.create({
           data: { baseId: params.id, name: c.name, hex: c.hex, active: true },
+        })
+        await prisma.stockItem.createMany({
+          data: STOCK_SIZES.map(size => ({ colorId: newColor.id, size, quantity: 0 })),
+          skipDuplicates: true,
         })
       }
     }

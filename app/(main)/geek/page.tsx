@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { Search, X } from 'lucide-react'
 import { ProductCard } from '@/components/products/ProductCard'
-import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductFilters, type FilterState } from '@/components/products/ProductFilters'
 import type { Product, ProductCategory } from '@/lib/types'
 
 type ApiVariant = { id: string; color?: string; colorHex?: string; size?: string; stock: number; active: boolean }
@@ -18,14 +19,8 @@ type ApiProduct = {
 }
 
 function apiToProduct(p: ApiProduct): Product {
-  const colorsMap = new Map<string, { name: string; hex: string }>()
-  const sizesMap = new Map<string, boolean>()
   let totalStock = 0
-  for (const v of p.variants) {
-    if (v.color && v.colorHex) colorsMap.set(v.color, { name: v.color, hex: v.colorHex })
-    if (v.size) sizesMap.set(v.size, (sizesMap.get(v.size) ?? false) || v.stock > 0)
-    totalStock += v.stock
-  }
+  for (const v of p.variants) totalStock += v.stock
   const status = totalStock === 0 ? 'out_of_stock' : totalStock < 10 ? 'low_stock' : 'available'
   const effectivePrice = (p.isFlashSale && p.flashSalePrice) ? p.flashSalePrice : p.price
   const effectiveOriginal = (p.isFlashSale && p.flashSalePrice) ? p.price : (p.originalPrice ?? undefined)
@@ -37,8 +32,7 @@ function apiToProduct(p: ApiProduct): Product {
     subcategory: p.subcategory,
     imageUrl: p.imageUrl, hoverImageUrl: p.hoverImageUrl,
     images: p.images.map(img => ({ id: img.id, url: img.url, alt: img.alt ?? p.name, isPrimary: img.isPrimary })),
-    colors: Array.from(colorsMap.values()),
-    sizes: Array.from(sizesMap.entries()).map(([label, available]) => ({ label, available })),
+    colors: [], sizes: [],
     status, tags: [], rating: p.rating, reviewCount: p.reviewCount,
     isPersonalizable: false, isFeatured: p.isFeatured, isNew: p.isNew,
     stock: totalStock, sku: p.slug,
@@ -47,12 +41,32 @@ function apiToProduct(p: ApiProduct): Product {
   }
 }
 
-const SUBCATEGORIES = ['Pokémon TCG', 'Camisetas Geek', 'Acessórios', 'Colecionáveis']
+const PRICE_RANGES = [
+  { label: 'Até R$ 60', min: 0, max: 60 },
+  { label: 'R$ 60 - R$ 100', min: 60, max: 100 },
+  { label: 'R$ 100 - R$ 150', min: 100, max: 150 },
+  { label: 'Acima de R$ 150', min: 150, max: 9999 },
+]
+
+const SUBCATEGORIES = [
+  'Cards Avulsos',
+  'Booster Box',
+  'ETB',
+  'Starter Deck',
+  'Tin',
+  'Colecionáveis',
+  'Acessórios',
+]
 
 export default function GeekPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [sub, setSub] = useState('')
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<FilterState>({
+    colors: [], sizes: [], priceRange: '',
+    onlyInStock: false, onlyPersonalizable: false, onlyNew: false, sortBy: 'relevance',
+  })
 
   useEffect(() => {
     fetch('/api/products?type=GEEK')
@@ -62,7 +76,22 @@ export default function GeekPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const products = sub ? allProducts.filter(p => p.subcategory === sub) : allProducts
+  const products = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const priceRange = PRICE_RANGES.find(r => r.label === filters.priceRange)
+    return allProducts
+      .filter(p => !sub || p.subcategory === sub)
+      .filter(p => !q || p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q))
+      .filter(p => !priceRange || (p.price >= priceRange.min && p.price <= priceRange.max))
+      .filter(p => !filters.onlyInStock || p.status !== 'out_of_stock')
+      .filter(p => !filters.onlyNew || p.isNew)
+      .sort((a, b) => {
+        if (filters.sortBy === 'price_asc') return a.price - b.price
+        if (filters.sortBy === 'price_desc') return b.price - a.price
+        if (filters.sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return 0
+      })
+  }, [allProducts, sub, search, filters])
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -101,16 +130,42 @@ export default function GeekPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters
             totalResults={products.length}
+            onFilterChange={setFilters}
+            mode="geek"
             showSubcategories={SUBCATEGORIES}
             selectedSubcategory={sub}
             onSubcategoryChange={setSub}
           />
           <div className="flex-1 min-w-0">
-            <div className="hidden lg:flex items-center mb-6">
+            {/* Inline search bar */}
+            <div className="relative mb-5">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar produto (ex: Pikachu, Booster Box, ETB...)"
+                className="w-full bg-brand-graphite border border-white/10 text-white text-sm pl-10 pr-10 py-3 focus:outline-none focus:border-white/25 transition-colors"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white cursor-pointer transition-colors"
+                  aria-label="Limpar busca"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="hidden lg:flex items-center mb-4">
               <span className="text-sm text-brand-gray-text">
                 <span className="text-brand-white font-semibold">{products.length}</span> produtos encontrados
+                {search && (
+                  <span className="ml-1 text-yellow-400/70">para &quot;{search}&quot;</span>
+                )}
               </span>
             </div>
+
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3].map(i => <div key={i} className="aspect-[4/5] bg-brand-graphite animate-pulse" />)}
@@ -123,7 +178,11 @@ export default function GeekPage() {
               </div>
             ) : (
               <div className="text-center py-20 text-brand-gray-text">
-                Nenhum produto geek cadastrado ainda.
+                {allProducts.length === 0
+                  ? 'Nenhum produto geek cadastrado ainda.'
+                  : search
+                  ? `Nenhum resultado para "${search}".`
+                  : 'Nenhum produto encontrado com esses filtros.'}
               </div>
             )}
           </div>
