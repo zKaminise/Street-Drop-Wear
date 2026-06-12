@@ -25,6 +25,7 @@ export default function BasesPage() {
   const [editing, setEditing] = useState<Base | null>(null)
   const [form, setForm] = useState(INITIAL_FORM)
   const [newColor, setNewColor] = useState({ name: '', hex: '#000000' })
+  const [hexInput, setHexInput] = useState('#000000')
   const [saving, setSaving] = useState(false)
 
   async function load() {
@@ -51,10 +52,26 @@ export default function BasesPage() {
     setShowModal(true)
   }
 
+  function handlePickerChange(hex: string) {
+    setNewColor(n => ({ ...n, hex }))
+    setHexInput(hex.toUpperCase())
+  }
+
+  function handleHexTextChange(raw: string) {
+    let val = raw.toUpperCase()
+    if (val && !val.startsWith('#')) val = '#' + val
+    if (val.length > 7) val = val.slice(0, 7)
+    setHexInput(val)
+    if (/^#[0-9A-F]{6}$/.test(val)) {
+      setNewColor(n => ({ ...n, hex: val }))
+    }
+  }
+
   function addColor() {
     if (!newColor.name) return
     setForm(f => ({ ...f, colors: [...f.colors, { ...newColor }] }))
     setNewColor({ name: '', hex: '#000000' })
+    setHexInput('#000000')
   }
 
   function removeColor(i: number) {
@@ -179,8 +196,34 @@ export default function BasesPage() {
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <input placeholder="Nome da cor" value={newColor.name} onChange={e => setNewColor(n => ({ ...n, name: e.target.value }))} className={`${INPUT} flex-1`} />
-                    <input type="color" value={newColor.hex} onChange={e => setNewColor(n => ({ ...n, hex: e.target.value }))} className="w-10 h-10 border border-white/10 bg-black/40 cursor-pointer p-0.5" />
+                    <input
+                      placeholder="Nome da cor (ex: Preto)"
+                      value={newColor.name}
+                      onChange={e => setNewColor(n => ({ ...n, name: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && addColor()}
+                      className={`${INPUT} flex-1`}
+                    />
+                    {/* Color picker + HEX text input synced */}
+                    <div className="flex items-center border border-white/10 bg-black/40 overflow-hidden">
+                      <input
+                        type="color"
+                        value={newColor.hex}
+                        onChange={e => handlePickerChange(e.target.value)}
+                        title="Abrir seletor de cor"
+                        className="w-9 h-full cursor-pointer border-0 bg-transparent p-0.5 flex-shrink-0"
+                      />
+                      <div className="w-px h-5 bg-white/10 flex-shrink-0" />
+                      <input
+                        type="text"
+                        value={hexInput}
+                        onChange={e => handleHexTextChange(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addColor()}
+                        placeholder="#000000"
+                        maxLength={7}
+                        spellCheck={false}
+                        className="w-[4.5rem] bg-transparent text-white text-xs px-2 py-2 focus:outline-none font-mono tracking-widest placeholder-white/20"
+                      />
+                    </div>
                     <button onClick={addColor} className="px-3 bg-[#E10600] hover:bg-[#B80000] text-white cursor-pointer">
                       <Plus size={16} />
                     </button>
