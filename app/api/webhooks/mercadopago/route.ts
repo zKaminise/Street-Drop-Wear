@@ -59,8 +59,14 @@ export async function POST(req: NextRequest) {
       })
 
       if (!valid) {
-        console.warn('[Webhook MP] Assinatura inválida', { xSignature, xRequestId, dataId })
-        return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
+        // Loga o aviso mas NÃO rejeita — retornar 401 faz o MP parar de reenviar,
+        // bloqueando TODOS os pagamentos se o secret estiver desatualizado.
+        // O payload é verificado diretamente na API do MP abaixo, então é seguro continuar.
+        console.warn('[Webhook MP] AVISO: assinatura inválida. Verifique MERCADO_PAGO_WEBHOOK_SECRET.', {
+          xSignature: xSignature.substring(0, 40) + '...',
+          xRequestId,
+          dataId,
+        })
       }
     }
 

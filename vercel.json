@@ -1,5 +1,10 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/webhooks/mercadopago/route.ts": { "maxDuration": 30 },
+    "app/api/checkout/mercadopago/route.ts": { "maxDuration": 30 },
+    "app/api/orders/[id]/sync/route.ts":     { "maxDuration": 20 }
+  }
 }

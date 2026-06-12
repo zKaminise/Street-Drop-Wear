@@ -31,11 +31,19 @@ function CheckoutSuccessContent() {
   const fetchOrder = useCallback(async () => {
     if (!orderId) { setLoading(false); return }
     try {
-      const res = await fetch(`/api/orders/${orderId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setOrder(data)
+      // Tenta sync direto com MP primeiro (garante status atualizado mesmo sem webhook)
+      const syncRes = await fetch(`/api/orders/${orderId}/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (syncRes.ok) {
+        const data = await syncRes.json()
+        if (data.order) { setOrder(data.order); setLoading(false); return }
       }
+      // Fallback: leitura simples do DB
+      const res = await fetch(`/api/orders/${orderId}`)
+      if (res.ok) setOrder(await res.json())
     } catch { /* ignora */ }
     setLoading(false)
   }, [orderId])
