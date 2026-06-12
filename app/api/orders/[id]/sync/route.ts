@@ -30,10 +30,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = await req.json().catch(() => ({}))
     const hintPaymentId: string | null = body.paymentId ?? null
 
-    const order = await db.order.findUnique({
+    // Aceita tanto o id interno (cuid) quanto o orderNumber (SDW...)
+    let order = await db.order.findUnique({
       where: { id: params.id },
       include: { payment: true },
     })
+    if (!order) {
+      order = await db.order.findFirst({
+        where: { orderNumber: params.id },
+        include: { payment: true },
+      })
+    }
 
     if (!order) return NextResponse.json({ error: 'Não encontrado' }, { status: 404 })
 
@@ -59,12 +66,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       } catch { /* tenta próximo */ }
     }
 
-    // 2. Buscar via external_reference (= orderId) na API de search do MP
+    // 2. Buscar via external_reference (= order.id cuid) na API de search do MP
     if (!mpPayment?.id) {
       try {
         const searchResult = await paymentClient.search({
           options: {
-            external_reference: params.id,
+            external_reference: order.id,  // sempre o cuid, independente do que veio na URL
             sort: 'date_created',
             criteria: 'desc',
             limit: 1,
@@ -136,7 +143,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     })
 
-    const updated = await db.order.findUnique({ where: { id: params.id } })
+    const updated = await db.order.findUnique({ where: { id: order.id } })
     return NextResponse.json({ synced: true, order: updated })
 
   } catch (err) {

@@ -10,20 +10,23 @@ const db = prisma as any
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   const payload = await getCustomerFromCookies()
 
-  const order = await db.order.findUnique({
-    where: { id: params.id },
-    include: {
-      items: true,
-      address: true,
-      statusHistory: { orderBy: { createdAt: 'asc' } },
-      payment: {
-        select: {
-          mpPaymentId: true, status: true,
-          paymentMethodId: true, paymentTypeId: true, approvedAt: true,
-        },
+  const include = {
+    items: true,
+    address: true,
+    statusHistory: { orderBy: { createdAt: 'asc' } },
+    payment: {
+      select: {
+        mpPaymentId: true, status: true,
+        paymentMethodId: true, paymentTypeId: true, approvedAt: true,
       },
     },
-  })
+  }
+
+  // Aceita tanto o id interno (cuid) quanto o orderNumber (SDW...)
+  let order = await db.order.findUnique({ where: { id: params.id }, include })
+  if (!order) {
+    order = await db.order.findFirst({ where: { orderNumber: params.id }, include })
+  }
 
   if (!order) return NextResponse.json({ error: 'Não encontrado' }, { status: 404 })
 
