@@ -246,7 +246,7 @@ export async function POST(req: NextRequest) {
       : []
 
     // Build absolute picture_url — MP API rejects relative paths
-    function toAbsoluteUrl(url: string | null | undefined): string | undefined {
+    const toAbsoluteUrl = (url: string | null | undefined): string | undefined => {
       if (!url) return undefined
       if (url.startsWith('http://') || url.startsWith('https://')) return url
       return `${siteUrl}${url}`
