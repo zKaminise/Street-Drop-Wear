@@ -224,13 +224,16 @@ export default function TabelasMedidasPage() {
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const parseTables = (raw: Array<SizeTable & { columns: string; rows: Array<{ size: string; values: string }> }>) =>
+  type RawRow = { size: string; values: string; sortOrder?: number }
+  type RawTable = Omit<SizeTable, 'columns' | 'rows'> & { columns: string; rows: RawRow[] }
+
+  const parseTables = (raw: RawTable[]): SizeTable[] =>
     raw.map(t => ({
       ...t,
-      columns: (() => { try { return JSON.parse(t.columns) } catch { return [] } })() as string[],
+      columns: (() => { try { return JSON.parse(t.columns) } catch { return [] } })(),
       rows: (t.rows ?? []).map(r => ({
         size: r.size,
-        values: (() => { try { return JSON.parse(r.values) } catch { return [] } })() as string[],
+        values: (() => { try { return JSON.parse(r.values) } catch { return [] } })(),
       })),
     }))
 

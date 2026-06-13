@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const admin = await getAdminFromCookies()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, productType, gender, category, columns, sortOrder } = await req.json()
+  const { name, productType, gender, category, columns, active, sortOrder, rows } = await req.json()
   if (!name || !productType) {
     return NextResponse.json({ error: 'name e productType são obrigatórios' }, { status: 400 })
   }
@@ -46,10 +46,25 @@ export async function POST(req: NextRequest) {
       gender: gender || null,
       category: category || null,
       columns: JSON.stringify(columns ?? []),
+      active: active ?? true,
       sortOrder: sortOrder ?? 0,
     },
-    include: { rows: true },
   })
 
-  return NextResponse.json(table, { status: 201 })
+  if (Array.isArray(rows) && rows.length > 0) {
+    await db.sizeTableRow.createMany({
+      data: rows.map((r: { size: string; values: string[] }, i: number) => ({
+        tableId: table.id,
+        size: r.size,
+        values: JSON.stringify(r.values ?? []),
+        sortOrder: i,
+      })),
+    })
+  }
+
+  const full = await db.sizeTable.findUnique({
+    where: { id: table.id },
+    include: { rows: { orderBy: { sortOrder: 'asc' } } },
+  })
+  return NextResponse.json(full, { status: 201 })
 }
