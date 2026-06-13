@@ -6,7 +6,7 @@ const FOOTER_LINKS = {
   shop: [
     { label: '🔥 Flash Sale', href: '/flash-sale' },
     { label: 'Oversized', href: '/oversized' },
-    { label: 'Camisetas Normais', href: '/camisetas' },
+    { label: 'Camisetas', href: '/camisetas' },
     { label: 'DryFit Fitness', href: '/dryfit' },
     { label: 'Produtos 3D', href: '/produtos-3d' },
     { label: 'Geek Store', href: '/geek' },

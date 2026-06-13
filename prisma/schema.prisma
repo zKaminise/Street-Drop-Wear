@@ -360,6 +360,30 @@ model Expense {
   createdAt   DateTime @default(now())
 }
 
+// Size tables — managed by admin, displayed on product pages
+model SizeTable {
+  id          String         @id @default(cuid())
+  name        String         // e.g. "Oversized Standard", "DryFit Masculino Regata"
+  productType String         // OVERSIZED | CAMISETA | DRYFIT
+  gender      String?        // MASCULINO | FEMININO | null (unisex)
+  category    String?        // subcategory slug matching Product.subcategory: "regular","slim","regata","top-academia" etc
+  columns     String         @default("[]") // JSON: ["Busto (cm)", "Cintura (cm)", ...]
+  active      Boolean        @default(true)
+  sortOrder   Int            @default(0)
+  rows        SizeTableRow[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model SizeTableRow {
+  id        String    @id @default(cuid())
+  tableId   String
+  table     SizeTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  size      String    // "PP", "P", "M", "G", "GG", "XG", "XGG"
+  values    String    @default("[]") // JSON array matching columns order
+  sortOrder Int       @default(0)
+}
+
 // Announcement bar (scrolling messages above navbar)
 model AnnouncementBar {
   id        String   @id @default(cuid())

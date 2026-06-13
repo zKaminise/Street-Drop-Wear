@@ -9,6 +9,7 @@ import { TShirtPreview, type TShirtView } from '@/components/customizer/TShirtPr
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
 import { ShirtBenefits } from '@/components/products/ShirtBenefits'
+import { SizeTableDisplay } from '@/components/products/SizeTableDisplay'
 import { RelatedExplore } from '@/components/products/RelatedExplore'
 
 type StockBySize = { size: string; quantity: number }
@@ -445,6 +446,11 @@ export default function CamisetasPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Size table */}
+      <div className="container-brand">
+        <SizeTableDisplay productType="CAMISETA" />
       </div>
 
       {/* Quality benefits */}

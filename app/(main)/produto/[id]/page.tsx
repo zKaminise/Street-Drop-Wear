@@ -12,6 +12,7 @@ import {
 import { useCartStore } from '@/lib/store'
 import { formatPrice } from '@/lib/utils'
 import { ShirtBenefits } from '@/components/products/ShirtBenefits'
+import { SizeTableDisplay } from '@/components/products/SizeTableDisplay'
 import { RelatedExplore, type RelatedProduct } from '@/components/products/RelatedExplore'
 
 // Slug redirects: oversized/camiseta go to their customizer pages
@@ -527,6 +528,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+
+      {/* Size table — DryFit only (oversized/camiseta tables shown on their respective category pages) */}
+      {product.type === 'DRYFIT' && (
+        <div className="container-brand">
+          <SizeTableDisplay
+            productType="DRYFIT"
+            gender={product.gender ?? null}
+            category={product.subcategory ?? null}
+          />
+        </div>
+      )}
 
       {/* Quality benefits — shirt/dryfit types only */}
       {(product.type === 'DRYFIT' || product.type === 'OVERSIZED' || product.type === 'CAMISETA') && (() => {
