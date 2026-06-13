@@ -255,7 +255,7 @@ export default function TabelasMedidasPage() {
   return (
     <div className="min-h-screen bg-brand-black flex">
       <AdminSidebar />
-      <main className="flex-1 p-6 lg:p-8">
+      <main className="lg:ml-64 flex-1 p-4 sm:p-8 min-h-screen pt-16 lg:pt-8">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <p className="text-brand-red text-xs font-bold uppercase tracking-[0.3em] mb-1">Admin</p>
