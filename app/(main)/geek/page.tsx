@@ -48,18 +48,9 @@ const PRICE_RANGES = [
   { label: 'Acima de R$ 150', min: 150, max: 9999 },
 ]
 
-const SUBCATEGORIES = [
-  'Cards Avulsos',
-  'Booster Box',
-  'ETB',
-  'Starter Deck',
-  'Tin',
-  'Colecionáveis',
-  'Acessórios',
-]
-
 export default function GeekPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [subcategories, setSubcategories] = useState<string[]>([])
   const [sub, setSub] = useState('')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
@@ -74,6 +65,11 @@ export default function GeekPage() {
       .then((data: ApiProduct[]) => setAllProducts(data.map(apiToProduct)))
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    fetch('/api/product-subcategories?type=GEEK')
+      .then(r => r.json())
+      .then((data: { id: string; name: string }[]) => setSubcategories(data.map(d => d.name)))
+      .catch(() => {})
   }, [])
 
   const products = useMemo(() => {
@@ -132,7 +128,7 @@ export default function GeekPage() {
             totalResults={products.length}
             onFilterChange={setFilters}
             mode="geek"
-            showSubcategories={SUBCATEGORIES}
+            showSubcategories={subcategories}
             selectedSubcategory={sub}
             onSubcategoryChange={setSub}
           />

@@ -384,6 +384,16 @@ model SizeTableRow {
   sortOrder Int       @default(0)
 }
 
+// Product subcategories — admin-managed, drives the category filters on /geek and /produtos-3d
+model ProductSubcategory {
+  id          String   @id @default(cuid())
+  productType String   // GEEK | PRODUTO_3D | DRYFIT | OVERSIZED | CAMISETA
+  name        String
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
 // Announcement bar (scrolling messages above navbar)
 model AnnouncementBar {
   id        String   @id @default(cuid())

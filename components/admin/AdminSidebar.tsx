@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Package, Shirt, Stamp, BarChart3,
   ShoppingBag, FolderOpen, LogOut, ChevronRight, Box, Layers, Truck,
-  Menu, X, Megaphone, Tag, Ticket, DollarSign, Ruler
+  Menu, X, Megaphone, Tag, Ticket, DollarSign, Ruler, Tags
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +24,7 @@ const NAV = [
   { href: '/admin/avisos', label: 'Barra de Avisos', icon: Megaphone },
   { href: '/admin/cupons', label: 'Cupons de Desconto', icon: Ticket },
   { href: '/admin/financeiro', label: 'Financeiro', icon: DollarSign },
+  { href: '/admin/categorias-produtos', label: 'Categorias de Produtos', icon: Tags },
   { href: '/admin/tabelas-medidas', label: 'Tabelas de Medidas', icon: Ruler },
 ]
 

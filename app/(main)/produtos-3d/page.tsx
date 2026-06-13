@@ -47,10 +47,9 @@ const PRICE_RANGES = [
   { label: 'Acima de R$ 150', min: 150, max: 9999 },
 ]
 
-const SUBCATEGORIES = ['Chaveiros', 'Fitness', 'Geek', 'Decoração', 'Brindes', 'Medalhas', 'Troféus', 'Acessórios']
-
 export default function Produtos3DPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [subcategories, setSubcategories] = useState<string[]>([])
   const [sub, setSub] = useState('')
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<FilterState>({
@@ -64,6 +63,11 @@ export default function Produtos3DPage() {
       .then((data: ApiProduct[]) => setAllProducts(data.map(apiToProduct)))
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    fetch('/api/product-subcategories?type=PRODUTO_3D')
+      .then(r => r.json())
+      .then((data: { id: string; name: string }[]) => setSubcategories(data.map(d => d.name)))
+      .catch(() => {})
   }, [])
 
   const products = useMemo(() => {
@@ -95,7 +99,7 @@ export default function Produtos3DPage() {
               Chaveiros, medalhas, troféus, brindes e decoração impressos em PLA premium. Personalize com seu logo, arte ou texto.
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-5">
-              {['PLA Premium', 'Multicolorido', 'Mín. 10 un.', 'Prazo 5-7 dias'].map(tag => (
+              {['PLA Premium', 'Multicolorido', 'Qualidade Garantida', 'Prazo 5-7 dias'].map(tag => (
                 <span key={tag} className="text-xs text-violet-400/80 bg-violet-400/10 border border-violet-400/20 px-3 py-1">
                   {tag}
                 </span>
@@ -111,7 +115,7 @@ export default function Produtos3DPage() {
             totalResults={products.length}
             onFilterChange={setFilters}
             mode="3d"
-            showSubcategories={SUBCATEGORIES}
+            showSubcategories={subcategories}
             selectedSubcategory={sub}
             onSubcategoryChange={setSub}
           />

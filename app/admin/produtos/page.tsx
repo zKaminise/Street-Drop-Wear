@@ -66,11 +66,7 @@ const PRODUCT_TYPES = [
   { value: 'GEEK',       label: 'Geek Store' },
 ]
 
-const SUBCATEGORY_OPTIONS: Record<string, string[]> = {
-  GEEK:       ['Cards Avulsos', 'Booster Box', 'ETB', 'Starter Deck', 'Tin', 'Colecionáveis', 'Acessórios'],
-  PRODUTO_3D: ['Chaveiros', 'Fitness', 'Geek', 'Decoração', 'Brindes', 'Medalhas', 'Troféus', 'Acessórios'],
-  DRYFIT:     ['Regular', 'Slim', 'Regata', 'Top Academia'],
-}
+const DRYFIT_SUBCATEGORIES = ['Regular', 'Slim', 'Regata', 'Top Academia']
 
 const INITIAL: Partial<Product> = {
   name: '', slug: '', type: 'DRYFIT', gender: 'UNISEX', subcategory: '',
@@ -119,6 +115,7 @@ export default function ProdutosPage() {
   const [editing, setEditing]         = useState<Product | null>(null)
   const [form, setForm]               = useState<Partial<Product>>({ ...INITIAL })
   const [saving, setSaving]           = useState(false)
+  const [subcategoryOptions, setSubcategoryOptions] = useState<string[]>([])
 
   // Image upload state (card images)
   const [uploading, setUploading]     = useState<string | null>(null)
@@ -147,6 +144,19 @@ export default function ProdutosPage() {
   }, [filterType])
 
   useEffect(() => { load() }, [load])
+
+  const loadSubcategories = useCallback(async (type: string) => {
+    if (type === 'DRYFIT') {
+      setSubcategoryOptions(DRYFIT_SUBCATEGORIES)
+      return
+    }
+    const data = await fetch(`/api/admin/product-subcategories?type=${type}`).then(r => r.json())
+    setSubcategoryOptions(Array.isArray(data) ? data.map((d: { name: string }) => d.name) : [])
+  }, [])
+
+  useEffect(() => {
+    if (showModal) loadSubcategories(form.type ?? 'DRYFIT')
+  }, [showModal, form.type, loadSubcategories])
 
   // ── Modal helpers ─────────────────────────────────────────────────────────
 
@@ -525,12 +535,17 @@ export default function ProdutosPage() {
                       className={INPUT}
                     >
                       <option value="">— Sem categoria —</option>
-                      {(SUBCATEGORY_OPTIONS[form.type ?? 'DRYFIT'] ?? []).map(opt => (
+                      {subcategoryOptions.map(opt => (
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
                     </select>
                     <p className="text-[10px] text-white/25 mt-1">
-                      Define em qual filtro o produto aparece na loja.
+                      Define em qual filtro o produto aparece na loja.{' '}
+                      {form.type !== 'DRYFIT' && (
+                        <a href="/admin/categorias-produtos" target="_blank" className="text-[#E10600]/60 hover:text-[#E10600] underline">
+                          Gerenciar categorias →
+                        </a>
+                      )}
                     </p>
                   </Field>
 
