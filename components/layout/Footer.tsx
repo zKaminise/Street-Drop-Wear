@@ -179,16 +179,126 @@ export function Footer() {
               </li>
             </ul>
 
-            <div className="mt-5">
-              <p className="text-xs text-brand-gray-text/60 uppercase tracking-wider mb-2">Pagamento</p>
-              <div className="flex flex-wrap gap-1.5">
-                {['PIX', 'Visa', 'Master', 'Elo', 'Boleto'].map(method => (
-                  <span key={method} className="px-2 py-1 bg-white/5 text-[10px] text-brand-gray-text uppercase tracking-wider">
-                    {method}
-                  </span>
-                ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Payment & Security Strip */}
+      <div className="border-t border-white/5">
+        <div className="container-brand py-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 lg:gap-16">
+
+            {/* Payment methods */}
+            <div className="flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40 mb-3">Formas de Pagamento</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Visa */}
+                <div className="h-8 px-3 bg-[#1A1F71] flex items-center justify-center rounded-sm">
+                  <svg viewBox="0 0 60 20" width="38" height="14" aria-label="Visa">
+                    <text x="0" y="16" fill="white" fontSize="18" fontFamily="Arial,sans-serif" fontWeight="700" fontStyle="italic" letterSpacing="-0.5">VISA</text>
+                  </svg>
+                </div>
+                {/* Mastercard */}
+                <div className="h-8 px-2 bg-[#252525] flex items-center justify-center gap-0.5 rounded-sm">
+                  <svg viewBox="0 0 38 24" width="38" height="24" aria-label="Mastercard">
+                    <circle cx="14" cy="12" r="10" fill="#EB001B" />
+                    <circle cx="24" cy="12" r="10" fill="#F79E1B" />
+                    <path d="M19 5.35A10 10 0 0 1 24 12a10 10 0 0 1-5 6.65A10 10 0 0 1 14 12a10 10 0 0 1 5-6.65z" fill="#FF5F00" />
+                  </svg>
+                </div>
+                {/* Hipercard */}
+                <div className="h-8 px-3 bg-[#B22222] flex items-center justify-center rounded-sm">
+                  <svg viewBox="0 0 72 20" width="54" height="14" aria-label="Hipercard">
+                    <text x="0" y="15" fill="white" fontSize="13" fontFamily="Arial,sans-serif" fontWeight="700">Hipercard</text>
+                  </svg>
+                </div>
+                {/* Elo */}
+                <div className="h-8 px-3 bg-[#F5C518] flex items-center justify-center rounded-sm">
+                  <svg viewBox="0 0 36 20" width="30" height="16" aria-label="Elo">
+                    <text x="0" y="15" fill="#000" fontSize="15" fontFamily="Arial,sans-serif" fontWeight="900">elo</text>
+                  </svg>
+                </div>
+                {/* Alelo */}
+                <div className="h-8 px-3 bg-gradient-to-r from-[#F47920] to-[#2E8B2E] flex items-center justify-center rounded-sm">
+                  <svg viewBox="0 0 44 20" width="36" height="14" aria-label="Alelo">
+                    <text x="0" y="15" fill="white" fontSize="13" fontFamily="Arial,sans-serif" fontWeight="700">alelo</text>
+                  </svg>
+                </div>
+                {/* Diners Club */}
+                <div className="h-8 px-2 bg-[#F0F0F0] flex items-center justify-center rounded-sm">
+                  <svg viewBox="0 0 54 28" width="42" height="22" aria-label="Diners Club">
+                    <circle cx="18" cy="14" r="12" fill="#004A97" />
+                    <circle cx="36" cy="14" r="12" fill="#004A97" />
+                    <path d="M27 6.2a12 12 0 0 1 0 15.6A12 12 0 0 1 27 6.2z" fill="#004A97" />
+                    <path d="M27 8.5a9 9 0 0 0 0 11A9 9 0 0 0 27 8.5z" fill="#F0F0F0" />
+                  </svg>
+                </div>
+                {/* PIX */}
+                <div className="h-8 px-2.5 bg-[#32BCAD] flex items-center justify-center gap-1.5 rounded-sm">
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-label="PIX" fill="white">
+                    <path d="M8 0L10.83 5.17L16 8L10.83 10.83L8 16L5.17 10.83L0 8L5.17 5.17L8 0Z" />
+                  </svg>
+                  <span className="text-white text-[11px] font-bold tracking-wide">PIX</span>
+                </div>
+                {/* Boleto */}
+                <div className="h-8 px-3 bg-white flex items-center justify-center gap-1.5 rounded-sm">
+                  <svg viewBox="0 0 24 16" width="24" height="16" aria-label="Boleto" fill="#111">
+                    <rect x="0" y="0" width="2" height="16" />
+                    <rect x="4" y="0" width="1" height="16" />
+                    <rect x="7" y="0" width="3" height="16" />
+                    <rect x="12" y="0" width="1" height="16" />
+                    <rect x="15" y="0" width="2" height="16" />
+                    <rect x="19" y="0" width="3" height="16" />
+                    <rect x="23" y="0" width="1" height="16" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-black uppercase tracking-wide">Boleto</span>
+                </div>
               </div>
             </div>
+
+            {/* Security badges */}
+            <div className="flex-shrink-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40 mb-3">Site Seguro</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* SSL */}
+                <div className="h-10 px-3 bg-white/5 border border-white/10 flex items-center gap-2 rounded-sm">
+                  <svg viewBox="0 0 16 20" width="12" height="15" fill="none" aria-hidden="true">
+                    <rect x="1" y="7" width="14" height="12" rx="1.5" fill="#2E8B57" />
+                    <path d="M4 7V5a4 4 0 0 1 8 0v2" stroke="#2E8B57" strokeWidth="2" fill="none" />
+                    <circle cx="8" cy="13" r="2" fill="white" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="text-[9px] font-bold text-green-400 leading-none uppercase tracking-wide">Site Seguro</p>
+                    <p className="text-[8px] text-white/40 leading-none mt-0.5">SSL Certificado</p>
+                  </div>
+                </div>
+                {/* Google Safe */}
+                <div className="h-10 px-3 bg-white/5 border border-white/10 flex items-center gap-2 rounded-sm">
+                  <svg viewBox="0 0 20 20" width="16" height="16" aria-label="Google">
+                    <path d="M19.6 10.23c0-.68-.06-1.36-.18-2H10v3.79h5.4a4.61 4.61 0 0 1-2 3.02v2.5h3.24c1.9-1.75 3-4.33 3-7.31z" fill="#4285F4" />
+                    <path d="M10 20c2.7 0 4.96-.9 6.61-2.44l-3.24-2.5c-.9.6-2.05.96-3.37.96-2.59 0-4.78-1.75-5.56-4.1H1.1v2.58A10 10 0 0 0 10 20z" fill="#34A853" />
+                    <path d="M4.44 11.92A5.98 5.98 0 0 1 4.12 10c0-.67.11-1.32.32-1.92V5.5H1.1A10 10 0 0 0 0 10c0 1.61.38 3.13 1.1 4.5l3.34-2.58z" fill="#FBBC05" />
+                    <path d="M10 3.96c1.46 0 2.77.5 3.8 1.49l2.85-2.85A9.96 9.96 0 0 0 10 0 10 10 0 0 0 1.1 5.5l3.34 2.58C5.22 5.71 7.41 3.96 10 3.96z" fill="#EA4335" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="text-[9px] font-bold text-white/80 leading-none">Google</p>
+                    <p className="text-[8px] text-white/40 leading-none mt-0.5">Safe Browsing</p>
+                  </div>
+                </div>
+                {/* Compra Segura */}
+                <div className="h-10 px-3 bg-white/5 border border-white/10 flex items-center gap-2 rounded-sm">
+                  <svg viewBox="0 0 16 20" width="12" height="15" fill="none" aria-hidden="true">
+                    <path d="M8 0L1 3v6c0 4.42 2.98 8.56 7 9.93C12.02 17.56 15 13.42 15 9V3L8 0z" fill="#E10600" />
+                    <path d="M5 9l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="text-[9px] font-bold text-brand-red leading-none uppercase tracking-wide">Compra</p>
+                    <p className="text-[8px] text-white/40 leading-none mt-0.5">100% Segura</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
