@@ -35,6 +35,7 @@ type Product = {
   slug: string
   type: string
   gender: string
+  subcategory?: string
   price: number
   originalPrice?: number
   active: boolean
@@ -65,8 +66,15 @@ const PRODUCT_TYPES = [
   { value: 'GEEK',       label: 'Geek Store' },
 ]
 
+const SUBCATEGORY_OPTIONS: Record<string, string[]> = {
+  GEEK:       ['Cards Avulsos', 'Booster Box', 'ETB', 'Starter Deck', 'Tin', 'Colecionáveis', 'Acessórios'],
+  PRODUTO_3D: ['Chaveiros', 'Fitness', 'Geek', 'Decoração', 'Brindes', 'Medalhas', 'Troféus', 'Acessórios'],
+  DRYFIT:     ['Regular', 'Slim', 'Regata', 'Top Academia'],
+}
+
 const INITIAL: Partial<Product> = {
-  name: '', slug: '', type: 'DRYFIT', gender: 'UNISEX', price: 79.90, originalPrice: undefined,
+  name: '', slug: '', type: 'DRYFIT', gender: 'UNISEX', subcategory: '',
+  price: 79.90, originalPrice: undefined,
   description: '', material: '', isNew: false, isFeatured: false, active: true,
   isFlashSale: false, flashSalePrice: undefined, flashSaleEndsAt: '',
   imageUrl: '', hoverImageUrl: '',
@@ -157,6 +165,7 @@ export default function ProdutosPage() {
       originalPrice: p.originalPrice, description: p.description ?? '',
       material: p.material ?? '', isNew: p.isNew, isFeatured: p.isFeatured, active: p.active,
       gender: p.gender ?? 'UNISEX',
+      subcategory: p.subcategory ?? '',
       isFlashSale: p.isFlashSale, flashSalePrice: p.flashSalePrice,
       flashSaleEndsAt: p.flashSaleEndsAt ? p.flashSaleEndsAt.slice(0, 16) : '',
       imageUrl: p.imageUrl ?? '', hoverImageUrl: p.hoverImageUrl ?? '',
@@ -397,6 +406,9 @@ export default function ProdutosPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-xs border border-white/10 px-2 py-0.5 text-white/50">{TYPE_LABEL[p.type] ?? p.type}</span>
+                      {p.subcategory && (
+                        <span className="block text-[10px] text-white/30 mt-1">{p.subcategory}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-white font-semibold">{formatPrice(p.price)}</span>
@@ -497,9 +509,29 @@ export default function ProdutosPage() {
                   </Field>
 
                   <Field label="Tipo">
-                    <select value={form.type ?? 'DRYFIT'} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className={INPUT}>
+                    <select
+                      value={form.type ?? 'DRYFIT'}
+                      onChange={e => setForm(f => ({ ...f, type: e.target.value, subcategory: '' }))}
+                      className={INPUT}
+                    >
                       {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
+                  </Field>
+
+                  <Field label="Categoria / Subcategoria">
+                    <select
+                      value={form.subcategory ?? ''}
+                      onChange={e => setForm(f => ({ ...f, subcategory: e.target.value }))}
+                      className={INPUT}
+                    >
+                      <option value="">— Sem categoria —</option>
+                      {(SUBCATEGORY_OPTIONS[form.type ?? 'DRYFIT'] ?? []).map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-white/25 mt-1">
+                      Define em qual filtro o produto aparece na loja.
+                    </p>
                   </Field>
 
                   <Field label="Público-alvo">
