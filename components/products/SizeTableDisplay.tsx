@@ -31,10 +31,13 @@ export function SizeTableDisplay({ productType, gender, category, className = ''
     if (gender) params.set('gender', gender)
     if (category) params.set('category', category)
 
+    type RawRow = { size: string; values: string }
+    type RawTable = Omit<SizeTableData, 'columns' | 'rows'> & { columns: string; rows: RawRow[] }
+
     fetch(`/api/size-tables?${params}`)
       .then(r => r.json())
-      .then((data: Array<SizeTableData & { columns: string; rows: Array<{ size: string; values: string }> }>) => {
-        const parsed = data.map(t => ({
+      .then((data: RawTable[]) => {
+        const parsed: SizeTableData[] = data.map(t => ({
           ...t,
           columns: (() => { try { return JSON.parse(t.columns) } catch { return [] } })(),
           rows: t.rows.map(r => ({

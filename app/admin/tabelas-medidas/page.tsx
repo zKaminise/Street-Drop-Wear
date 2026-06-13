@@ -218,24 +218,25 @@ function TableEditor({ table, onSave, onCancel }: {
   )
 }
 
+type RawRow = { size: string; values: string; sortOrder?: number }
+type RawTable = Omit<SizeTable, 'columns' | 'rows'> & { columns: string; rows: RawRow[] }
+
+function parseTables(raw: RawTable[]): SizeTable[] {
+  return raw.map(t => ({
+    ...t,
+    columns: (() => { try { return JSON.parse(t.columns) } catch { return [] } })(),
+    rows: (t.rows ?? []).map(r => ({
+      size: r.size,
+      values: (() => { try { return JSON.parse(r.values) } catch { return [] } })(),
+    })),
+  }))
+}
+
 export default function TabelasMedidasPage() {
   const [tables, setTables] = useState<SizeTable[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-
-  type RawRow = { size: string; values: string; sortOrder?: number }
-  type RawTable = Omit<SizeTable, 'columns' | 'rows'> & { columns: string; rows: RawRow[] }
-
-  const parseTables = (raw: RawTable[]): SizeTable[] =>
-    raw.map(t => ({
-      ...t,
-      columns: (() => { try { return JSON.parse(t.columns) } catch { return [] } })(),
-      rows: (t.rows ?? []).map(r => ({
-        size: r.size,
-        values: (() => { try { return JSON.parse(r.values) } catch { return [] } })(),
-      })),
-    }))
 
   const load = useCallback(async () => {
     setLoading(true)
