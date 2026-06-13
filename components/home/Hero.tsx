@@ -195,7 +195,7 @@ function OversizedShirtBack() {
   return (
     <div className="relative w-full">
       <Image
-        src="/images/mockups/mockup-19.png"
+        src="/images/mockups/9-costa-1781219160205.png"
         alt="StreetDrop Wear camiseta oversized costas"
         width={600}
         height={680}

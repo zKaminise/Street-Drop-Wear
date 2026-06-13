@@ -24,7 +24,7 @@ const NAV_ITEMS = [
     href: '/oversized',
     children: [
       { label: 'Oversized', href: '/oversized', desc: 'Corte amplo streetwear premium' },
-      { label: 'Camisetas Normais', href: '/camisetas', desc: 'Regular e slim fit personalizada' },
+      { label: 'Camisetas', href: '/camisetas', desc: 'Regular e slim fit personalizada' },
       { label: 'DryFit Fitness', href: '/dryfit', desc: 'Performance UV50+' },
     ],
   },

@@ -147,7 +147,7 @@ export const MOCK_PRODUCTS: Product[] = [
     createdAt: '2024-04-01',
   },
 
-  // CAMISETAS NORMAIS
+  // CAMISETAS
   {
     id: 'cam-001',
     slug: 'camiseta-classic-black',

@@ -33,9 +33,9 @@ const STEPS = [
 ]
 
 const STEP_IMAGES = [
-  { src: '/images/mockups/mockup-20.png', alt: 'Camiseta oversized preta lisa' },
-  { src: '/images/mockups/mockup-21.png', alt: 'Arte de estampa exclusiva StreetDrop' },
-  { src: '/images/mockups/mockup-24.png', alt: 'Camiseta com estampa personalizada final' },
+  { src: '/images/mockups/mockup-lisa.png', alt: 'Camiseta oversized lisa' },
+  { src: '/images/mockups/mockup-estampa.png', alt: 'Arte de estampa exclusiva StreetDrop' },
+  { src: '/images/mockups/9-costa-1781219160205.png', alt: 'Camiseta com estampa personalizada final' },
   { src: '/images/mockups/mockup-22.png', alt: 'Embalagem premium StreetDrop Wear' },
   { src: '/images/mockups/mockup-23.png', alt: 'Entrega expressa StreetDrop Wear' },
 ]
@@ -95,14 +95,14 @@ function StepImageLayer({
           style={{ padding: '8%' }}
           sizes="(max-width: 640px) 300px, 380px"
         />
-        {/* Vignette — fades white/grey image backgrounds into dark page */}
+        {/* Vignette — fades white/grey image backgrounds into dark page 
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
               'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(11,11,13,0.55) 62%, rgba(11,11,13,0.95) 80%)',
           }}
-        />
+        />*/}
       </div>
     </motion.div>
   )

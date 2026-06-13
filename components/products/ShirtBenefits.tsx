@@ -173,7 +173,7 @@ export function ShirtBenefits({
 
       {/* ── Bottom row: features | gallery ── */}
       <div className="container-brand">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 pb-8 md:pb-14">
+        <div className="grid grid-cols-1 mt-5 md:grid-cols-2 gap-0 pb-8 md:pb-14">
           {/* Features list */}
           <div className="pr-0 md:pr-16 py-8 md:py-0">
             <h3 className="text-base font-black uppercase tracking-widest text-[#0B0B0D] mb-6 pb-4 border-b border-black/10 flex items-center justify-between">
